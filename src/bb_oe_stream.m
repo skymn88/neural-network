@@ -18,6 +18,9 @@ if model.noIntercept&&cfg.usePressure&&~isfield(model,'featureSpec')
  model.featureSpec=struct('basis','linear','parameter',0,'force',false,'pressure',true);
  model.inputNames={'DDV'};model.nInputs=1;
 end
+if isfield(cfg,'oeInputName')
+ model.inputNames={cfg.oeInputName};model.nInputs=1;
+end
 model.oeConfig=cfg;
 first=cfg.evalStartIndex;count=max(1,floor(cfg.oeMaxTrainRows/numel(flights)));
 nx=0;mx=[];sx=[];ny=0;my=0;sy=0;indices=cell(size(flights));

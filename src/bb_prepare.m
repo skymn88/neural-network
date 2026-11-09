@@ -8,6 +8,7 @@ end
 if cfg.usePressure
     required = [required {'SupplyPressure','ReturnPressure'}];
 end
+if cfg.useSetpoint,required=[required {'RAMSetpoint'}];end
 clean = struct(); t0 = -inf; t1 = inf;
 for i = 1:numel(required)
     name = required{i};

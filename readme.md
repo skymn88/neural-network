@@ -117,3 +117,11 @@ Teşhis için `cfg.diagnostics=true`: seçili modelin beş aşaması, `Alignment
 Cascade eğitimi: `cfg.ramTrainInput='oof'` yalnız TRAIN uçuşları arasında DDV LOFO tahminleriyle OE modellerini eğitir (varsayılan `'measured'`). Üçten az TRAIN uçuşunda uyarıyla ölçülen DDV kullanılır. `cfg.reportLoo=true` yalnız DDV LOFO teşhisini de açabilir. `cfg.oeMaxTrainRows=Inf` tüm uygun örnekleri `oeChunkRows=2048` bloklarıyla işler. `cfg.oeZeroRateAtNull=true` intercept içermeyen ek `FIR_OE_Zero` adayını açar.
 
 Yapısal adaylar (hepsi varsayılan kapalı): `hamEnabled` → HAM_OE; `clampRAM` → TRAIN aralığı + `clampMargin` kadar kıskaç; `useForce` → ek `_F` adayları. `usePressure=true` ile `pressureInteractions=true` ek `_P` adaylarını açar; eski ham basınç yolu korunur, yeni `_P` modelleri yalnız DDV×sqrt(Ps−Pr) kullanır. Eksik kuvvet/basınç kanalı açık hatadır. `hamDeadbands` ve `hamScales` fiziksel DDV birimindedir, kendi sensör ölçeğine göre ayarla.
+
+Kapalı çevrim (izole): adaptöre 64 Hz `RAMSetpoint` bağla ve `run_project('user','closed')` çalıştır. Bu komut `useSetpoint` seçeneğini açar; eksik kanalda hata verir. Varsayılan `run_project('user')` plant akışıdır. Bayrakları dosya düzenlemeden vermek için:
+```matlab
+opts=struct('diagnostics',true,'ramTrainInput','oof','oeMaxTrainRows',Inf,'hamEnabled',true);
+run_project('user','plant',opts);
+run_project('user','closed',opts);
+```
+`ctrlNoiseStd=0` varsayılandır (RAM birimi); `ctrlLags`, `ctrlTaus`, `ctrlRidge` kontrolcü aramasını belirler. `ClosedLoop`/`ClosedSelection` sayfaları ve `closed_models.mat` ayrı üretilir. Sabit sentetik fixture setpoint içermediğinden closed komutu için hazır veri değildir; veri değiştirilmez.

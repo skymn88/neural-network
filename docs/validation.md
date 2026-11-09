@@ -21,3 +21,11 @@ Bu bulut oturumunda MATLAB, gerçek MATLAB eğitimi/smoke veya gerçek uçuş va
 - 1–3 uçuşta zaman kesitleri bağımsız uçuş testi değildir.
 - Basınç seçeneği ve gerçek zamanlı preprocessing ayrıca doğrulanmalıdır.
 - C MEX ve Simulink entegrasyonu bu repo düzenlemesinde üretilmedi/doğrulanmadı.
+
+## İsteğe bağlı aşamaların kontrolleri
+
+Yeni deterministik MATLAB testleri `bb_run_checks` içine eklendi: gecikme işareti/sabit sinyal, hold eğimi, test sütunu gizleme; yoğun/bloklu OE denkliği ve örnek sayısı; OOF hedef sızıntısı; HAM baz/gecikme sırası, force/pressure zorunluluğu ve kıskaç; LOFO raporu; kontrolcü özellikleri, RNG tekrarı, hedef/akım/DDV olmadan kapalı çevrim çıkarımı ve ıraksama. Bunlar bu ortamda çalıştırılmadı.
+
+Gerçekte çalıştırılan: MISS_HIT R2019a statik kontrol, Git diff/bağımlılık/dosya adı kontrolleri, SHA256 kontrolü; bağımsız Python/NumPy/SciPy hesabında bloklu filtre/normal denklem birikiminin yoğun hesapla sayısal denkliği. Python kontrolü MATLAB kodunu çalıştırmaz ve eğitim başarısını doğrulamaz.
+
+MATLAB'da önce `start_here`, sonra gerçek adaptörü bağlayıp varsayılan `run_project('user')`; ardından README'deki bayrakları sırayla açarak aynı split üzerinde karşılaştır. `run_project('user','closed')` için 64 Hz RAMSetpoint gerekir. Mevcut sentetik MAT değiştirilmedi; closed veri eksikliğinde açık hata beklenir. İlk çalıştırma sonuçlarını runtime doğrulaması için paylaş.

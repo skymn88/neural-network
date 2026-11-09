@@ -10,6 +10,8 @@ n=bb_oe_train(f,c,-.64,3,1e-3);
 assert(n.trainRows==3*(199-8+1));
 assert(max(abs(bb_rollout_rate(m,f(1),0)-bb_rollout_rate(n,f(1),0)))<1e-9);
 x=bb_oe_features(n,f(1),[1 2 70]);all=bb_lag_inputs(f(1),{'DDV'},3);assert(isequal(x,all([1 2 70],:)));
+c.oeMaxTrainRows=51;dense=bb_oe_train(f,c,-.64,3,1e-3);stream=bb_oe_stream(f,c,-.64,3,1e-3);
+assert(max(abs(bb_rollout_rate(dense,f(1),0)-bb_rollout_rate(stream,f(1),0)))<1e-9);
 c.oeZeroRateAtNull=true;n=bb_oe_train(f,c,0,3,1e-3);assert(bb_forward(n,zeros(1,4))==0);
 [o,r]=bb_ddv_oof(f,c,'FIR_rich');assert(height(r)==3);
 g=f;g(1).S.DDV=g(1).S.DDV+100;[og,~]=bb_ddv_oof(g,c,'FIR_rich');

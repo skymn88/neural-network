@@ -1,9 +1,18 @@
-function outDir=run_rich_comparison(source,quick)
+function outDir=run_rich_comparison(source,quick,mode,overrides)
 % No NARX. Select on validation, then evaluate test. Bundled synthetic test is a reused regression case.
 if nargin<1,source='synthetic';end
 if nargin<2,quick=false;end
-cfg=bb_config();cfg.quick=quick;cfg.trainStartIndex=2*cfg.inputLags+2;cfg.trainEndTrim=1;
-paths=bb_paths();folder=paths.root;
+if nargin<3,mode='plant';end
+if nargin<4,overrides=struct();end
+if ~ismember(mode,{'plant','closed'}),error('Mode must be plant or closed');end
+cfg=bb_config();names=fieldnames(overrides);
+for j=1:numel(names)
+    if ~isfield(cfg,names{j}),error('Unknown cfg field: %s',names{j});end
+    cfg.(names{j})=overrides.(names{j});
+end
+if strcmp(mode,'closed'),cfg.useSetpoint=true;end
+cfg.quick=quick;cfg.trainStartIndex=2*cfg.inputLags+2;cfg.trainEndTrim=1;
+paths=bb_paths();
 if strcmp(source,'synthetic'),d=load(paths.synthetic);Raw=d.Raw;
 elseif strcmp(source,'user'),Raw=load_user_flights();
 else,error('Source must be synthetic or user');end
@@ -27,7 +36,7 @@ cfg.trainStartIndex=cfg.evalStartIndex;
 root=fullfile(cfg.outputRoot,[cfg.runPrefix '_' datestr(now,'yyyymmdd_HHMMSS')]);outDir=root;k=1;
 while exist(outDir,'dir'),outDir=sprintf('%s_%02d',root,k);k=k+1;end
 mkdir(outDir);
-labels={'MLP_v6_recipe','MLP_more_training','MLP_quasiNewton','FIR_rich','GP_coverage'};
+labels={'MLP_basic','MLP_more_training','MLP_quasiNewton','FIR_rich','GP_coverage'};
 ddvModels=struct();rates=struct();choices={};best=Inf;start=cfg.evalStartIndex;
 for j=1:numel(labels)
     label=labels{j};[c,kind]=bb_rich_config(cfg,label);
@@ -73,7 +82,10 @@ for j=1:numel(labels)
 end
 % Output-error FIR alternative: fit complete position trajectories directly.
 oeChoices={};bestOE=Inf;oeBetas=cfg.betaCandidates;oeRidge=cfg.oeRidge;
-if quick,oeBetas=[0 -.025];oeRidge=1e-3;cfg.oeMaxTrainRows=700;end
+if quick
+    oeBetas=[0 -.025];oeRidge=1e-3;
+    if ~isinf(cfg.oeMaxTrainRows),cfg.oeMaxTrainRows=700;end
+end
 for beta=oeBetas
  for lag=oeLags
   for ridge=oeRidge
@@ -153,7 +165,6 @@ if ~isfinite(bestAll),error('All validation models failed');end
 angle=bb_angle_select(tr,va,start);
 selection=struct('DDV',chosenDDV,'RAM',chosenRate,'criterion','validation cascade RAM RMSE','seed',cfg.seed,'smokeMode',logical(quick),'source',source);
 % No test outputs were used above.
-save(fullfile(outDir,'selection.mat'),'selection','choices','oeChoices','cfg','-v7');
 configs=struct();
 for j=1:numel(labels)
     label=labels{j};configs.(label)=struct('ddv',ddvModels.(chosenDDV),'rate',rates.(label),'angle',angle);
@@ -162,6 +173,14 @@ configs.HoldInitial=struct('ddv',ddvModels.(chosenDDV),'rate',bb_hold_model(cfg)
 
 
 [details,summary]=bb_evaluate_rich(configs,tr,va,te,cfg);
+if strcmp(mode,'closed')
+    [closed,closedSelection]=bb_closed_train(tr,va,configs.(chosenRate),cfg,oeLags,oeBetas,oeRidge);
+    [cs,cr]=bb_closed_report(closed,tr,va,te,cfg);summary=[summary;cs];
+    selection.Closed=closed.selected;selection.closedAccepted=closed.accepted;
+    writetable(cr,fullfile(outDir,'comparison.xlsx'),'Sheet','ClosedLoop');
+    writetable(closedSelection,fullfile(outDir,'comparison.xlsx'),'Sheet','ClosedSelection');
+    save(fullfile(outDir,'closed_models.mat'),'closed','closedSelection','cfg','-v7');
+end
 if ~isempty(oofReport)
     selection.LOFO_DDV_RMSE=sqrt(sum(oofReport.SSE)/sum(oofReport.Samples));
     writetable(oofReport,fullfile(outDir,'comparison.xlsx'),'Sheet','OOF_DDV');
@@ -192,6 +211,7 @@ writetable(cell2table(nlChoices,'VariableNames',{'Beta','Lags','Ridge','Validati
 writetable(manifest,fullfile(outDir,'comparison.xlsx'),'Sheet','Split');
 writetable(cell2table(choices,'VariableNames',{'Stage','Label','Beta','Calibrated','Gain','Bias','ValidationRMSE'}),fullfile(outDir,'comparison.xlsx'),'Sheet','ValidationSelection');
 writetable(cell2table(seedRows,'VariableNames',{'Seed','ValidationRAMRMSE'}),fullfile(outDir,'comparison.xlsx'),'Sheet','SeedSensitivity');
+save(fullfile(outDir,'selection.mat'),'selection','choices','oeChoices','cfg','-v7');
 save(fullfile(outDir,'trained_models.mat'),'configs','selection','ddvModels','cfg','manifest','-v7');
 fprintf('Results: %s\n',outDir);
 end

@@ -4,6 +4,10 @@ if nargin<3,outDir='';end
 if nargin<4,cfg=bb_config();end
 splits={'train','validation','test'};stages={'RAM_Cascade','Angle_Cascade'};
 if cfg.diagnostics,stages={'RAM_Cascade','Angle_Cascade','DDV','RAM_Component','Angle_Component'};end
+if isfield(selection,'Closed')
+    if ~any(strcmp(stages,'RAM_Component')),stages=[stages {'RAM_Component'}];end
+    stages=[stages {'RAM_Closed'}];
+end
 labels=unique(summary.Model,'stable');rows={};lines={};
 if isfield(selection,'smokeMode')&&selection.smokeMode
     lines{end+1}='SMOKE RUN: reduced training budget, NOT model fidelity validation';
@@ -12,6 +16,9 @@ if isfield(selection,'source'),lines{end+1}=sprintf('Data source: %s',selection.
 lines{end+1}='Fit: 100 ideal | RMSE: 0 ideal, in original signal units';
 if isfield(selection,'DDV'),lines{end+1}=sprintf('DDV selected: %s',selection.DDV);end
 if isfield(selection,'RAM'),lines{end+1}=sprintf('RAM selected on VALIDATION: %s',selection.RAM);end
+if isfield(selection,'closedAccepted')&&~selection.closedAccepted
+    lines{end+1}='CLOSED: no acceptable validation candidate; failed rollouts are diagnostic only.';
+end
 if isfield(selection,'RAM')
     ddvFit=nan(1,3);ddvRMSE=nan(1,3);
     for si=1:3
@@ -27,11 +34,13 @@ for q=1:numel(stages)
     lines{end+1}='';lines{end+1}=stages{q};
     lines{end+1}=sprintf('%-19s %7s %7s %7s | %9s %9s %9s','Model','Fit Tr','Fit Va','Fit Te','RMSE Tr','RMSE Va','RMSE Te');
     for j=1:numel(labels)
-        if q>2&&(~isfield(selection,'RAM')||~strcmp(labels{j},selection.RAM)),continue;end
+        if q>2&&~strcmp(stages{q},'RAM_Closed')&&(~isfield(selection,'RAM')||~strcmp(labels{j},selection.RAM)),continue;end
+        if ~any(strcmp(summary.Model,labels{j})&strcmp(summary.Stage,stages{q})),continue;end
         fits=nan(1,3);rmse=nan(1,3);
         for s=1:3
             if s==3&&~cfg.printTestForAll&&~strcmp(labels{j},'HoldInitial')&&...
-                    (~isfield(selection,'RAM')||~strcmp(labels{j},selection.RAM)),continue;end
+                    (~isfield(selection,'RAM')||~strcmp(labels{j},selection.RAM))&&...
+                    (~isfield(selection,'Closed')||~strcmp(labels{j},selection.Closed)),continue;end
             z=summary(strcmp(summary.Model,labels{j})&strcmp(summary.Stage,stages{q})&strcmp(summary.Split,splits{s}),:);
             if height(z)>1,error('Duplicate summary key');end
             if height(z)==1,fits(s)=z.FitPct;rmse(s)=z.RMSE;end

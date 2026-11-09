@@ -13,6 +13,7 @@ for s=1:3
             u=bb_predict_batch(c.ddv,fl);
             [rd,g]=bb_rollout_rate(c.rate,fl,fl.S.RAM(1));rc=bb_rollout_rate(c.rate,fl,fl.S.RAM(1),struct('DDV',u));
             one=[fl.S.RAM(1);(1+c.rate.beta/cfg.Fs)*fl.S.RAM(1:end-1)+g(2:end)/cfg.Fs];
+            if isfield(c.rate,'ramBounds'),one=min(max(one,c.rate.ramBounds(1)),c.rate.ramBounds(2));end
             angle=polyval(flipud(c.angle.coefficients),rc/c.angle.scale);
             direct=polyval(flipud(c.angle.coefficients),fl.S.RAM/c.angle.scale);
             preds={u,rd,rc,angle,direct};steps={u,one,[],[],direct};

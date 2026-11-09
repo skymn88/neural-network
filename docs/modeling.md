@@ -1,6 +1,6 @@
 # Aktif modelleme yaklaşımı
 
-Amaç gerçek fiziksel denklemleri zorunlu tutmadan Current → DDV → RAM → açı zincirini uçuş verisinden tanımlamaktır. Kontrolcü döngülerinin modeli bu sürümde yoktur.
+Amaç gerçek fiziksel denklemleri zorunlu tutmadan Current → DDV → RAM → açı zincirini uçuş verisinden tanımlamaktır. Kapalı çevrim kontrolcü deneyi yalnız açıkça seçilen closed modunda çalışır.
 
 ## DDV
 
@@ -46,3 +46,9 @@ HAM_OE bir adayda yalnız bir statik skaler harita seçer: deadband veya tanh; h
 Toolbox'sız model sözleşmesi: `kind='FIR'`, `weights`, `xMean/xStd`, `yMean/yStd`, `inputLags`, `inputNames`, `inputBasis`, `beta`, `Fs`, `rateGain/rateBias`; isteğe bağlı `noIntercept`, `featureSpec(basis,parameter,force,pressure)`, `ramBounds`. HAM/custom modeller için `bb_predict_batch` statik harita ve lag'leri hazırlar; `bb_forward` hazırlanmış özellikleri işler. Çıkarım durumu bir RAM konumu ve en fazla max(inputLags,8) harici giriş geçmişidir; eğitim verisi gerekmez. `oeConfig` yalnız yeniden eğitim/CV metadatasıdır. Kıskaç etkinse açık/kapalı çevrim kabulünde kıskaçsız sonuçlar da ayrıca incelenmelidir.
 
 `reportLoo=true` ayrıca OE RAM adaylarının sabit seçilmiş hiperparametreleriyle TRAIN LOFO cascade RMSE hesaplar (`LOFO_RAM`, kompakt ek sütun). Her fold DDV ve RAM'i yeniden eğitir; OOF modunda iç TRAIN fold'ları da yeniden hesaplanır. Bu iç içe model seçimi değildir; hiperparametreler validation'dan geldiği için yalnız teşhistir, seçim ölçütü değildir.
+
+Kapalı çevrim: `SP_OE` setpoint geçmişinden RAM tahmin eden beta<0 OE temel çizgisidir. `Hybrid` tek ridge kontrolcü + donuk seçilmiş DDV/RAM plant kullanır. Kontrolcü eğitim girdileri e(k)=setpoint(k)−RAM(k−1), e geçmişi, sızıntılı integral, önceki DDV/akım geçmişidir. Simülasyonda RAMhat(k−1), tahmin edilen DDV ve akım kullanılır; gerçek çıktılardan reset yoktur. Başlangıç RAM dışarıdan verilir; kontrolcü/DDV/akım geçmişleri sıfırdır. Bu başlangıç seçimi deploy arayüzünde korunmalıdır.
+
+`bb_ctrl_train` model alanları: FIR normalizasyon/ağırlıkları, `lags`, `taus`, `Fs`, `ridge`, `noiseStd`. `bb_ctrl_features` durumu: error/DDV/current sabit uzunluklu tamponları ve integral vektörü. `bb_closed_loop` plant alanları `ddv`, `rate`, `trainBounds`; sadece setpoint ve modelin gerektirdiği harici force/pressure okunur. İleride C için sonlu tamponlar yeterlidir; burada C/Simulink üretilmez.
+
+Iraksama eşiği 2×max(abs(TRAIN RAM)) (sıfır aralıkta eps); hybrid kıskaç öncesi durumu da kontrol eder. NaN/Inf başarısızlıktır. Iraksayan validation kontrolcüleri seçilmez; tümü başarısızsa ilk kontrolcü açık uyarıyla başarısız teşhis olarak raporlanır, performans iddiası yapılmaz. Closed seçim yalnız validation'dadır; plant seçimi değişmez. Gürültü yalnız kontrolcü eğitimindeki RAM geri beslemesine uygulanır; seed ve RNG durumu korunur.

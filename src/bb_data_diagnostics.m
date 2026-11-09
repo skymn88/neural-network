@@ -1,6 +1,8 @@
 function report=bb_data_diagnostics(tr,va,te,cfg)
 % Train-only reference ranges. Diagnostic only: never changes split/model data.
 channels={'CoilCurrent','DDV','RAM','Deflection'};
+if cfg.useForce,channels=[channels {'ActuatorForce'}];end
+if cfg.useSetpoint,channels=[channels {'RAMSetpoint'}];end
 if cfg.usePressure,channels=[channels {'SupplyPressure','ReturnPressure'}];end
 sets={tr,va,te};splits={'train','validation','test'};rows={};
 for j=1:numel(channels)

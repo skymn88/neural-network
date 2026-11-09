@@ -11,7 +11,13 @@ m.featureSpec.force=true;m.featureSpec.pressure=true;X=bb_oe_features(m,f,1);ass
 g=f;g.S=rmfield(g.S,'ActuatorForce');failed=false;try,bb_oe_features(m,g,1);catch,failed=true;end;assert(failed);
 c.hamDeadbands=.2;c.hamScales=[];
 [m,r,score]=bb_oe_search(f,f,{u},c,'HAM_OE_F_P',3,0,1e-3);assert(height(r)==1&&isfinite(score));
+bounded=bb_ram_bounds(struct(),f,c);
+expected=[min(f.S.RAM) max(f.S.RAM)]+[-1 1]*c.clampMargin*(max(f.S.RAM)-min(f.S.RAM));
+assert(max(abs(bounded.ramBounds-expected))<1e-12);
+off=c;off.clampRAM=false;assert(isempty(fieldnames(bb_ram_bounds(struct(),f,off))));
 p=bb_rollout_rate(m,f,100);assert(all(p>=m.ramBounds(1)&p<=m.ramBounds(2)));
 g=f;g.S=rmfield(g.S,'RAM');assert(isequal(p,bb_rollout_rate(m,g,100)));
 assert(numel(m.weights)<3*(3+1+27)+1);
+raw=bb_make_demo();raw=rmfield(raw,'ActuatorForce');c.useForce=true;failed=false;
+try,bb_prepare(raw(1),c);catch,failed=true;end;assert(failed);
 end
