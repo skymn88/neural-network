@@ -59,7 +59,7 @@ for j=1:numel(labels)
         model=bb_rate_train(tr,c,kind,beta);[gain,bias]=bb_rate_calibrate(model,tr,start);
         variants=[1 0;gain bias];
         for v=1:size(variants,1)
-            model.rateGain=variants(v,1);model.rateBias=variants(v,2);sse=0;n=0;
+            model.rateGain=variants(v,1);model.rateBias=variants(v,2);model=bb_ram_bounds(model,tr,cfg);sse=0;n=0;
             for f=1:numel(va)
                 p=bb_rollout_rate(model,va(f),va(f).S.RAM(1),struct('DDV',vDDV{f}));idx=start:numel(p);
                 sse=sse+sum((p(idx)-va(f).S.RAM(idx)).^2);n=n+numel(idx);
@@ -78,7 +78,7 @@ for beta=oeBetas
  for lag=oeLags
   for ridge=oeRidge
     baseCfg=cfg;baseCfg.oeZeroRateAtNull=false;
-    model=bb_oe_train(ramTr,baseCfg,beta,lag,ridge);sse=0;n=0;worst=0;
+    model=bb_oe_train(ramTr,baseCfg,beta,lag,ridge);model=bb_ram_bounds(model,tr,cfg);sse=0;n=0;worst=0;
     for f=1:numel(va)
         p=bb_rollout_rate(model,va(f),va(f).S.RAM(1),struct('DDV',vDDV{f}));idx=start:numel(p);
         e=p(idx)-va(f).S.RAM(idx);sse=sse+sum(e.^2);n=n+numel(e);
@@ -98,7 +98,7 @@ nlBest=Inf;nlConfig=cfg;nlConfig.oeNonlinear=true;nlConfig.oeZeroRateAtNull=fals
 for beta=oeBetas
  for lag=oeLags(oeLags<=128)
   for ridge=oeRidge
-    model=bb_oe_train(ramTr,nlConfig,beta,lag,ridge);sse=0;n=0;
+    model=bb_oe_train(ramTr,nlConfig,beta,lag,ridge);model=bb_ram_bounds(model,tr,cfg);sse=0;n=0;
     for f=1:numel(va)
         p=bb_rollout_rate(model,va(f),va(f).S.RAM(1),struct('DDV',vDDV{f}));idx=start:numel(p);
         e=p(idx)-va(f).S.RAM(idx);sse=sse+sum(e.^2);n=n+numel(e);
@@ -117,7 +117,7 @@ if cfg.oeZeroRateAtNull
     for beta=oeBetas
      for lag=oeLags
       for ridge=oeRidge
-       model=bb_oe_train(ramTr,cfg,beta,lag,ridge);sse=0;n=0;
+       model=bb_oe_train(ramTr,cfg,beta,lag,ridge);model=bb_ram_bounds(model,tr,cfg);sse=0;n=0;
        for f=1:numel(va)
         p=bb_rollout_rate(model,va(f),va(f).S.RAM(1),struct('DDV',vDDV{f}));ix=start:numel(p);
         sse=sse+sum((p(ix)-va(f).S.RAM(ix)).^2);n=n+numel(ix);
@@ -133,6 +133,20 @@ if cfg.oeZeroRateAtNull
 end
 
 
+extraLabels={};extraReport=table();
+if cfg.hamEnabled,extraLabels={'HAM_OE'};end
+baseLabels=[{'FIR_OE','NL_OE'} extraLabels];
+if cfg.useForce,extraLabels=[extraLabels strcat(baseLabels,'_F')];end
+if cfg.usePressure&&cfg.pressureInteractions,extraLabels=[extraLabels strcat(baseLabels,'_P')];end
+if cfg.useForce&&cfg.usePressure&&cfg.pressureInteractions,extraLabels=[extraLabels strcat(baseLabels,'_F_P')];end
+for j=1:numel(extraLabels)
+ label=extraLabels{j};
+ [model,report,score]=bb_oe_search(ramTr,va,vDDV,cfg,label,oeLags,oeBetas,oeRidge);
+ rates.(label)=model;extraReport=[extraReport;report]; %#ok<AGROW>
+ if score<bestAll,bestAll=score;chosenRate=label;end
+end
+labels=[labels extraLabels];
+if ~isempty(extraReport),writetable(extraReport,fullfile(outDir,'comparison.xlsx'),'Sheet','StructuralSelection');end
 seedRows={cfg.seed,bestAll};
 
 if ~isfinite(bestAll),error('All validation models failed');end
@@ -151,6 +165,12 @@ configs.HoldInitial=struct('ddv',ddvModels.(chosenDDV),'rate',bb_hold_model(cfg)
 if ~isempty(oofReport)
     selection.LOFO_DDV_RMSE=sqrt(sum(oofReport.SSE)/sum(oofReport.Samples));
     writetable(oofReport,fullfile(outDir,'comparison.xlsx'),'Sheet','OOF_DDV');
+end
+if cfg.reportLoo
+    loo=bb_ram_loo(tr,cfg,rates,chosenDDV);
+    if ~isempty(loo)
+        selection.loo=loo;writetable(loo,fullfile(outDir,'comparison.xlsx'),'Sheet','LOFO_RAM');
+    end
 end
 compact=bb_print_summary(summary,selection,outDir,cfg);
 audit=bb_data_diagnostics(tr,va,te,cfg);

@@ -55,6 +55,14 @@ for j=1:numel(focus)
 end
 lines{end+1}='One-step uses measured previous RAM; free-run does not.';
 compact=cell2table(rows,'VariableNames',{'Model','Stage','Fit_Train','Fit_Val','Fit_Test','RMSE_Train','RMSE_Val','RMSE_Test'});
+if isfield(selection,'loo')
+    compact.LOFO_RAM_RMSE=nan(height(compact),1);
+    for k=1:height(selection.loo)
+        ix=strcmp(compact.Model,selection.loo.Model{k})&strcmp(compact.Stage,'RAM_Cascade');
+        compact.LOFO_RAM_RMSE(ix)=selection.loo.LOFO_RAM_RMSE(k);
+        lines{end+1}=sprintf('%s TRAIN LOFO RAM RMSE: %.6g',selection.loo.Model{k},selection.loo.LOFO_RAM_RMSE(k));
+    end
+end
 if isfield(selection,'LOFO_DDV_RMSE')
     compact.LOFO_DDV_RMSE=repmat(selection.LOFO_DDV_RMSE,height(compact),1);
     lines{end+1}=sprintf('TRAIN LOFO DDV RMSE (report only): %.6g',selection.LOFO_DDV_RMSE);

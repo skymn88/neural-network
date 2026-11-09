@@ -9,7 +9,9 @@ if isfield(model,'rateGain'),rate=model.rateGain*rate;end
 if isfield(model,'rateBias'),rate=rate+model.rateBias;end
 if size(rate,2)~=1,error('Rate model must have one output');end
 x=zeros(size(rate));x(1)=x0;
+if isfield(model,'ramBounds'),x(1)=min(max(x(1),model.ramBounds(1)),model.ramBounds(2));end
 for k=2:numel(x)
     x(k)=a*x(k-1)+rate(k)/model.Fs;
+    if isfield(model,'ramBounds'),x(k)=min(max(x(k),model.ramBounds(1)),model.ramBounds(2));end
 end
 end

@@ -9,6 +9,16 @@ model.outputNames={'RAMRate'};model.nInputs=numel(model.inputNames);model.nOutpu
 model.inputLags=lags;model.outputLags=0;model.inputBasis='linear';
 if isfield(cfg,'oeNonlinear')&&cfg.oeNonlinear,model.inputBasis='nonlinear';end
 model.noIntercept=cfg.oeZeroRateAtNull;
+if isfield(cfg,'oeCustom')&&cfg.oeCustom
+ model.featureSpec=cfg.featureSpec;model.inputNames={'DDV'};model.nInputs=1;
+ model.inputBasis='linear';
+ if strcmp(model.featureSpec.basis,'nonlinear'),model.inputBasis='nonlinear';end
+end
+if model.noIntercept&&cfg.usePressure&&~isfield(model,'featureSpec')
+ model.featureSpec=struct('basis','linear','parameter',0,'force',false,'pressure',true);
+ model.inputNames={'DDV'};model.nInputs=1;
+end
+model.oeConfig=cfg;
 first=cfg.evalStartIndex;count=max(1,floor(cfg.oeMaxTrainRows/numel(flights)));
 nx=0;mx=[];sx=[];ny=0;my=0;sy=0;indices=cell(size(flights));
 for f=1:numel(flights)
