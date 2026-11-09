@@ -1,0 +1,18 @@
+# Local flight data and private adapter (never commit user recordings).
+/data/user/*
+!/data/user/.gitkeep
+/load_user_flights_local.m
+# Runtime artifacts; do not ignore fixed test fixtures under tests/data.
+/results/*
+!/results/.gitkeep
+/results_*/
+/checks_*/
+/input_comparison_*/
+*.zip
+*.asv
+*.m~
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+/data/synthetic/excitation_manifest.xlsx

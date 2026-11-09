@@ -1,0 +1,22 @@
+{
+  "seed": 20261110,
+  "profiles": [
+    "long_hold",
+    "long_hold",
+    "hold_validation",
+    "long_hold",
+    "transitions",
+    "transition_validation",
+    "long_hold",
+    "transitions",
+    "hold_test",
+    "transitions",
+    "transition_test"
+  ],
+  "plant": "same clean v6 plant",
+  "slewLimitAperSecond": 25,
+  "sampleRate": 64,
+  "nativeSimulationRate": 256,
+  "measurementNoise": false,
+  "motorVibration": false
+}
