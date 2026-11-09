@@ -2,6 +2,9 @@ function model=bb_oe_train(flights,cfg,beta,lags,ridge)
 % FIR + integrator fitted directly to TRAIN position trajectory error.
 % No differentiated position target, no output history in network inputs.
 if beta>0||1+beta/cfg.Fs<=0||ridge<=0,error('Invalid OE settings');end
+if isinf(cfg.oeMaxTrainRows)||cfg.oeZeroRateAtNull
+    model=bb_oe_stream(flights,cfg,beta,lags,ridge);return;
+end
 names={'DDV'};if cfg.usePressure,names=[names {'SupplyPressure','ReturnPressure'}];end
 first=cfg.evalStartIndex;count=max(1,floor(cfg.oeMaxTrainRows/numel(flights)));
 X=[];yAll=[];

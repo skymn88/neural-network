@@ -7,7 +7,8 @@ if isfield(model,'kind')
     Z=bsxfun(@rdivide,bsxfun(@minus,double(X),model.xMean),model.xStd);
     if strcmp(model.kind,'FIR')
         if isfield(model,'inputBasis')&&strcmp(model.inputBasis,'nonlinear'),Z=[Z tanh(Z) abs(Z)];end
-        P=[ones(size(Z,1),1) Z]*model.weights;
+        if ~isfield(model,'noIntercept')||~model.noIntercept,Z=[ones(size(Z,1),1) Z];end
+        P=Z*model.weights;
     elseif strcmp(model.kind,'GP')
         P=zeros(size(Z,1),model.nOutputs); C=model.centers;
         for first=1:2048:size(Z,1)

@@ -113,3 +113,5 @@ C/Simulink dağıtımı daha sonraki aşamadır; eski doğrulanmamış S-Functio
 Çalışmalar `dev_Codex` dalına commit/push edilir. Model değişiklikleri gerçek veri teşhisi ve validation kanıtıyla yapılır. Dosya adları küçük harfli ve Windows'ta çakışmayacak şekilde farklıdır. Eski ZIP'ler, sürüm kopyaları ve deney sonuçları repoya yığılmaz. [Bu düzenlemede ayrılan dosyalar](docs/repository_cleanup.md).
 
 Teşhis için `cfg.diagnostics=true`: seçili modelin beş aşaması, `Alignment` sayfası ve hold hata eğimi. `cfg.printTestForAll=false` kompakt tabloda diğer adayların test hücrelerini gizler; ayrıntılı XLSX korunur. Varsayılanlar `false` / `true`. Ayarlar `src/bb_config.m` içindedir.
+
+Cascade eğitimi: `cfg.ramTrainInput='oof'` yalnız TRAIN uçuşları arasında DDV LOFO tahminleriyle OE modellerini eğitir (varsayılan `'measured'`). Üçten az TRAIN uçuşunda uyarıyla ölçülen DDV kullanılır. `cfg.reportLoo=true` yalnız DDV LOFO teşhisini de açabilir. `cfg.oeMaxTrainRows=Inf` tüm uygun örnekleri `oeChunkRows=2048` bloklarıyla işler. `cfg.oeZeroRateAtNull=true` intercept içermeyen ek `FIR_OE_Zero` adayını açar.

@@ -43,6 +43,12 @@ for j=1:numel(labels)
 end
 if ~isfinite(best),error('All DDV validation candidates failed');end
 vDDV=cell(size(va));for f=1:numel(va),vDDV{f}=bb_predict_batch(ddvModels.(chosenDDV),va(f));end
+ramTr=tr;oofReport=table();
+if ~ismember(cfg.ramTrainInput,{'measured','oof'}),error('Invalid ramTrainInput');end
+if strcmp(cfg.ramTrainInput,'oof')||cfg.reportLoo
+    [oofTr,oofReport]=bb_ddv_oof(tr,cfg,chosenDDV);
+    if strcmp(cfg.ramTrainInput,'oof'),ramTr=oofTr;end
+end
 % Retain DDV search, prune RAM candidates after upstream selection.
 labels={'FIR_rich'};
 bestAll=Inf;
@@ -71,7 +77,8 @@ if quick,oeBetas=[0 -.025];oeRidge=1e-3;cfg.oeMaxTrainRows=700;end
 for beta=oeBetas
  for lag=oeLags
   for ridge=oeRidge
-    model=bb_oe_train(tr,cfg,beta,lag,ridge);sse=0;n=0;worst=0;
+    baseCfg=cfg;baseCfg.oeZeroRateAtNull=false;
+    model=bb_oe_train(ramTr,baseCfg,beta,lag,ridge);sse=0;n=0;worst=0;
     for f=1:numel(va)
         p=bb_rollout_rate(model,va(f),va(f).S.RAM(1),struct('DDV',vDDV{f}));idx=start:numel(p);
         e=p(idx)-va(f).S.RAM(idx);sse=sse+sum(e.^2);n=n+numel(e);
@@ -87,11 +94,11 @@ end
 if ~isfield(rates,'FIR_OE'),error('No finite OE validation model');end
 labels=[labels {'FIR_OE'}];
 % Nonlinear finite-memory input map + position output-error fit (not NARX).
-nlBest=Inf;nlConfig=cfg;nlConfig.oeNonlinear=true;nlChoices={};
+nlBest=Inf;nlConfig=cfg;nlConfig.oeNonlinear=true;nlConfig.oeZeroRateAtNull=false;nlChoices={};
 for beta=oeBetas
  for lag=oeLags(oeLags<=128)
   for ridge=oeRidge
-    model=bb_oe_train(tr,nlConfig,beta,lag,ridge);sse=0;n=0;
+    model=bb_oe_train(ramTr,nlConfig,beta,lag,ridge);sse=0;n=0;
     for f=1:numel(va)
         p=bb_rollout_rate(model,va(f),va(f).S.RAM(1),struct('DDV',vDDV{f}));idx=start:numel(p);
         e=p(idx)-va(f).S.RAM(idx);sse=sse+sum(e.^2);n=n+numel(e);
@@ -105,6 +112,26 @@ for beta=oeBetas
 end
 if ~isfield(rates,'NL_OE'),error('No finite nonlinear OE model');end
 labels=[labels {'NL_OE'}];
+if cfg.oeZeroRateAtNull
+    zeroBest=Inf;
+    for beta=oeBetas
+     for lag=oeLags
+      for ridge=oeRidge
+       model=bb_oe_train(ramTr,cfg,beta,lag,ridge);sse=0;n=0;
+       for f=1:numel(va)
+        p=bb_rollout_rate(model,va(f),va(f).S.RAM(1),struct('DDV',vDDV{f}));ix=start:numel(p);
+        sse=sse+sum((p(ix)-va(f).S.RAM(ix)).^2);n=n+numel(ix);
+       end
+       score=sqrt(sse/n);
+       if score<zeroBest,zeroBest=score;rates.FIR_OE_Zero=model;end
+       if score<bestAll,bestAll=score;chosenRate='FIR_OE_Zero';end
+      end
+     end
+    end
+    if ~isfield(rates,'FIR_OE_Zero'),error('No finite null-rate candidate');end
+    labels=[labels {'FIR_OE_Zero'}];
+end
+
 
 seedRows={cfg.seed,bestAll};
 
@@ -121,6 +148,10 @@ configs.HoldInitial=struct('ddv',ddvModels.(chosenDDV),'rate',bb_hold_model(cfg)
 
 
 [details,summary]=bb_evaluate_rich(configs,tr,va,te,cfg);
+if ~isempty(oofReport)
+    selection.LOFO_DDV_RMSE=sqrt(sum(oofReport.SSE)/sum(oofReport.Samples));
+    writetable(oofReport,fullfile(outDir,'comparison.xlsx'),'Sheet','OOF_DDV');
+end
 compact=bb_print_summary(summary,selection,outDir,cfg);
 audit=bb_data_diagnostics(tr,va,te,cfg);
 if cfg.diagnostics

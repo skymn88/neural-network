@@ -38,3 +38,5 @@ Geçiş teşhisi, bir örnekte RAM değişiminin TRAIN aralığının %1'ini aş
 Gerçek zaman vektörü, birim, sensör sıfırı, işaret, basınç/yük ve başlangıç durumunu doğrulamadan daha büyük model seçilmez. Gerçek data mevcut olmadan yalnızca fotoğraftan kesin fiziksel neden veya %95+ başarı çıkarılamaz. Sentetik veri üretimi birincil geliştirme amacı değildir.
 
 `Alignment` gecikmesi pozitifse çıktı girdiden sonra gelir. Negatif gecikmeyi nedensel FIR temsil edemez. Korelasyon gecikmesi fiziksel gecikme kanıtı veya otomatik hizalama değildir. Hold eğimleri ayrı kesitlerde LS ile hesaplanır: örnek ağırlıklı işaretli ortalama ve en büyük mutlak eğim (RAM birimi/s).
+
+OOF tahminleri yalnız diğer TRAIN uçuşlarıyla eğitilir; validation/test kullanılmaz. DDV aday ailesi validation ile seçilir, dolayısıyla raporlanan TRAIN LOFO skoru bağımsız nihai genelleme kanıtı değildir ve seçimi değiştirmez. OE tüm-örnek yolu normal denklemleri bloklarla biriktirir; bellek özellik sayısının karesiyle büyür. Null varyantında merkezleme ve intercept kaldırılır; sıfır giriş geçmişinde öğrenilen hız sıfırdır (beta sızıntısı ayrıca devam eder).

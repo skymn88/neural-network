@@ -55,6 +55,10 @@ for j=1:numel(focus)
 end
 lines{end+1}='One-step uses measured previous RAM; free-run does not.';
 compact=cell2table(rows,'VariableNames',{'Model','Stage','Fit_Train','Fit_Val','Fit_Test','RMSE_Train','RMSE_Val','RMSE_Test'});
+if isfield(selection,'LOFO_DDV_RMSE')
+    compact.LOFO_DDV_RMSE=repmat(selection.LOFO_DDV_RMSE,height(compact),1);
+    lines{end+1}=sprintf('TRAIN LOFO DDV RMSE (report only): %.6g',selection.LOFO_DDV_RMSE);
+end
 for j=1:numel(lines),fprintf('%s\n',lines{j});end
 if ~isempty(outDir)
     fid=fopen(fullfile(outDir,'summary_short.txt'),'w');if fid<0,error('Cannot create short summary');end
