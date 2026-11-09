@@ -111,3 +111,5 @@ C/Simulink dağıtımı daha sonraki aşamadır; eski doğrulanmamış S-Functio
 ## Geliştirme akışı
 
 Çalışmalar `dev_Codex` dalına commit/push edilir. Model değişiklikleri gerçek veri teşhisi ve validation kanıtıyla yapılır. Dosya adları küçük harfli ve Windows'ta çakışmayacak şekilde farklıdır. Eski ZIP'ler, sürüm kopyaları ve deney sonuçları repoya yığılmaz. [Bu düzenlemede ayrılan dosyalar](docs/repository_cleanup.md).
+
+Teşhis için `cfg.diagnostics=true`: seçili modelin beş aşaması, `Alignment` sayfası ve hold hata eğimi. `cfg.printTestForAll=false` kompakt tabloda diğer adayların test hücrelerini gizler; ayrıntılı XLSX korunur. Varsayılanlar `false` / `true`. Ayarlar `src/bb_config.m` içindedir.

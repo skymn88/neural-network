@@ -1,7 +1,9 @@
-function compact=bb_print_summary(summary,selection,outDir)
+function compact=bb_print_summary(summary,selection,outDir,cfg)
 % Narrow screenshot-friendly output. Never omit nonfinite failures.
 if nargin<3,outDir='';end
+if nargin<4,cfg=bb_config();end
 splits={'train','validation','test'};stages={'RAM_Cascade','Angle_Cascade'};
+if cfg.diagnostics,stages={'RAM_Cascade','Angle_Cascade','DDV','RAM_Component','Angle_Component'};end
 labels=unique(summary.Model,'stable');rows={};lines={};
 if isfield(selection,'smokeMode')&&selection.smokeMode
     lines{end+1}='SMOKE RUN: reduced training budget, NOT model fidelity validation';
@@ -25,8 +27,11 @@ for q=1:numel(stages)
     lines{end+1}='';lines{end+1}=stages{q};
     lines{end+1}=sprintf('%-19s %7s %7s %7s | %9s %9s %9s','Model','Fit Tr','Fit Va','Fit Te','RMSE Tr','RMSE Va','RMSE Te');
     for j=1:numel(labels)
+        if q>2&&(~isfield(selection,'RAM')||~strcmp(labels{j},selection.RAM)),continue;end
         fits=nan(1,3);rmse=nan(1,3);
         for s=1:3
+            if s==3&&~cfg.printTestForAll&&~strcmp(labels{j},'HoldInitial')&&...
+                    (~isfield(selection,'RAM')||~strcmp(labels{j},selection.RAM)),continue;end
             z=summary(strcmp(summary.Model,labels{j})&strcmp(summary.Stage,stages{q})&strcmp(summary.Split,splits{s}),:);
             if height(z)>1,error('Duplicate summary key');end
             if height(z)==1,fits(s)=z.FitPct;rmse(s)=z.RMSE;end

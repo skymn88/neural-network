@@ -1,5 +1,5 @@
 function outDir=run_rich_comparison(source,quick)
-% Ver8: no NARX. Select on validation, then evaluate test. Bundled synthetic test is a reused regression case.
+% No NARX. Select on validation, then evaluate test. Bundled synthetic test is a reused regression case.
 if nargin<1,source='synthetic';end
 if nargin<2,quick=false;end
 cfg=bb_config();cfg.quick=quick;cfg.trainStartIndex=2*cfg.inputLags+2;cfg.trainEndTrim=1;
@@ -24,7 +24,7 @@ oeLags=oeLags(oeLags+cfg.inputLags+2 < minLength-8);
 if isempty(oeLags),error('Splits too short for requested candidate memories');end
 cfg.evalStartIndex=max(2*cfg.inputLags+2,max(oeLags)+cfg.inputLags+2);
 cfg.trainStartIndex=cfg.evalStartIndex;
-root=fullfile(cfg.outputRoot,['results_v10_' datestr(now,'yyyymmdd_HHMMSS')]);outDir=root;k=1;
+root=fullfile(cfg.outputRoot,[cfg.runPrefix '_' datestr(now,'yyyymmdd_HHMMSS')]);outDir=root;k=1;
 while exist(outDir,'dir'),outDir=sprintf('%s_%02d',root,k);k=k+1;end
 mkdir(outDir);
 labels={'MLP_v6_recipe','MLP_more_training','MLP_quasiNewton','FIR_rich','GP_coverage'};
@@ -48,11 +48,10 @@ labels={'FIR_rich'};
 bestAll=Inf;
 for j=1:numel(labels)
     label=labels{j};[c,kind]=bb_rich_config(cfg,label);betas=cfg.betaCandidates;best=Inf;
-    if strcmp(label,'MLP_v6_recipe'),betas=-0.07031640077763747;end % frozen v6 recipe
     if quick,betas=-.025;end
     for beta=betas
         model=bb_rate_train(tr,c,kind,beta);[gain,bias]=bb_rate_calibrate(model,tr,start);
-        variants=[1 0;gain bias];if strcmp(label,'MLP_v6_recipe'),variants=variants(1,:);end
+        variants=[1 0;gain bias];
         for v=1:size(variants,1)
             model.rateGain=variants(v,1);model.rateBias=variants(v,2);sse=0;n=0;
             for f=1:numel(va)
@@ -109,26 +108,10 @@ labels=[labels {'NL_OE'}];
 
 seedRows={cfg.seed,bestAll};
 
-if strncmp(chosenRate,'MLP',3)&&~quick
-    selected=rates.(chosenRate);useCalibration=selected.rateGain~=1||selected.rateBias~=0;
-    for seed=[43 44]
-        [c,kind]=bb_rich_config(cfg,chosenRate);c.seed=seed;
-        candidate=bb_rate_train(tr,c,kind,selected.beta);
-        if useCalibration
-            [candidate.rateGain,candidate.rateBias]=bb_rate_calibrate(candidate,tr,start);
-        end
-        sse=0;n=0;
-        for f=1:numel(va)
-            prediction=bb_rollout_rate(candidate,va(f),va(f).S.RAM(1),struct('DDV',vDDV{f}));idx=start:numel(prediction);
-            sse=sse+sum((prediction(idx)-va(f).S.RAM(idx)).^2);n=n+numel(idx);
-        end
-        seedRows(end+1,:)={seed,sqrt(sse/n)}; %#ok<AGROW>
-    end
-end
 if ~isfinite(bestAll),error('All validation models failed');end
 angle=bb_angle_select(tr,va,start);
 selection=struct('DDV',chosenDDV,'RAM',chosenRate,'criterion','validation cascade RAM RMSE','seed',cfg.seed,'smokeMode',logical(quick),'source',source);
-% No test outputs were used above. Frozen Python v6 fixture is synthetic-only.
+% No test outputs were used above.
 save(fullfile(outDir,'selection.mat'),'selection','choices','oeChoices','cfg','-v7');
 configs=struct();
 for j=1:numel(labels)
@@ -138,8 +121,12 @@ configs.HoldInitial=struct('ddv',ddvModels.(chosenDDV),'rate',bb_hold_model(cfg)
 
 
 [details,summary]=bb_evaluate_rich(configs,tr,va,te,cfg);
-compact=bb_print_summary(summary,selection,outDir);
+compact=bb_print_summary(summary,selection,outDir,cfg);
 audit=bb_data_diagnostics(tr,va,te,cfg);
+if cfg.diagnostics
+    alignment=bb_alignment_report(tr,va,te,cfg);
+    writetable(alignment,fullfile(outDir,'comparison.xlsx'),'Sheet','Alignment');
+end
 events=bb_event_report(configs,tr,va,te,cfg);
 writetable(compact,fullfile(outDir,'comparison.xlsx'),'Sheet','Compact');
 runInfo=table({cfg.version},{source},logical(quick),cfg.Fs,numel(tr),numel(va),numel(te),...

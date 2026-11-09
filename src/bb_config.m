@@ -1,7 +1,10 @@
 function cfg = bb_config()
 % Repository configuration: compact reports, optional force, position-output-error FIR.
 % MATLAB R2019a + Deep Learning Toolbox. No Signal Processing Toolbox needed.
-cfg.version = 'v10';
+cfg.version = 'plant';
+cfg.diagnostics = false; % opt-in alignment, selected-stage and hold drift reports
+cfg.alignmentMaxLag = 64;
+cfg.printTestForAll = true;
 cfg.Fs = 64;
 cfg.simulinkOutputHz = 200;   % interface only; NN trains/advances at cfg.Fs
 cfg.requireForce = false;  % force is not a target in the active four-signal chain
@@ -23,5 +26,5 @@ cfg.guardSeconds = 1.0;   % buffer between 1-flight chronological splits
 cfg.makePlots = true;
 paths=bb_paths();cfg.outputRoot=paths.results;
 if ~exist(cfg.outputRoot,'dir'),mkdir(cfg.outputRoot);end
-cfg.runPrefix = 'results_v10';
+cfg.runPrefix = 'results';
 end

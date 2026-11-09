@@ -3,7 +3,7 @@ function report=bb_event_report(configs,tr,va,te,cfg)
 % Transition: |delta RAM| > 1% TRAIN RAM range, plus 2s following each event.
 x=[];for f=1:numel(tr),x=[x;tr(f).S.RAM];end %#ok<AGROW>
 threshold=max(1e-12,.01*(max(x)-min(x)));sets={tr,va,te};names={'train','validation','test'};
-labels=fieldnames(configs);rows={};
+labels=fieldnames(configs);rows={};drifts=[];
 for s=1:3
  fs=sets{s};
  for f=1:numel(fs)
@@ -16,10 +16,18 @@ for s=1:3
     if q==1,mask=moving&eligible;phase='transition';else,mask=~moving&eligible;phase='hold';end
     n=sum(mask);rmse=NaN;bias=NaN;maxError=NaN;
     if n>0,e=p(mask)-fl.S.RAM(mask);rmse=sqrt(mean(e.^2));bias=mean(e);maxError=max(abs(e));end
+    if cfg.diagnostics
+        slope=NaN;worst=NaN;count=0;
+        if q==2,[slope,worst,count]=bb_hold_drift(p-fl.S.RAM,mask,cfg.Fs);end
+        drifts(end+1,:)=[slope worst count]; %#ok<AGROW>
+    end
     rows(end+1,:)={labels{j},names{s},fl.name,phase,n,rmse,bias,maxError,threshold}; %#ok<AGROW>
    end
   end
  end
 end
 report=cell2table(rows,'VariableNames',{'Model','Split','Flight','Phase','Samples','RAM_RMSE','RAM_Bias','RAM_MaxAbs','DetectionThreshold'});
+if cfg.diagnostics
+    report.HoldErrorSlope=drifts(:,1);report.HoldWorstAbsSlope=drifts(:,2);report.HoldSegments=drifts(:,3);
+end
 end

@@ -36,3 +36,5 @@ Yüksek one-step Fit serbest simülasyonun doğru olduğunu göstermez. Önceki 
 Geçiş teşhisi, bir örnekte RAM değişiminin TRAIN aralığının %1'ini aşması ve sonraki 2 saniyedir. Fiziksel etiket değildir; yavaş hareketler bekleme grubuna düşebilir. Bu maske model seçimini değiştirmez.
 
 Gerçek zaman vektörü, birim, sensör sıfırı, işaret, basınç/yük ve başlangıç durumunu doğrulamadan daha büyük model seçilmez. Gerçek data mevcut olmadan yalnızca fotoğraftan kesin fiziksel neden veya %95+ başarı çıkarılamaz. Sentetik veri üretimi birincil geliştirme amacı değildir.
+
+`Alignment` gecikmesi pozitifse çıktı girdiden sonra gelir. Negatif gecikmeyi nedensel FIR temsil edemez. Korelasyon gecikmesi fiziksel gecikme kanıtı veya otomatik hizalama değildir. Hold eğimleri ayrı kesitlerde LS ile hesaplanır: örnek ağırlıklı işaretli ortalama ve en büyük mutlak eğim (RAM birimi/s).

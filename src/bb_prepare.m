@@ -1,6 +1,6 @@
 function flight = bb_prepare(raw,cfg)
 % Align only selected model channels to a common 64-Hz clock.
-% Note: 1-Hz command signals are not used in the v4 physical cascade.
+% Note: 1-Hz command signals are not used in the physical cascade.
 required = {'CoilCurrent','DDV','RAM','Deflection'};
 if ~isfield(cfg,'requireForce') || cfg.requireForce
     required=[required {'ActuatorForce'}];
