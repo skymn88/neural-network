@@ -43,7 +43,7 @@ for q=1:numel(stages)
         if ~any(strcmp(summary.Model,labels{j})&strcmp(summary.Stage,stages{q})),continue;end
         fits=nan(1,3);rmse=nan(1,3);
         for s=1:3
-            if s==3&&~cfg.printTestForAll&&~strcmp(labels{j},'HoldInitial')&&...
+            if s==3&&~cfg.printTestForAll&&~ismember(labels{j},{'HoldInitial','TrainMean'})&&...
                     (~isfield(selection,'RAM')||~strcmp(labels{j},selection.RAM))&&...
                     (~isfield(selection,'Closed')||~strcmp(labels{j},selection.Closed)),continue;end
             z=summary(strcmp(summary.Model,labels{j})&strcmp(summary.Stage,stages{q})&strcmp(summary.Split,splits{s}),:);
@@ -55,7 +55,7 @@ for q=1:numel(stages)
     end
 end
 lines{end+1}='';lines{end+1}='Selected RAM and baseline diagnostics (Tr / Va / Te):';
-focus={'HoldInitial'};if isfield(selection,'RAM'),focus=[{selection.RAM} focus];end
+focus={'HoldInitial'};if any(strcmp(labels,'TrainMean')),focus=[focus {'TrainMean'}];end;if isfield(selection,'RAM'),focus=[{selection.RAM} focus];end
 for j=1:numel(focus)
     step=nan(1,3);normError=nan(1,3);coverage=nan(1,3);
     for s=1:3

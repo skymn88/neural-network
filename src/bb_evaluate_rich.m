@@ -5,6 +5,7 @@ if isfield(cfg,'evalStartIndex'),start=cfg.evalStartIndex;end
 for j=1:3,v=[];for f=1:numel(tr),v=[v;tr(f).S.(channels{j})];end;scale(j)=std(v);end %#ok<AGROW>
 labels=fieldnames(configs);
 for s=1:3
+    if isfield(cfg,'evalTestOnly')&&cfg.evalTestOnly&&s~=3,continue;end
     fs=sets{s};
     for f=1:numel(fs)
         fl=fs(f);idx=start:numel(fl.t);if isempty(idx),error('Holdout too short');end
@@ -12,7 +13,8 @@ for s=1:3
             label=labels{j};c=configs.(label);
             u=bb_predict_batch(c.ddv,fl);
             [rd,g]=bb_rollout_rate(c.rate,fl,fl.S.RAM(1));rc=bb_rollout_rate(c.rate,fl,fl.S.RAM(1),struct('DDV',u));
-            one=[fl.S.RAM(1);(1+c.rate.beta/cfg.Fs)*fl.S.RAM(1:end-1)+g(2:end)/cfg.Fs];
+            one=[fl.S.RAM(1);bb_ram_step(c.rate,fl.S.RAM(1:end-1),g(2:end))];
+            if isfield(c.rate,'constantRAM'),one(:)=c.rate.constantRAM;end
             if isfield(c.rate,'ramBounds'),one=min(max(one,c.rate.ramBounds(1)),c.rate.ramBounds(2));end
             angle=polyval(flipud(c.angle.coefficients),rc/c.angle.scale);
             direct=polyval(flipud(c.angle.coefficients),fl.S.RAM/c.angle.scale);

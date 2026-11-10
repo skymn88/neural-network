@@ -31,3 +31,7 @@ Gerçekte çalıştırılan: MISS_HIT R2019a statik kontrol, Git diff/bağımlı
 MATLAB'da önce `start_here`, sonra gerçek adaptörü bağlayıp varsayılan `run_project('user')`; ardından README'deki bayrakları sırayla açarak aynı split üzerinde karşılaştır. `run_project('user','closed')` için 64 Hz RAMSetpoint gerekir. Mevcut sentetik MAT değiştirilmedi; closed veri eksikliğinde açık hata beklenir. İlk çalıştırma sonuçlarını runtime doğrulaması için paylaş.
 
 NL odak güncellemesinde `test_nl_focus`: kaba kazananın korunması, minimum validation satırının seçimi, tanh ölçeğinin çıkarım denkliği ve üç eksenli ilk-uçuş grafiği için eklendi. MATLAB/graphics çalışma testi burada yapılmadı. 66 MATLAB dosyası statik kontrolden geçti; sentetik MAT hash'i değişmedi.
+
+Yeni opt-in NL testleri: kapalı varsayılanlar, ortak arama bütçesi, beta zaman sabiti/denge, TrainMean x0 bağımsızlığı, sıfır leakage ile eski denklik, validation reddi, hedef olmadan çıkarım, sabit hiperparametreli refit, yalnız test etiketleri ve gruplanmış OOF sızıntı kontrolü. MATLAB bulunmadığından bu testler burada çalıştırılmadı; statik kontrol ve bağımsız Python sayısal kontrolleri ayrı raporlanır.
+
+Bu güncellemede gerçekte geçen kontroller: 74 dosyada R2019a MISS_HIT, bağımlılık/yeni dosya/test bağlantısı kontrolleri ve değişmeyen sentetik SHA256; Python referans hesabında sıfır sızıntı denkliği, nonlinear dengeye yakınsama ve beta=−1 zaman sabiti. MATLAB eğitimi, unit/smoke ve gerçek uçuş validasyonu çalıştırılmadı.

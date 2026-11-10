@@ -8,6 +8,9 @@ old=rng;cleanup=onCleanup(@()rng(old)); %#ok<NASGU>
 [c,kind]=bb_rich_config(cfg,ddvLabel);
 for j=1:numel(labels)
  selected=rates.(labels{j});if ~isfield(selected,'objective'),continue;end
+ if isfield(selected,'stateLeak')
+  warning('bb:LeakCV','Skipping state-leak LOFO: nested leakage fitting is not enabled.');continue;
+ end
  sse=0;n=0;
  for f=1:numel(tr)
   keep=true(1,numel(tr));keep(f)=false;train=tr(keep);

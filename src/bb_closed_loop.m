@@ -25,7 +25,7 @@ for k=1:N
  rate=localStep(plant.rate,buffer,L);
  if isfield(plant.rate,'rateGain'),rate=rate*plant.rate.rateGain;end
  if isfield(plant.rate,'rateBias'),rate=rate+plant.rate.rateBias;end
- next=previous;if k>1,next=(1+plant.rate.beta/plant.rate.Fs)*previous+rate/plant.rate.Fs;end
+ next=previous;if k>1,next=bb_ram_step(plant.rate,previous,rate);end
  if ~isfinite(next)||abs(next)>threshold,diverged=true;end
  if ~isfinite(next)||~isfinite(ddv(k)),break;end
  if isfield(plant.rate,'ramBounds'),next=min(max(next,plant.rate.ramBounds(1)),plant.rate.ramBounds(2));end

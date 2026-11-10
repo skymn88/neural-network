@@ -10,6 +10,9 @@ for j=1:numel(names)
     if ~isfield(cfg,names{j}),error('Unknown cfg field: %s',names{j});end
     cfg.(names{j})=overrides.(names{j});
 end
+if ~cfg.nlFocus&&(cfg.nlRefitTrainVal||cfg.nlStateLeak||cfg.nlJointSearch)
+    error('Refit, state leakage and joint search require nlFocus=true');
+end
 if strcmp(mode,'closed'),cfg.useSetpoint=true;end
 cfg.quick=quick;cfg.trainStartIndex=2*cfg.inputLags+2;cfg.trainEndTrim=1;
 paths=bb_paths();
@@ -88,7 +91,7 @@ if quick
     oeBetas=[0 -.025];oeRidge=1e-3;
     if ~isinf(cfg.oeMaxTrainRows),cfg.oeMaxTrainRows=700;end
 end
-if ~cfg.nlFocus
+if ~cfg.nlFocus||cfg.nlFIRReference
 for beta=oeBetas
  for lag=oeLags
   for ridge=oeRidge
@@ -101,7 +104,7 @@ for beta=oeBetas
     end
     score=sqrt(sse/n);oeChoices(end+1,:)={beta,lag,ridge,score,worst}; %#ok<AGROW>
     if isfinite(score)&&score<bestOE,bestOE=score;rates.FIR_OE=model;end
-    if isfinite(score)&&score<bestAll,bestAll=score;chosenRate='FIR_OE';end
+    if ~cfg.nlFocus&&isfinite(score)&&score<bestAll,bestAll=score;chosenRate='FIR_OE';end
   end
  end
  fprintf('FIR_OE beta %.5g complete; best validation RMSE %.6g\n',beta,bestOE);
@@ -149,6 +152,14 @@ for j=1:numel(extraLabels)
 end
 labels=[labels extraLabels];
 if ~isempty(extraReport),writetable(extraReport,fullfile(outDir,'comparison.xlsx'),'Sheet','StructuralSelection');end
+if cfg.nlFocus&&cfg.nlStateLeak
+    [leak,leakReport,leakScore]=bb_state_leak_fit(rates.(chosenRate),ramTr,va,vDDV,cfg);
+    writetable(leakReport,fullfile(outDir,'comparison.xlsx'),'Sheet','StateLeak');
+    if isfield(leak,'stateLeak')&&leakScore<bestAll
+        rates.NL_OE_State=leak;labels=[labels {'NL_OE_State'}];
+        bestAll=leakScore;chosenRate='NL_OE_State';
+    end
+end
 seedRows={cfg.seed,bestAll};
 
 if ~isfinite(bestAll),error('All validation models failed');end
@@ -164,6 +175,25 @@ for j=1:numel(labels)
     label=labels{j};configs.(label)=struct('ddv',ddvModels.(chosenDDV),'rate',rates.(label),'angle',angle);
 end
 configs.HoldInitial=struct('ddv',ddvModels.(chosenDDV),'rate',bb_hold_model(cfg),'angle',angle);
+if cfg.trainMeanBaseline
+    configs.TrainMean=struct('ddv',ddvModels.(chosenDDV),'rate',bb_train_mean(tr,cfg),'angle',angle);
+end
+if cfg.nlDiagnostics
+    [curve,holds,equilibrium]=bb_nl_diagnostics(nlReport,configs.(chosenRate),tr,va,te,cfg);
+    writetable(curve,fullfile(outDir,'comparison.xlsx'),'Sheet','BetaCurve');
+    writetable(holds,fullfile(outDir,'comparison.xlsx'),'Sheet','HoldVariability');
+    writetable(equilibrium,fullfile(outDir,'comparison.xlsx'),'Sheet','NullEquilibrium');
+end
+refitModels=struct();
+if cfg.nlFocus&&cfg.nlRefitTrainVal
+    refitModels.Original_TRAIN=configs.(chosenRate);
+    [refitModels.Refit_TRAIN_VAL,refitInfo]=bb_refit_trainval(configs.(chosenRate),tr,va,cfg,chosenDDV);
+    ec=cfg;ec.evalTestOnly=true;
+    [refitDetails,refitSummary]=bb_evaluate_rich(refitModels,tr,va,te,ec);
+    writetable(refitSummary,fullfile(outDir,'comparison.xlsx'),'Sheet','RefitTest');
+    writetable(refitDetails,fullfile(outDir,'comparison.xlsx'),'Sheet','RefitPerFlight');
+    writetable(refitInfo,fullfile(outDir,'comparison.xlsx'),'Sheet','RefitInfo');
+end
 
 
 [details,summary]=bb_evaluate_rich(configs,tr,va,te,cfg);
@@ -200,7 +230,9 @@ writetable(details,fullfile(outDir,'comparison.xlsx'),'Sheet','PerFlight');
 writetable(audit,fullfile(outDir,'comparison.xlsx'),'Sheet','DataAudit');
 writetable(events,fullfile(outDir,'comparison.xlsx'),'Sheet','EventErrors');
 if ~isempty(oeChoices)
-    writetable(cell2table(oeChoices,'VariableNames',{'Beta','Lags','Ridge','ValidationRMSE','WorstFlightRMSE'}),fullfile(outDir,'comparison.xlsx'),'Sheet','OE_Selection');
+    oeTable=cell2table(oeChoices,'VariableNames',{'Beta','Lags','Ridge','ValidationRMSE','WorstFlightRMSE'});
+    if cfg.nlFocus&&cfg.nlFIRReference,oeTable.ReferenceOnly=true(height(oeTable),1);end
+    writetable(oeTable,fullfile(outDir,'comparison.xlsx'),'Sheet','OE_Selection');
 end
 writetable(summary,fullfile(outDir,'comparison.xlsx'),'Sheet','Summary');
 writetable(nlReport,fullfile(outDir,'comparison.xlsx'),'Sheet','NL_Selection');
@@ -209,6 +241,9 @@ writetable(cell2table(choices,'VariableNames',{'Stage','Label','Beta','Calibrate
 writetable(cell2table(seedRows,'VariableNames',{'Seed','ValidationRAMRMSE'}),fullfile(outDir,'comparison.xlsx'),'Sheet','SeedSensitivity');
 save(fullfile(outDir,'selection.mat'),'selection','choices','oeChoices','cfg','-v7');
 save(fullfile(outDir,'trained_models.mat'),'configs','selection','ddvModels','cfg','manifest','-v7');
+if cfg.nlFocus&&cfg.nlRefitTrainVal
+    save(fullfile(outDir,'trained_models.mat'),'refitModels','-append');
+end
 if cfg.makePlots
     closedPlot=[];if strcmp(mode,'closed'),closedPlot=closed;end
     bb_plot_flight_outputs(flights,configs.(chosenRate),selection,outDir,closedPlot);

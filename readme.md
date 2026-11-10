@@ -131,3 +131,26 @@ Güncel RAM odağı: `nlFocus=true` varsayılanıyla yalnız NL_OE ve HoldInitia
 `run_project('user')` sonunda ilk uçuş Current/RAM/Angle olarak 3×1 çizilir, sonuç klasörüne FIG/PNG kaydedilir. Plant'te current girdidir, tahmin eğrisi yoktur. `src/bb_plot_flight_outputs.m` içindeki `for i=1` döngüsünü tüm uçuşlar için değiştirebilirsin. Tam-uçuş grafiği split skorunun yerine geçmez; `makePlots=false` çizimi kapatır. Seçilmiş beta/lag/ridge/tanh ölçeği kısa özette görünür.
 
 DDV NL_OE, current geçmişinin doğrusal olmayan bazlarından doğrudan DDV çıktı hatasını ridge LS ile öğrenir (`ddvRidge=1e-3`); RAM integratörü DDV'ye uygulanmaz. Varsayılan eğitim artık Deep Learning Toolbox gerektirmez; önceki MLP aramaları yalnız `nlFocus=false` yolundadır. Açı statik RAM→açı dönüşümüdür.
+
+### Kısa kullanım ve isteğe bağlı NL deneyleri
+
+`run_project()` kullanıcı verisiyle **plant** çalıştırır; setpoint gerekmez. `run_project('user','closed')` yalnız 64 Hz RAMSetpoint bağlandıktan sonra kullanılır. Örnekler `run_project.m` başında da var. Uzun komut yerine `src/bb_config.m` içinde istediğin bayrakları bir kez aç, sonra kısa komutu kullan. Aşağıdaki yeniliklerin tamamı varsayılan **false**:
+
+| Bayrak | comparison.xlsx çıktısı / etkisi |
+|---|---|
+| `nlDiagnostics` | `BetaCurve`: beta–en iyi validation RMSE noktaları ve kenar uyarısı; `HoldVariability`, `NullEquilibrium`; `NL_Selection` içinde eğitim saniyesi |
+| `trainMeanBaseline` | TrainMean sabit referansı performans tablolarına eklenir; seçim dışıdır |
+| `nlFIRReference` | NL odakta FIR_OE yalnız raporlanır; seçilemez |
+| `nlWideBeta` | Mevcut yerel aramaya 2× ve 3× beta büyüklükleri eklenir |
+| `nlJointSearch` | beta/lag/ridge/tanhScale ortak yerel araması; en fazla `nlJointBudget=16` ek aday |
+| `nlRefitTrainVal` | Seçim sabitlenince TRAIN+VAL ağırlık eğitimi; `RefitTest`, `RefitPerFlight`, `RefitInfo` |
+| `nlStateLeak` | TRAIN'de öğrenilen deneysel durum sızıntısı; validation iyileşmezse reddedilir; `StateLeak` |
+
+İlk deneme: `nlDiagnostics=true`, `trainMeanBaseline=true` yapıp `run_project()` çalıştır. İkinci denemede gerekirse `nlWideBeta` ve `nlJointSearch` aç. Refit ve state-leak bağımsız deneylerdir; closed moduna geçmeyi gerektirmez. Mevcut plot/MAT çıktıları korunur, yeni teşhisler için ayrı çıktı dosyası oluşturulmaz. Refit modeli mevcut `trained_models.mat` içine eklenir; testte daha iyi diye orijinal modelin yerine otomatik geçirilmez.
+
+Kaba beta ızgarasını tek seferlik genişletmek için:
+```matlab
+run_project('user','plant',struct('nlDiagnostics',true, ...
+    'betaCandidates',[0 -.003 -.01 -.03 -.1 -.3 -1 -2 -3]));
+```
+`BetaCurve` bir alt zarf tablosudur: her beta için diğer ayarlar arasındaki en düşük validation hatası; sabit diğer ayarlarla yapılmış kontrollü eğri değildir. İstersen Excel'de Beta/BestValidationRMSE sütunlarını çiz. Eğitim süreleri hata değil maliyet ölçüsüdür, seçimi değiştirmez.
