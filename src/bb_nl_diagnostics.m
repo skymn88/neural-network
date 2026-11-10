@@ -39,7 +39,13 @@ for j=1:numel(names)
  end
  null.S.(names{j})=repmat(value,numel(null.t),1);
 end
-v=bb_predict_batch(m,null);drive=v(end)*m.rateGain+m.rateBias;
+if isfield(m,'filterBank')
+ u=zeros(1,numel(m.inputNames));
+ for j=1:numel(m.inputNames),u(j)=null.S.(m.inputNames{j})(1);end
+ sections=m.filterBank.rawLags+1+numel(m.filterBank.poles)+size(m.filterBank.a,1);
+ v=bb_forward(m,repmat(u,1,sections)); % unity DC gain, exact steady-state bank features
+else,v=bb_predict_batch(m,null);end
+drive=v(end)*m.rateGain+m.rateBias;
 if isfield(m,'wh'),drive=bb_wh_map(m.wh,drive);end
 tau=Inf;if m.beta<0,tau=-1/(cfg.Fs*log(1+m.beta/cfg.Fs));end
 xeq=NaN;stable=false;note='Unclamped equilibrium, DDV history zero; auxiliary inputs at TRAIN means.';

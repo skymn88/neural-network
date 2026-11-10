@@ -24,6 +24,9 @@ end
 if isfield(cfg,'oeInputName')
  model.inputNames={cfg.oeInputName};model.nInputs=1;
 end
+if isfield(cfg,'oeFilterBank')&&cfg.oeFilterBank
+ model.filterBank=bb_fb_spec(cfg);model.inputLags=cfg.fbRawLags;model.inputBasis='nonlinear';
+end
 model.oeConfig=cfg;
 first=cfg.evalStartIndex;count=max(1,floor(cfg.oeMaxTrainRows/numel(flights)));
 nx=0;mx=[];sx=[];ny=0;my=0;sy=0;indices=cell(size(flights));
@@ -32,9 +35,18 @@ for f=1:numel(flights)
  if last<first,error('Flight too short for common OE evaluation window');end
  if isinf(count),ix=first:last;else,ix=unique(round(linspace(first,last,min(count,last-first+1))));end
  indices{f}=ix;
+ if isfield(model,'filterBank')
+  fbState=[];
+  for b=1:cfg.oeChunkRows:numel(fl.t)
+   ii=(b:min(numel(fl.t),b+cfg.oeChunkRows-1))';
+   [X,fbState]=localFB(model,fl,ii,fbState);X=X(ismember(ii,ix),:);
+   [nx,mx,sx]=localMoments(nx,mx,sx,X);
+  end
+ else
  for b=1:cfg.oeChunkRows:numel(ix)
   ii=ix(b:min(end,b+cfg.oeChunkRows-1));X=bb_oe_features(model,fl,ii);
   [nx,mx,sx]=localMoments(nx,mx,sx,X);
+ end
  end
  for b=1:cfg.oeChunkRows:numel(fl.t)
   ii=b:min(numel(fl.t),b+cfg.oeChunkRows-1);[ny,my,sy]=localMoments(ny,my,sy,fl.S.RAM(ii));
@@ -51,12 +63,14 @@ for f=1:numel(flights),lo=min(lo,min(flights(f).S.RAM));hi=max(hi,max(flights(f)
 threshold=max(1e-12,cfg.oeTransitionFraction*(hi-lo));
 G=[];h=[];n=0;weightSum=0;a=1+beta/cfg.Fs;
 for f=1:numel(flights)
- fl=flights(f);state=[];ix=indices{f};
+ fl=flights(f);state=[];fbState=[];ix=indices{f};
  moving=false(numel(fl.t),1);
  if lambda>0,moving=bb_transition_mask(fl.S.RAM,cfg.Fs,threshold,cfg.oeTransitionSeconds);end
  for b=1:cfg.oeChunkRows:numel(fl.t)
   ii=(b:min(numel(fl.t),b+cfg.oeChunkRows-1))';
-  X=bb_oe_features(model,fl,ii);Z=bsxfun(@rdivide,bsxfun(@minus,X,model.xMean),model.xStd);
+  if isfield(model,'filterBank'),[X,fbState]=localFB(model,fl,ii,fbState);
+  else,X=bb_oe_features(model,fl,ii);end
+  Z=bsxfun(@rdivide,bsxfun(@minus,X,model.xMean),model.xStd);
   if strcmp(model.inputBasis,'nonlinear'),Z=[Z tanh(Z/model.tanhScale) abs(Z)];end
   if ~model.noIntercept,Z=[ones(size(Z,1),1) Z];end
   if b==1,Z(1,:)=0;state=zeros(1,size(Z,2));end
@@ -83,4 +97,10 @@ k=size(X,1);if k==0,return;end
 v=mean(X,1);ss=sum(bsxfun(@minus,X,v).^2,1);
 if n==0,n=k;m=v;s=ss;return;end
 d=v-m;s=s+ss+d.^2*(n*k/(n+k));m=m+d*(k/(n+k));n=n+k;
+end
+
+function [X,state]=localFB(model,fl,idx,state)
+U=zeros(numel(idx),numel(model.inputNames));
+for j=1:numel(model.inputNames),U(:,j)=fl.S.(model.inputNames{j})(idx);end
+[X,state]=bb_filter_bank(U,model.filterBank,state);
 end

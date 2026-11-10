@@ -4,6 +4,7 @@ c.trainFcn='trainscg';c.epochs=400;c.gpMaxPoints=600;c.gpNoiseVariance=.002;c.gp
 kind='MLP';
 switch label
     case 'NL_OE',kind='NL';
+    case 'NL_FB',kind='FB';
     case {'MLP_basic','MLP_v6_recipe'} % historical config alias
         c.hiddenSizes=[16 16];c.maxTrainRows=8400;c.trainingSampling='uniform';c.epochs=150;
     case 'MLP_more_training'

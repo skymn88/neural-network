@@ -165,3 +165,13 @@ Yeni seçenekler `src/bb_config.m` içinde:
 - `oeTransitionWeight=[0 2 5]`: lambda=0/2/5 için aynı NL araması. Varsayılan 0. `NL_Selection` ve `EventErrors` lambda bilgisi taşır. Geçiş eşiği TRAIN RAM aralığının `oeTransitionFraction=.01` katı, uzatma `oeTransitionSeconds=1.5` saniyedir.
 
 Kısa kullanım: config'te istediğin seçenekleri aç, `start_here` kontrollerinden sonra `run_project()` çalıştır. Setpoint gerekmez. Smoke, kısa kod kontrolü için 700 örnek bütçesi ve measured DDV kullanır; gerçek run varsayılanlarını değiştirmez. Sabit sentetik MAT dosyası korunur.
+
+### Bant teşhisi, filtre bankası ve sade Excel
+
+Varsayılan workbook artık beş sayfadır: **Summary, PerFlight, Diagnostics, Search, Config**. Eski sayfa isimleri aşağıdaki açıklamalarda artık aynı isimli tablo/blokları ifade eder. `legacySheets=true` eski çok-sayfalı düzeni geri açar. Summary tüm Model×Stage Fit/RMSE değerlerini Train/Val/Test yan yana gösterir; ham metrikler MAT içinde korunur. `print_last_results` yeni düzeni `selection.mat` ile yeniden basar.
+
+- `nlDiagnostics=true`: Diagnostics içinde **BandGain** ve **Alignment** dahil teşhisler. Bantlar 0–0.3, 0.3–1, 1–3, 3–8, 8–32 Hz; validation/test DDV ve RAM component/cascade karşılaştırılır.
+- `nlFilterBank=true`: RAM'de ek **NL_FB** adayı; `ddvFilterBank=true`: DDV'de aynı özellik yapısını karşılaştırır. İkisi de varsayılan false; seçim yalnız validation. DDV aday Fit/RMSE değerleri Diagnostics/DDVPerformance bloğundadır.
+- Süreler Command Window sonunda, Summary/Config içinde ve `selection.mat` içindedir. Ana rapor yazımı süreye dahildir; son küçük süre damgası ve MAT güncellemesi ölçümün dışındadır.
+
+Kullanım değişmedi: config'te istediğin bayrakları aç, `start_here`, ardından `run_project()`. OOF, tüm OE örnekleri ve baseline'ların kapalı olması korunur; WH/lambda araması kapalı kalır.

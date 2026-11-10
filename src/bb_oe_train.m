@@ -3,7 +3,7 @@ function model=bb_oe_train(flights,cfg,beta,lags,ridge)
 % No differentiated position target, no output history in network inputs.
 if beta>0||1+beta/cfg.Fs<=0||ridge<=0,error('Invalid OE settings');end
 if isinf(cfg.oeMaxTrainRows)||cfg.oeZeroRateAtNull||...
-        (isfield(cfg,'oeCustom')&&cfg.oeCustom)||isfield(cfg,'oeInputName')||any(cfg.oeTransitionWeight~=0)
+        (isfield(cfg,'oeCustom')&&cfg.oeCustom)||isfield(cfg,'oeInputName')||any(cfg.oeTransitionWeight~=0)||(isfield(cfg,'oeFilterBank')&&cfg.oeFilterBank)
     model=bb_oe_stream(flights,cfg,beta,lags,ridge);return;
 end
 names={'DDV'};if cfg.usePressure,names=[names {'SupplyPressure','ReturnPressure'}];end

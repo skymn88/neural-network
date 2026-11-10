@@ -5,6 +5,7 @@ if strcmp(kind,'MLP')
     return;
 end
 X=[];Y=[];nu=cfg.inputLags;
+if strcmp(kind,'FB'),nu=cfg.fbRawLags;bank=bb_fb_spec(cfg);end
 for f=1:numel(flights)
     fl=flights(f); U=[];T=[];
     for j=1:numel(inputNames), U(:,j)=fl.S.(inputNames{j}); end %#ok<AGROW>
@@ -15,19 +16,21 @@ for f=1:numel(flights)
     count=max(1,floor(cfg.maxTrainRows/numel(flights)));
     idx=bb_training_indices(U,first,last,count,cfg,f);
     xx=[];
-    for lag=0:nu, xx=[xx U(idx-lag,:)]; end %#ok<AGROW>
+    if strcmp(kind,'FB'),full=bb_filter_bank(U,bank);xx=full(idx,:);
+    else,for lag=0:nu, xx=[xx U(idx-lag,:)]; end;end %#ok<AGROW>
     X=[X;xx];Y=[Y;T(idx,:)]; %#ok<AGROW>
 end
 model.name=name;model.kind=kind;model.mode='mlp';model.Fs=cfg.Fs;
 model.inputNames=inputNames;model.outputNames=outputNames;
 model.nInputs=numel(inputNames);model.nOutputs=numel(outputNames);
 model.inputLags=nu;model.outputLags=0;
+if strcmp(kind,'FB'),model.filterBank=bank;end
 model.xMean=mean(X,1);model.xStd=std(X,0,1);
 model.yMean=mean(Y,1);model.yStd=std(Y,0,1);
 model.xStd(model.xStd<1e-10)=1;model.yStd(model.yStd<1e-10)=1;
 X=bsxfun(@rdivide,bsxfun(@minus,X,model.xMean),model.xStd);
 Y=bsxfun(@rdivide,bsxfun(@minus,Y,model.yMean),model.yStd);
-if strcmp(kind,'NL')
+if strcmp(kind,'NL')||strcmp(kind,'FB')
     % Direct DDV output error, no RAM integrator or measured output feedback.
     model.kind='FIR';model.inputBasis='nonlinear';model.tanhScale=1;
     model.objective='direct output error';model.ridge=cfg.ddvRidge;

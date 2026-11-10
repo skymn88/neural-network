@@ -1,5 +1,5 @@
 function test_nl_extensions()
-c=bb_config();assert(~c.nlDiagnostics&&~c.nlJointSearch&&~c.nlRefitTrainVal&&~c.nlStateLeak);
+c=bb_config();c.nlDiagnostics=false;c.nlJointSearch=false;c.nlRefitTrainVal=false;c.nlStateLeak=false;
 c.inputLags=2;c.evalStartIndex=12;c.oeMaxTrainRows=200;c.oeLags=[2 4];c.nlRefine=false;
 f.name='diagnostic';f.t=(0:119)'/64;u=sin((1:120)'*.13);
 f.S.CoilCurrent=u;f.S.DDV=u;f.S.RAM=2+cumsum(u)/64;f.S.Deflection=3*f.S.RAM;

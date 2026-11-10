@@ -15,6 +15,7 @@ end
 m=original.rate;oc=cfg;oc.oeTransitionWeight=0;
 if isfield(m,'transitionWeight'),oc.oeTransitionWeight=m.transitionWeight;end
 oc.oeNonlinear=strcmp(m.inputBasis,'nonlinear');
+if isfield(m,'filterBank'),oc.oeFilterBank=true;end
 oc.oeZeroRateAtNull=isfield(m,'noIntercept')&&m.noIntercept;
 if isfield(m,'tanhScale'),oc.oeTanhScale=m.tanhScale;end
 if isfield(m,'featureSpec'),oc.oeCustom=true;oc.featureSpec=m.featureSpec;end

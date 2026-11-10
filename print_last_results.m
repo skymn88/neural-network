@@ -2,10 +2,11 @@
 projectDir=fileparts(mfilename('fullpath'));addpath(projectDir,'-begin');setup_project();
 [file,folder]=uigetfile('comparison.xlsx','Select an existing comparison.xlsx');
 if ~isequal(file,0)
-    report=readtable(fullfile(folder,file),'Sheet','Summary');
+    report=[];
     selection=struct();reportCfg=bb_config();
     if exist(fullfile(folder,'selection.mat'),'file')==2
         saved=load(fullfile(folder,'selection.mat'));selection=saved.selection;
+        if isfield(saved,'summary'),report=saved.summary;end
         if isfield(saved,'cfg')
             names=fieldnames(saved.cfg);
             for j=1:numel(names),reportCfg.(names{j})=saved.cfg.(names{j});end
@@ -17,5 +18,6 @@ if ~isequal(file,0)
             selection.smokeMode=logical(savedConfig.cfg.quick);
         end
     end
+    if isempty(report),report=readtable(fullfile(folder,file),'Sheet','Summary');end
     bb_print_summary(report,selection,folder,reportCfg);
 end

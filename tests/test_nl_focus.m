@@ -1,5 +1,5 @@
 function test_nl_focus()
-c=bb_config();c.evalStartIndex=10;c.oeMaxTrainRows=300;c.oeChunkRows=17;c.nlTanhScales=[.5 1];
+c=bb_config();c.nlJointSearch=false;c.nlRefine=true;c.evalStartIndex=10;c.oeMaxTrainRows=300;c.oeChunkRows=17;c.nlTanhScales=[.5 1];
 f.name='nl';f.t=(0:149)'/64;u=sin((1:150)'*.17);f.S.DDV=u;
 f.S.CoilCurrent=u;f.S.RAM=cumsum(tanh(u/.5))/64;f.S.Deflection=2*f.S.RAM;
 [m,r,score]=bb_nl_search(f,f,{u},c,2,-.3,1e-3);

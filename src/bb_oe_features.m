@@ -1,6 +1,11 @@
 function X=bb_oe_features(model,flight,idx)
 % Static scalar DDV map is applied BEFORE delays; no target/position access.
 idx=idx(:);names=model.inputNames;
+if isfield(model,'filterBank')
+ U=zeros(max(idx),numel(names));
+ for j=1:numel(names),U(:,j)=flight.S.(names{j})(1:max(idx));end
+ X=bb_filter_bank(U,model.filterBank);X=X(idx,:);return;
+end
 if ~isfield(model,'featureSpec')
  X=zeros(numel(idx),(model.inputLags+1)*numel(names));
  for lag=0:model.inputLags

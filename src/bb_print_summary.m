@@ -58,7 +58,8 @@ end
 lines{end+1}='';lines{end+1}='Selected RAM diagnostics (Tr / Va / Te):';
 focus={};
 if any(strcmp(labels,'HoldInitial')),focus=[focus {'HoldInitial'}];end
-if any(strcmp(labels,'TrainMean')),focus=[focus {'TrainMean'}];endif isfield(selection,'RAM'),focus=[{selection.RAM} focus];end
+if any(strcmp(labels,'TrainMean')),focus=[focus {'TrainMean'}];end
+if isfield(selection,'RAM'),focus=[{selection.RAM} focus];end
 for j=1:numel(focus)
     step=nan(1,3);normError=nan(1,3);coverage=nan(1,3);
     for s=1:3

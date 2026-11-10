@@ -5,6 +5,8 @@ if nargin<2,quick=false;end
 if nargin<3,mode='plant';end
 if nargin<4,overrides=struct();end
 if ~ismember(mode,{'plant','closed'}),error('Mode must be plant or closed');end
+runTimer=tic;timings=struct('Preprocessing',0,'DDVTraining',0,'OOF',0,'RAMSearch',0,'WH',0,'Refit',0,'ClosedTraining',0,'Evaluation',0,'Diagnostics',0,'Plots',0,'ReportWrite',0,'Total',0);
+reports=struct();stageTimer=tic;
 cfg=bb_config();names=fieldnames(overrides);
 for j=1:numel(names)
     if ~isfield(cfg,names{j}),error('Unknown cfg field: %s',names{j});end
@@ -39,9 +41,10 @@ cfg.evalStartIndex=max(2*cfg.inputLags+2,max(oeLags)+cfg.inputLags+2);
 cfg.trainStartIndex=cfg.evalStartIndex;
 root=fullfile(cfg.outputRoot,[cfg.runPrefix '_' datestr(now,'yyyymmdd_HHMMSS')]);outDir=root;k=1;
 while exist(outDir,'dir'),outDir=sprintf('%s_%02d',root,k);k=k+1;end
-mkdir(outDir);
+mkdir(outDir);timings.Preprocessing=toc(stageTimer);stageTimer=tic;
 labels={'MLP_basic','MLP_more_training','MLP_quasiNewton','FIR_rich','GP_coverage'};
 if cfg.nlFocus,labels={'NL_OE'};end
+if cfg.ddvFilterBank,labels=[labels {'NL_FB'}];end
 ddvModels=struct();rates=struct();choices={};best=Inf;start=cfg.evalStartIndex;
 for j=1:numel(labels)
     label=labels{j};[c,kind]=bb_rich_config(cfg,label);
@@ -57,12 +60,14 @@ for j=1:numel(labels)
 end
 if ~isfinite(best),error('All DDV validation candidates failed');end
 vDDV=cell(size(va));for f=1:numel(va),vDDV{f}=bb_predict_batch(ddvModels.(chosenDDV),va(f));end
+timings.DDVTraining=toc(stageTimer);stageTimer=tic;
 ramTr=tr;oofReport=table();
 if ~ismember(cfg.ramTrainInput,{'measured','oof'}),error('Invalid ramTrainInput');end
 if strcmp(cfg.ramTrainInput,'oof')||cfg.reportLoo
     [oofTr,oofReport]=bb_ddv_oof(tr,cfg,chosenDDV);
     if strcmp(cfg.ramTrainInput,'oof'),ramTr=oofTr;end
 end
+timings.OOF=toc(stageTimer);stageTimer=tic;
 % Retain DDV search, prune RAM candidates after upstream selection.
 labels={'FIR_rich'};
 if cfg.nlFocus,labels={};end
@@ -152,15 +157,21 @@ for j=1:numel(extraLabels)
  if score<bestAll,bestAll=score;chosenRate=label;end
 end
 labels=[labels extraLabels];
-if ~isempty(extraReport),writetable(extraReport,fullfile(outDir,'comparison.xlsx'),'Sheet','StructuralSelection');end
+if ~isempty(extraReport),reports.StructuralSelection=extraReport;end
+if cfg.nlFocus&&cfg.nlFilterBank
+    [fb,fbReport,fbScore]=bb_fb_search(ramTr,va,vDDV,cfg,oeBetas,oeRidge);
+    rates.NL_FB=fb;labels=[labels {'NL_FB'}];reports.FB_Selection=fbReport;
+    if fbScore<bestAll,bestAll=fbScore;chosenRate='NL_FB';end
+end
 if cfg.nlFocus&&cfg.nlStateLeak
     [leak,leakReport,leakScore]=bb_state_leak_fit(rates.(chosenRate),ramTr,va,vDDV,cfg);
-    writetable(leakReport,fullfile(outDir,'comparison.xlsx'),'Sheet','StateLeak');
+    reports.StateLeak=leakReport;
     if isfield(leak,'stateLeak')&&leakScore<bestAll
         rates.NL_OE_State=leak;labels=[labels {'NL_OE_State'}];
         bestAll=leakScore;chosenRate='NL_OE_State';
     end
 end
+timings.RAMSearch=toc(stageTimer);stageTimer=tic;
 if cfg.nlFocus&&cfg.nlWiener
     whBase=rates.NL_OE;
     [wh,whReport]=bb_wh_train(whBase,ramTr,cfg);sse=0;n=0;
@@ -172,9 +183,10 @@ if cfg.nlFocus&&cfg.nlWiener
     whReport.Selected=isfinite(whScore)&&whScore<bestAll;
     rates.NL_WH=wh;labels=[labels {'NL_WH'}];
     if whReport.Selected,bestAll=whScore;chosenRate='NL_WH';end
-    writetable(whReport,fullfile(outDir,'comparison.xlsx'),'Sheet','WH_Selection');
-    writetable(table(wh.wh.knots,wh.wh.values,'VariableNames',{'RawRate','MappedRate'}),fullfile(outDir,'comparison.xlsx'),'Sheet','WH_Map');
+    reports.WH_Selection=whReport;
+    reports.WH_Map=table(wh.wh.knots,wh.wh.values,'VariableNames',{'RawRate','MappedRate'});
 end
+timings.WH=toc(stageTimer);stageTimer=tic;
 seedRows={cfg.seed,bestAll};
 
 if ~isfinite(bestAll),error('All validation models failed');end
@@ -194,84 +206,111 @@ if cfg.holdBaselines
     configs.HoldInitial=struct('ddv',ddvModels.(chosenDDV),'rate',bb_hold_model(cfg),'angle',angle);
     configs.TrainMean=struct('ddv',ddvModels.(chosenDDV),'rate',bb_train_mean(tr,cfg),'angle',angle);
 end
+timings.Evaluation=timings.Evaluation+toc(stageTimer);stageTimer=tic;
 if cfg.nlDiagnostics
     [curve,holds,equilibrium]=bb_nl_diagnostics(nlReport,configs.(chosenRate),tr,va,te,cfg);
-    writetable(curve,fullfile(outDir,'comparison.xlsx'),'Sheet','BetaCurve');
-    writetable(holds,fullfile(outDir,'comparison.xlsx'),'Sheet','HoldVariability');
-    writetable(equilibrium,fullfile(outDir,'comparison.xlsx'),'Sheet','NullEquilibrium');
+    reports.BetaCurve=curve;
+    reports.HoldVariability=holds;
+    reports.NullEquilibrium=equilibrium;
+    reports.BandGain=bb_band_gain(configs.(chosenRate),va,te,cfg);
     [rateMap,steps]=bb_rate_diagnostics(configs.(chosenRate),tr,va,cfg);
-    writetable(rateMap,fullfile(outDir,'comparison.xlsx'),'Sheet','RateMap');
-    writetable(steps,fullfile(outDir,'comparison.xlsx'),'Sheet','StepSmoothing');
+    reports.RateMap=rateMap;
+    reports.StepSmoothing=steps;
 end
+timings.Diagnostics=timings.Diagnostics+toc(stageTimer);
 refitModels=struct();
 if cfg.nlFocus&&cfg.nlRefitTrainVal
     refitModels.Original_TRAIN=configs.(chosenRate);
+    stageTimer=tic;
     [refitModels.Refit_TRAIN_VAL,refitInfo]=bb_refit_trainval(configs.(chosenRate),tr,va,cfg,chosenDDV);
+    timings.Refit=toc(stageTimer);stageTimer=tic;
     ec=cfg;ec.evalTestOnly=true;
     [refitDetails,refitSummary]=bb_evaluate_rich(refitModels,tr,va,te,ec);
-    writetable(refitSummary,fullfile(outDir,'comparison.xlsx'),'Sheet','RefitTest');
-    writetable(refitDetails,fullfile(outDir,'comparison.xlsx'),'Sheet','RefitPerFlight');
-    writetable(refitInfo,fullfile(outDir,'comparison.xlsx'),'Sheet','RefitInfo');
+    reports.RefitTest=refitSummary;
+    reports.RefitPerFlight=refitDetails;
+    timings.Evaluation=timings.Evaluation+toc(stageTimer);
+    reports.RefitInfo=refitInfo;
 end
 
 
+stageTimer=tic;
 [details,summary]=bb_evaluate_rich(configs,tr,va,te,cfg);
+timings.Evaluation=timings.Evaluation+toc(stageTimer);
 if strcmp(mode,'closed')
+    stageTimer=tic;
     [closed,closedSelection]=bb_closed_train(tr,va,configs.(chosenRate),cfg,oeLags,oeBetas,oeRidge);
+    timings.ClosedTraining=toc(stageTimer);stageTimer=tic;
     [cs,cr]=bb_closed_report(closed,tr,va,te,cfg);summary=[summary;cs];
+    timings.Evaluation=timings.Evaluation+toc(stageTimer);
     selection.Closed=closed.selected;selection.closedAccepted=closed.accepted;
-    writetable(cr,fullfile(outDir,'comparison.xlsx'),'Sheet','ClosedLoop');
-    writetable(closedSelection,fullfile(outDir,'comparison.xlsx'),'Sheet','ClosedSelection');
+    reports.ClosedLoop=cr;
+    reports.ClosedSelection=closedSelection;
     save(fullfile(outDir,'closed_models.mat'),'closed','closedSelection','cfg','-v7');
 end
+stageTimer=tic;
 if ~isempty(oofReport)
     selection.LOFO_DDV_RMSE=sqrt(sum(oofReport.SSE)/sum(oofReport.Samples));
-    writetable(oofReport,fullfile(outDir,'comparison.xlsx'),'Sheet','OOF_DDV');
+    reports.OOF_DDV=oofReport;
 end
 if cfg.reportLoo
     loo=bb_ram_loo(tr,cfg,rates,chosenDDV);
     if ~isempty(loo)
-        selection.loo=loo;writetable(loo,fullfile(outDir,'comparison.xlsx'),'Sheet','LOFO_RAM');
+        selection.loo=loo;reports.LOFO_RAM=loo;
     end
 end
+timings.Diagnostics=timings.Diagnostics+toc(stageTimer);stageTimer=tic;
+if cfg.ddvFilterBank,reports.DDVPerformance=bb_ddv_report(ddvModels,tr,va,te,cfg);end
+timings.Evaluation=timings.Evaluation+toc(stageTimer);stageTimer=tic;
 compact=bb_print_summary(summary,selection,outDir,cfg);
 audit=bb_data_diagnostics(tr,va,te,cfg);
-if cfg.diagnostics
+if cfg.diagnostics||cfg.nlDiagnostics
     alignment=bb_alignment_report(tr,va,te,cfg);
-    writetable(alignment,fullfile(outDir,'comparison.xlsx'),'Sheet','Alignment');
+    reports.Alignment=alignment;
 end
 eventConfigs=configs;wn=fieldnames(weightedRates);
 for j=1:numel(wn)
  eventConfigs.(wn{j})=struct('ddv',ddvModels.(chosenDDV),'rate',weightedRates.(wn{j}),'angle',angle);
 end
 events=bb_event_report(eventConfigs,tr,va,te,cfg);
-writetable(compact,fullfile(outDir,'comparison.xlsx'),'Sheet','Compact');
+timings.Diagnostics=timings.Diagnostics+toc(stageTimer);
+reports.Compact=compact;
 runInfo=table({cfg.version},{source},logical(quick),cfg.Fs,numel(tr),numel(va),numel(te),...
     'VariableNames',{'Version','Source','SmokeMode','Fs','TrainFlights','ValidationFlights','TestFlights'});
 runInfo.RAMTrainInput={cfg.ramTrainInput};runInfo.OEMaxTrainRows=cfg.oeMaxTrainRows;
 runInfo.HoldBaselines=cfg.holdBaselines;runInfo.WienerEnabled=cfg.nlWiener;
-writetable(runInfo,fullfile(outDir,'comparison.xlsx'),'Sheet','RunInfo');
-writetable(details,fullfile(outDir,'comparison.xlsx'),'Sheet','PerFlight');
-writetable(audit,fullfile(outDir,'comparison.xlsx'),'Sheet','DataAudit');
-writetable(events,fullfile(outDir,'comparison.xlsx'),'Sheet','EventErrors');
+reports.RunInfo=runInfo;
+reports.PerFlight=details;
+reports.DataAudit=audit;
+reports.EventErrors=events;
 if ~isempty(oeChoices)
     oeTable=cell2table(oeChoices,'VariableNames',{'Beta','Lags','Ridge','ValidationRMSE','WorstFlightRMSE'});
     if cfg.nlFocus&&cfg.nlFIRReference,oeTable.ReferenceOnly=true(height(oeTable),1);end
-    writetable(oeTable,fullfile(outDir,'comparison.xlsx'),'Sheet','OE_Selection');
+    reports.OE_Selection=oeTable;
 end
-writetable(summary,fullfile(outDir,'comparison.xlsx'),'Sheet','Summary');
-writetable(nlReport,fullfile(outDir,'comparison.xlsx'),'Sheet','NL_Selection');
-writetable(manifest,fullfile(outDir,'comparison.xlsx'),'Sheet','Split');
-writetable(cell2table(choices,'VariableNames',{'Stage','Label','Beta','Calibrated','Gain','Bias','ValidationRMSE'}),fullfile(outDir,'comparison.xlsx'),'Sheet','ValidationSelection');
-writetable(cell2table(seedRows,'VariableNames',{'Seed','ValidationRAMRMSE'}),fullfile(outDir,'comparison.xlsx'),'Sheet','SeedSensitivity');
-save(fullfile(outDir,'selection.mat'),'selection','choices','oeChoices','cfg','-v7');
+reports.Summary=summary;
+reports.NL_Selection=nlReport;
+reports.Split=manifest;
+reports.ValidationSelection=cell2table(choices,'VariableNames',{'Stage','Label','Beta','Calibrated','Gain','Bias','ValidationRMSE'});
+reports.SeedSensitivity=cell2table(seedRows,'VariableNames',{'Seed','ValidationRAMRMSE'});
 save(fullfile(outDir,'trained_models.mat'),'configs','selection','ddvModels','cfg','manifest','-v7');
 if cfg.nlFocus&&cfg.nlRefitTrainVal
     save(fullfile(outDir,'trained_models.mat'),'refitModels','-append');
 end
+stageTimer=tic;
 if cfg.makePlots
     closedPlot=[];if strcmp(mode,'closed'),closedPlot=closed;end
     bb_plot_flight_outputs(flights,configs.(chosenRate),selection,outDir,closedPlot);
 end
+timings.Plots=toc(stageTimer);
+% Workbook write cost is measured once; final timing stamp is explicitly excluded.
+stageTimer=tic;book=fullfile(outDir,'comparison.xlsx');
+layout=bb_write_workbook(book,reports,selection,cfg,timings);
+timings.ReportWrite=toc(stageTimer);timings.Total=toc(runTimer);selection.timings=timings;
+bb_stamp_timings(book,layout,timings,cfg);
+save(fullfile(outDir,'selection.mat'),'selection','choices','oeChoices','cfg','timings','summary','layout','-v7');
+save(fullfile(outDir,'trained_models.mat'),'selection','timings','-append');
+fprintf('Stage times (seconds; final stamp/save excluded):\n');
+names=fieldnames(timings);
+for j=1:numel(names),fprintf('  %-18s %10.3f\n',names{j},timings.(names{j}));end
 fprintf('Results: %s\n',outDir);
 end
