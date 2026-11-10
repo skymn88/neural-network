@@ -17,6 +17,7 @@ for j=1:numel(labels)
   oc=cfg;oc.oeZeroRateAtNull=false;
   if isfield(selected,'oeConfig'),oc=selected.oeConfig;end
   if isfield(selected,'inputBasis'),oc.oeNonlinear=strcmp(selected.inputBasis,'nonlinear');end
+  if isfield(selected,'tanhScale'),oc.oeTanhScale=selected.tanhScale;end
   m=bb_oe_train(rt,oc,selected.beta,selected.inputLags,selected.ridge);m=bb_ram_bounds(m,train,cfg);
   p=bb_rollout_rate(m,tr(f),tr(f).S.RAM(1),struct('DDV',u));ix=cfg.evalStartIndex:numel(p);
   sse=sse+sum((p(ix)-tr(f).S.RAM(ix)).^2);n=n+numel(ix);

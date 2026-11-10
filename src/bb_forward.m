@@ -6,7 +6,10 @@ end
 if isfield(model,'kind')
     Z=bsxfun(@rdivide,bsxfun(@minus,double(X),model.xMean),model.xStd);
     if strcmp(model.kind,'FIR')
-        if isfield(model,'inputBasis')&&strcmp(model.inputBasis,'nonlinear'),Z=[Z tanh(Z) abs(Z)];end
+        if isfield(model,'inputBasis')&&strcmp(model.inputBasis,'nonlinear')
+            scale=1;if isfield(model,'tanhScale'),scale=model.tanhScale;end
+            Z=[Z tanh(Z/scale) abs(Z)];
+        end
         if ~isfield(model,'noIntercept')||~model.noIntercept,Z=[ones(size(Z,1),1) Z];end
         P=Z*model.weights;
     elseif strcmp(model.kind,'GP')

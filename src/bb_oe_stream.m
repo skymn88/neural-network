@@ -7,11 +7,17 @@ model.inputNames={'DDV'};
 if cfg.usePressure,model.inputNames=[model.inputNames {'SupplyPressure','ReturnPressure'}];end
 model.outputNames={'RAMRate'};model.nInputs=numel(model.inputNames);model.nOutputs=1;
 model.inputLags=lags;model.outputLags=0;model.inputBasis='linear';
+model.tanhScale=1;
+if isfield(cfg,'oeTanhScale'),model.tanhScale=cfg.oeTanhScale;end
+if ~isfinite(model.tanhScale)||model.tanhScale<=0,error('Invalid tanh scale');end
 if isfield(cfg,'oeNonlinear')&&cfg.oeNonlinear,model.inputBasis='nonlinear';end
 model.noIntercept=cfg.oeZeroRateAtNull;
 if isfield(cfg,'oeCustom')&&cfg.oeCustom
  model.featureSpec=cfg.featureSpec;model.inputNames={'DDV'};model.nInputs=1;
  model.inputBasis='linear';
+model.tanhScale=1;
+if isfield(cfg,'oeTanhScale'),model.tanhScale=cfg.oeTanhScale;end
+if ~isfinite(model.tanhScale)||model.tanhScale<=0,error('Invalid tanh scale');end
  if strcmp(model.featureSpec.basis,'nonlinear'),model.inputBasis='nonlinear';end
 end
 if model.noIntercept&&cfg.usePressure&&~isfield(model,'featureSpec')
@@ -47,7 +53,7 @@ for f=1:numel(flights)
  for b=1:cfg.oeChunkRows:numel(fl.t)
   ii=(b:min(numel(fl.t),b+cfg.oeChunkRows-1))';
   X=bb_oe_features(model,fl,ii);Z=bsxfun(@rdivide,bsxfun(@minus,X,model.xMean),model.xStd);
-  if strcmp(model.inputBasis,'nonlinear'),Z=[Z tanh(Z) abs(Z)];end
+  if strcmp(model.inputBasis,'nonlinear'),Z=[Z tanh(Z/model.tanhScale) abs(Z)];end
   if ~model.noIntercept,Z=[ones(size(Z,1),1) Z];end
   if b==1,Z(1,:)=0;state=zeros(1,size(Z,2));end
   [A,state]=filter(1/cfg.Fs,[1 -a],Z,state,1);

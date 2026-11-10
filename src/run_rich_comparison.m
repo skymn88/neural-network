@@ -37,6 +37,7 @@ root=fullfile(cfg.outputRoot,[cfg.runPrefix '_' datestr(now,'yyyymmdd_HHMMSS')])
 while exist(outDir,'dir'),outDir=sprintf('%s_%02d',root,k);k=k+1;end
 mkdir(outDir);
 labels={'MLP_basic','MLP_more_training','MLP_quasiNewton','FIR_rich','GP_coverage'};
+if cfg.nlFocus,labels={'NL_OE'};end
 ddvModels=struct();rates=struct();choices={};best=Inf;start=cfg.evalStartIndex;
 for j=1:numel(labels)
     label=labels{j};[c,kind]=bb_rich_config(cfg,label);
@@ -60,6 +61,7 @@ if strcmp(cfg.ramTrainInput,'oof')||cfg.reportLoo
 end
 % Retain DDV search, prune RAM candidates after upstream selection.
 labels={'FIR_rich'};
+if cfg.nlFocus,labels={};end
 bestAll=Inf;
 for j=1:numel(labels)
     label=labels{j};[c,kind]=bb_rich_config(cfg,label);betas=cfg.betaCandidates;best=Inf;
@@ -86,6 +88,7 @@ if quick
     oeBetas=[0 -.025];oeRidge=1e-3;
     if ~isinf(cfg.oeMaxTrainRows),cfg.oeMaxTrainRows=700;end
 end
+if ~cfg.nlFocus
 for beta=oeBetas
  for lag=oeLags
   for ridge=oeRidge
@@ -105,26 +108,12 @@ for beta=oeBetas
 end
 if ~isfield(rates,'FIR_OE'),error('No finite OE validation model');end
 labels=[labels {'FIR_OE'}];
-% Nonlinear finite-memory input map + position output-error fit (not NARX).
-nlBest=Inf;nlConfig=cfg;nlConfig.oeNonlinear=true;nlConfig.oeZeroRateAtNull=false;nlChoices={};
-for beta=oeBetas
- for lag=oeLags(oeLags<=128)
-  for ridge=oeRidge
-    model=bb_oe_train(ramTr,nlConfig,beta,lag,ridge);model=bb_ram_bounds(model,tr,cfg);sse=0;n=0;
-    for f=1:numel(va)
-        p=bb_rollout_rate(model,va(f),va(f).S.RAM(1),struct('DDV',vDDV{f}));idx=start:numel(p);
-        e=p(idx)-va(f).S.RAM(idx);sse=sse+sum(e.^2);n=n+numel(e);
-    end
-    score=sqrt(sse/n);nlChoices(end+1,:)={beta,lag,ridge,score}; %#ok<AGROW>
-    if isfinite(score)&&score<nlBest,nlBest=score;rates.NL_OE=model;end
-    if isfinite(score)&&score<bestAll,bestAll=score;chosenRate='NL_OE';end
-  end
- end
- fprintf('NL_OE beta %.5g complete; best validation RMSE %.6g\n',beta,nlBest);
 end
-if ~isfield(rates,'NL_OE'),error('No finite nonlinear OE model');end
+% Nonlinear finite-memory input map + position output-error fit (not NARX).
+[rates.NL_OE,nlReport,nlBest]=bb_nl_search(ramTr,va,vDDV,cfg,oeLags,oeBetas,oeRidge);
+if nlBest<bestAll,bestAll=nlBest;chosenRate='NL_OE';end
 labels=[labels {'NL_OE'}];
-if cfg.oeZeroRateAtNull
+if cfg.oeZeroRateAtNull&&~cfg.nlFocus
     zeroBest=Inf;
     for beta=oeBetas
      for lag=oeLags
@@ -146,8 +135,9 @@ end
 
 
 extraLabels={};extraReport=table();
-if cfg.hamEnabled,extraLabels={'HAM_OE'};end
+if cfg.hamEnabled&&~cfg.nlFocus,extraLabels={'HAM_OE'};end
 baseLabels=[{'FIR_OE','NL_OE'} extraLabels];
+if cfg.nlFocus,baseLabels={'NL_OE'};end
 if cfg.useForce,extraLabels=[extraLabels strcat(baseLabels,'_F')];end
 if cfg.usePressure&&cfg.pressureInteractions,extraLabels=[extraLabels strcat(baseLabels,'_P')];end
 if cfg.useForce&&cfg.usePressure&&cfg.pressureInteractions,extraLabels=[extraLabels strcat(baseLabels,'_F_P')];end
@@ -164,6 +154,10 @@ seedRows={cfg.seed,bestAll};
 if ~isfinite(bestAll),error('All validation models failed');end
 angle=bb_angle_select(tr,va,start);
 selection=struct('DDV',chosenDDV,'RAM',chosenRate,'criterion','validation cascade RAM RMSE','seed',cfg.seed,'smokeMode',logical(quick),'source',source);
+selectedRate=rates.(chosenRate);selection.RAMBeta=selectedRate.beta;
+selection.RAMLags=selectedRate.inputLags;
+if isfield(selectedRate,'ridge'),selection.RAMRidge=selectedRate.ridge;end
+if isfield(selectedRate,'tanhScale'),selection.RAMTanhScale=selectedRate.tanhScale;end
 % No test outputs were used above.
 configs=struct();
 for j=1:numel(labels)
@@ -205,13 +199,19 @@ writetable(runInfo,fullfile(outDir,'comparison.xlsx'),'Sheet','RunInfo');
 writetable(details,fullfile(outDir,'comparison.xlsx'),'Sheet','PerFlight');
 writetable(audit,fullfile(outDir,'comparison.xlsx'),'Sheet','DataAudit');
 writetable(events,fullfile(outDir,'comparison.xlsx'),'Sheet','EventErrors');
-writetable(cell2table(oeChoices,'VariableNames',{'Beta','Lags','Ridge','ValidationRMSE','WorstFlightRMSE'}),fullfile(outDir,'comparison.xlsx'),'Sheet','OE_Selection');
+if ~isempty(oeChoices)
+    writetable(cell2table(oeChoices,'VariableNames',{'Beta','Lags','Ridge','ValidationRMSE','WorstFlightRMSE'}),fullfile(outDir,'comparison.xlsx'),'Sheet','OE_Selection');
+end
 writetable(summary,fullfile(outDir,'comparison.xlsx'),'Sheet','Summary');
-writetable(cell2table(nlChoices,'VariableNames',{'Beta','Lags','Ridge','ValidationRMSE'}),fullfile(outDir,'comparison.xlsx'),'Sheet','NL_Selection');
+writetable(nlReport,fullfile(outDir,'comparison.xlsx'),'Sheet','NL_Selection');
 writetable(manifest,fullfile(outDir,'comparison.xlsx'),'Sheet','Split');
 writetable(cell2table(choices,'VariableNames',{'Stage','Label','Beta','Calibrated','Gain','Bias','ValidationRMSE'}),fullfile(outDir,'comparison.xlsx'),'Sheet','ValidationSelection');
 writetable(cell2table(seedRows,'VariableNames',{'Seed','ValidationRAMRMSE'}),fullfile(outDir,'comparison.xlsx'),'Sheet','SeedSensitivity');
 save(fullfile(outDir,'selection.mat'),'selection','choices','oeChoices','cfg','-v7');
 save(fullfile(outDir,'trained_models.mat'),'configs','selection','ddvModels','cfg','manifest','-v7');
+if cfg.makePlots
+    closedPlot=[];if strcmp(mode,'closed'),closedPlot=closed;end
+    bb_plot_flight_outputs(flights,configs.(chosenRate),selection,outDir,closedPlot);
+end
 fprintf('Results: %s\n',outDir);
 end

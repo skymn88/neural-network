@@ -2,6 +2,10 @@ function cfg = bb_config()
 % Repository configuration: compact reports, optional force, position-output-error FIR.
 % MATLAB R2019a + Deep Learning Toolbox. No Signal Processing Toolbox needed.
 cfg.version = 'plant';
+cfg.nlFocus = true; % requested RAM focus; false restores multi-family search
+cfg.nlRefine = true; % refine beta and nonlinear saturation around coarse winner
+cfg.nlTanhScales = [.5 1 2];
+cfg.ddvRidge = 1e-3; % direct nonlinear DDV output-error fit
 cfg.diagnostics = false; % opt-in alignment, selected-stage and hold drift reports
 cfg.alignmentMaxLag = 64;
 cfg.printTestForAll = true;

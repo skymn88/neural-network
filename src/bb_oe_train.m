@@ -15,6 +15,9 @@ for f=1:numel(flights)
     X=[X;xx(ix,:)];yAll=[yAll;fl.S.RAM]; %#ok<AGROW>
 end
 model.inputBasis='linear';
+model.tanhScale=1;
+if isfield(cfg,'oeTanhScale'),model.tanhScale=cfg.oeTanhScale;end
+if ~isfinite(model.tanhScale)||model.tanhScale<=0,error('Invalid tanh scale');end
 if isfield(cfg,'oeNonlinear')&&cfg.oeNonlinear,model.inputBasis='nonlinear';end
 model.name='FIR_OE';model.kind='FIR';model.mode='mlp';model.Fs=cfg.Fs;
 model.inputNames=names;model.outputNames={'RAMRate'};model.nInputs=numel(names);model.nOutputs=1;
@@ -25,7 +28,7 @@ A=[];Y=[];a=1+beta/cfg.Fs;
 for f=1:numel(flights)
     fl=flights(f);xx=bb_lag_inputs(fl,names,lags);
     Z=bsxfun(@rdivide,bsxfun(@minus,xx,model.xMean),model.xStd);
-    if strcmp(model.inputBasis,'nonlinear'),Z=[Z tanh(Z) abs(Z)];end
+    if strcmp(model.inputBasis,'nonlinear'),Z=[Z tanh(Z/model.tanhScale) abs(Z)];end
     phi=[ones(size(Z,1),1) Z];phi(1,:)=0;
     response=filter(1/cfg.Fs,[1 -a],phi,[],1);
     k=(0:numel(fl.t)-1)';target=(fl.S.RAM-fl.S.RAM(1)*a.^k)/model.yStd;

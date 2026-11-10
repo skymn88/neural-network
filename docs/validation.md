@@ -29,3 +29,5 @@ Yeni deterministik MATLAB testleri `bb_run_checks` içine eklendi: gecikme işar
 Gerçekte çalıştırılan: MISS_HIT R2019a statik kontrol, Git diff/bağımlılık/dosya adı kontrolleri, SHA256 kontrolü; bağımsız Python/NumPy/SciPy hesabında bloklu filtre/normal denklem birikiminin yoğun hesapla sayısal denkliği. Python kontrolü MATLAB kodunu çalıştırmaz ve eğitim başarısını doğrulamaz.
 
 MATLAB'da önce `start_here`, sonra gerçek adaptörü bağlayıp varsayılan `run_project('user')`; ardından README'deki bayrakları sırayla açarak aynı split üzerinde karşılaştır. `run_project('user','closed')` için 64 Hz RAMSetpoint gerekir. Mevcut sentetik MAT değiştirilmedi; closed veri eksikliğinde açık hata beklenir. İlk çalıştırma sonuçlarını runtime doğrulaması için paylaş.
+
+NL odak güncellemesinde `test_nl_focus`: kaba kazananın korunması, minimum validation satırının seçimi, tanh ölçeğinin çıkarım denkliği ve üç eksenli ilk-uçuş grafiği için eklendi. MATLAB/graphics çalışma testi burada yapılmadı. 66 MATLAB dosyası statik kontrolden geçti; sentetik MAT hash'i değişmedi.

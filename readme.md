@@ -8,7 +8,7 @@ MATLAB **R2019a + Deep Learning Toolbox** ile uçuş kayıtlarından aktüatör 
 Coil Current → DDV modeli → RAM durum modeli → Deflection dönüşümü
 ```
 
-RAM tarafında aktif adaylar `FIR_rich`, `FIR_OE`, `NL_OE`; `HoldInitial` basit referanstır. DDV ayrı seçilir. NARX aktif eğitimde kullanılmaz. Açı için lineer/kübik geometrik dönüşüm validation'da karşılaştırılır. Ayrıntılar: [modelleme](docs/modeling.md).
+RAM tarafında varsayılan aday `NL_OE`; `HoldInitial` basit referanstır. Eski çok-aileli arama `nlFocus=false` ile korunur. DDV de varsayılan olarak NL_OE ile eğitilir. NARX aktif eğitimde kullanılmaz. Açı için lineer/kübik geometrik dönüşüm validation'da karşılaştırılır. Ayrıntılar: [modelleme](docs/modeling.md).
 
 ## Gerçek uçuşlarınla başla
 
@@ -125,3 +125,9 @@ run_project('user','plant',opts);
 run_project('user','closed',opts);
 ```
 `ctrlNoiseStd=0` varsayılandır (RAM birimi); `ctrlLags`, `ctrlTaus`, `ctrlRidge` kontrolcü aramasını belirler. `ClosedLoop`/`ClosedSelection` sayfaları ve `closed_models.mat` ayrı üretilir. Sabit sentetik fixture setpoint içermediğinden closed komutu için hazır veri değildir; veri değiştirilmez.
+
+Güncel RAM odağı: `nlFocus=true` varsayılanıyla yalnız NL_OE ve HoldInitial raporlanır (DDV de yalnız NL_OE kullanır). `nlRefine=true`, kaba NL_OE kazananının beta çevresini ve `nlTanhScales=[.5 1 2]` doygunluk ölçeklerini validation'da karşılaştırır; iyileşmezse kaba kazanan korunur. `nlFocus=false` eski çok-aileli aramayı geri açar. Odak modunda eski `hamEnabled`/`oeZeroRateAtNull` seçenekleri RAM aramasını genişletmez; açık force/pressure seçenekleri yalnız NL varyantlarını ekler.
+
+`run_project('user')` sonunda ilk uçuş Current/RAM/Angle olarak 3×1 çizilir, sonuç klasörüne FIG/PNG kaydedilir. Plant'te current girdidir, tahmin eğrisi yoktur. `src/bb_plot_flight_outputs.m` içindeki `for i=1` döngüsünü tüm uçuşlar için değiştirebilirsin. Tam-uçuş grafiği split skorunun yerine geçmez; `makePlots=false` çizimi kapatır. Seçilmiş beta/lag/ridge/tanh ölçeği kısa özette görünür.
+
+DDV NL_OE, current geçmişinin doğrusal olmayan bazlarından doğrudan DDV çıktı hatasını ridge LS ile öğrenir (`ddvRidge=1e-3`); RAM integratörü DDV'ye uygulanmaz. Varsayılan eğitim artık Deep Learning Toolbox gerektirmez; önceki MLP aramaları yalnız `nlFocus=false` yolundadır. Açı statik RAM→açı dönüşümüdür.

@@ -27,7 +27,14 @@ model.yMean=mean(Y,1);model.yStd=std(Y,0,1);
 model.xStd(model.xStd<1e-10)=1;model.yStd(model.yStd<1e-10)=1;
 X=bsxfun(@rdivide,bsxfun(@minus,X,model.xMean),model.xStd);
 Y=bsxfun(@rdivide,bsxfun(@minus,Y,model.yMean),model.yStd);
-if strcmp(kind,'FIR')
+if strcmp(kind,'NL')
+    % Direct DDV output error, no RAM integrator or measured output feedback.
+    model.kind='FIR';model.inputBasis='nonlinear';model.tanhScale=1;
+    model.objective='direct output error';model.ridge=cfg.ddvRidge;
+    X=[X tanh(X) abs(X)];A=[ones(size(X,1),1) X];
+    R=eye(size(A,2));R(1,1)=0;
+    model.weights=(A'*A/size(A,1)+cfg.ddvRidge*R)\(A'*Y/size(A,1));
+elseif strcmp(kind,'FIR')
     A=[ones(size(X,1),1) X]; R=.01*eye(size(A,2));R(1,1)=0;
     model.weights=(A'*A+R)\(A'*Y);
 elseif strcmp(kind,'GP')

@@ -16,6 +16,11 @@ if isfield(selection,'source'),lines{end+1}=sprintf('Data source: %s',selection.
 lines{end+1}='Fit: 100 ideal | RMSE: 0 ideal, in original signal units';
 if isfield(selection,'DDV'),lines{end+1}=sprintf('DDV selected: %s',selection.DDV);end
 if isfield(selection,'RAM'),lines{end+1}=sprintf('RAM selected on VALIDATION: %s',selection.RAM);end
+if isfield(selection,'RAMBeta')
+    lines{end+1}=sprintf('Selected RAM beta %.6g | lags %d',selection.RAMBeta,selection.RAMLags);
+    if isfield(selection,'RAMRidge'),lines{end+1}=sprintf('RAM ridge %.6g',selection.RAMRidge);end
+    if isfield(selection,'RAMTanhScale'),lines{end+1}=sprintf('RAM tanh scale %.6g',selection.RAMTanhScale);end
+end
 if isfield(selection,'closedAccepted')&&~selection.closedAccepted
     lines{end+1}='CLOSED: no acceptable validation candidate; failed rollouts are diagnostic only.';
 end

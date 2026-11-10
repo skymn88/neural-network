@@ -4,11 +4,11 @@ Amaç gerçek fiziksel denklemleri zorunlu tutmadan Current → DDV → RAM → 
 
 ## DDV
 
-Gecikmeli giriş MLP, doğrusal FIR ve sınırlı RBF Gaussian Process adayları validation DDV RMSE'siyle karşılaştırılır. RAM'de başarısız bulunan bir yöntemin DDV'de de başarısız olduğu varsayılmaz. MLP'de MATLAB trainscg/trainbfg kullanılır. Önceki Python Adam/L-BFGS deneyleri ile birebir aynı eğitim değildir.
+Varsayılan DDV adayı NL_OE'dir: akım geçmişine z/tanh(z)/abs(z) bazları uygulanır, DDV çıktı hatası ridge LS ile küçültülür. Dinamik RAM integratörü burada kullanılmaz. Eski MLP/FIR/GP araması yalnız nlFocus=false ile korunur. RAM'de başarısız bulunan bir yöntemin DDV'de de başarısız olduğu varsayılmaz. MLP'de MATLAB trainscg/trainbfg kullanılır. Önceki Python Adam/L-BFGS deneyleri ile birebir aynı eğitim değildir.
 
 ## RAM
 
-Aktif adaylar:
+Varsayılan RAM adayı NL_OE; diğer aileler yalnız `nlFocus=false` ile açılan önceki karşılaştırma yolunda korunur. Yapılar:
 
 - **FIR_rich:** DDV giriş geçmişinden residual hız öğrenir; durumu integratörle ilerletir.
 - **FIR_OE:** katsayıları doğrudan TRAIN konum trajektorisi hatasıyla öğrenir; fark/türev hedefi kullanmaz.
@@ -52,3 +52,5 @@ Kapalı çevrim: `SP_OE` setpoint geçmişinden RAM tahmin eden beta<0 OE temel 
 `bb_ctrl_train` model alanları: FIR normalizasyon/ağırlıkları, `lags`, `taus`, `Fs`, `ridge`, `noiseStd`. `bb_ctrl_features` durumu: error/DDV/current sabit uzunluklu tamponları ve integral vektörü. `bb_closed_loop` plant alanları `ddv`, `rate`, `trainBounds`; sadece setpoint ve modelin gerektirdiği harici force/pressure okunur. İleride C için sonlu tamponlar yeterlidir; burada C/Simulink üretilmez.
 
 Iraksama eşiği 2×max(abs(TRAIN RAM)) (sıfır aralıkta eps); hybrid kıskaç öncesi durumu da kontrol eder. NaN/Inf başarısızlıktır. Iraksayan validation kontrolcüleri seçilmez; tümü başarısızsa ilk kontrolcü açık uyarıyla başarısız teşhis olarak raporlanır, performans iddiası yapılmaz. Closed seçim yalnız validation'dadır; plant seçimi değişmez. Gürültü yalnız kontrolcü eğitimindeki RAM geri beslemesine uygulanır; seed ve RNG durumu korunur.
+
+NL odak geliştirmesi: baz `z, tanh(z/tanhScale), abs(z)` olarak genişletildi. Eski modellerde eksik `tanhScale` alanı 1 kabul edilir. Kaba kazanan korunarak beta × [.5 .75 1 1.25 1.5] ve doygunluk ölçekleri denenir; lag/ridge bu yerel aramada kaba kazananın değeridir. Beta=0 kazananında [0 −.001 −.003] denenir. Bunlar validation karşılaştırmalarıdır, gerçek veri başarısı iddiası değildir.
