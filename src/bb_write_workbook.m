@@ -2,8 +2,8 @@ function layout=bb_write_workbook(file,reports,selection,cfg,timings)
 % Five-sheet report, or historical named sheets. No ActiveX/Excel requirement.
 names=fieldnames(reports);layout=struct();
 if cfg.legacySheets
- for j=1:numel(names),writetable(reports.(names{j}),file,'Sheet',names{j});end
- writetable(localTime(timings),file,'Sheet','Timings');return;
+ for j=1:numel(names),writetable(reports.(names{j}),file,'UseExcel',false,'Sheet',names{j});end
+ writetable(localTime(timings),file,'UseExcel',false,'Sheet','Timings');return;
 end
 selected=localKV(selection);flags=localKV(cfg);time=localTime(timings);
 summary=cell(0,0);summary=localBlock(summary,'Selected configuration',selected);
@@ -11,22 +11,22 @@ keep={'nlFocus','ramTrainInput','oeMaxTrainRows','nlFilterBank','ddvFilterBank',
 summary=localBlock(summary,'Settings',flags(ismember(flags.Setting,keep),:));
 layout.summaryTimeRow=size(summary,1)+3;summary=localBlock(summary,'Stage times (seconds)',time);
 summary=localBlock(summary,'Fit / RMSE by model and stage',bb_wide_summary(reports.Summary,selection,cfg));
-writecell(summary,file,'Sheet','Summary','Range','A1');
+writecell(summary,file,'UseExcel',false,'Sheet','Summary','Range','A1');
 per=reports.PerFlight;
 if isfield(reports,'RefitPerFlight'),per=[per;reports.RefitPerFlight];end
-writetable(per,file,'Sheet','PerFlight');
+writetable(per,file,'UseExcel',false,'Sheet','PerFlight');
 searchNames={'NL_Selection','OE_Selection','FB_Selection','WH_Selection','StateLeak','StructuralSelection','BetaCurve','ValidationSelection','ClosedSelection'};
-search=localSearch(reports,searchNames);writecell(search,file,'Sheet','Search','Range','A1');
+search=localSearch(reports,searchNames);writecell(search,file,'UseExcel',false,'Sheet','Search','Range','A1');
 skip=[searchNames {'Summary','Compact','PerFlight','RefitPerFlight','RunInfo','Split'}];diag=cell(0,0);
 for j=1:numel(names)
  if ~ismember(names{j},skip),diag=localBlock(diag,names{j},reports.(names{j}));end
 end
 if isempty(diag),diag={'Diagnostics disabled'};end
-writecell(diag,file,'Sheet','Diagnostics','Range','A1');
+writecell(diag,file,'UseExcel',false,'Sheet','Diagnostics','Range','A1');
 config=localBlock(cell(0,0),'RunInfo',reports.RunInfo);config=localBlock(config,'Split',reports.Split);
 config=localBlock(config,'cfg',flags);layout.configTimeRow=size(config,1)+3;
 config=localBlock(config,'Stage times (seconds)',time);
-writecell(config,file,'Sheet','Config','Range','A1');
+writecell(config,file,'UseExcel',false,'Sheet','Config','Range','A1');
 end
 function tab=localKV(s)
 names=fieldnames(s);rows=cell(0,2);

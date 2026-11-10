@@ -11,7 +11,7 @@ assert(exist(fullfile(out,'summary_short.txt'),'file')==2);
 saved=load(fullfile(out,'selection.mat'),'summary');t=saved.summary;
 [~,sheets]=xlsfinfo(fullfile(out,'comparison.xlsx'));
 layoutCfg=bb_config();if ~layoutCfg.legacySheets,assert(numel(sheets)<=6);end
-assert(any(strcmp(t.Model,'NL_OE')));
+assert(any(ismember(t.Model,{'NL_OE','NL_FB'})));
 c=bb_config();
 if ~c.holdBaselines,assert(~any(ismember(t.Model,{'HoldInitial','TrainMean'})));end
 assert(all(t.CoveragePct==100),'Nonfinite smoke predictions');

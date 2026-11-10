@@ -5,7 +5,7 @@ if nargin<2,quick=false;end
 if nargin<3,mode='plant';end
 if nargin<4,overrides=struct();end
 if ~ismember(mode,{'plant','closed'}),error('Mode must be plant or closed');end
-runTimer=tic;timings=struct('Preprocessing',0,'DDVTraining',0,'OOF',0,'RAMSearch',0,'WH',0,'Refit',0,'ClosedTraining',0,'Evaluation',0,'Diagnostics',0,'Plots',0,'ReportWrite',0,'Total',0);
+runTimer=tic;timings=struct('Preprocessing',0,'DDVTraining',0,'OOF',0,'RAMSearch',0,'RAM_NL_OE',0,'RAM_NL_FB',0,'WH',0,'Refit',0,'ClosedTraining',0,'Evaluation',0,'Diagnostics',0,'Plots',0,'ReportWrite',0,'Total',0);
 reports=struct();stageTimer=tic;
 cfg=bb_config();names=fieldnames(overrides);
 for j=1:numel(names)
@@ -47,13 +47,14 @@ if cfg.nlFocus,labels={'NL_OE'};end
 if cfg.ddvFilterBank,labels=[labels {'NL_FB'}];end
 ddvModels=struct();rates=struct();choices={};best=Inf;start=cfg.evalStartIndex;
 for j=1:numel(labels)
-    label=labels{j};[c,kind]=bb_rich_config(cfg,label);
+    methodTimer=tic;label=labels{j};[c,kind]=bb_rich_config(cfg,label);
     ddvModels.(label)=bb_fit_candidate(tr,c,label,{'CoilCurrent'},{'DDV'},kind);
     sse=0;n=0;
     for f=1:numel(va)
         p=bb_predict_batch(ddvModels.(label),va(f));idx=start:numel(p);
         sse=sse+sum((p(idx)-va(f).S.DDV(idx)).^2);n=n+numel(idx);
     end
+    timings.(['DDV_' label])=toc(methodTimer);
     score=sqrt(sse/n);choices(end+1,:)={'DDV',label,NaN,false,1,0,score}; %#ok<AGROW>
     fprintf('DDV %s validation RMSE %.6g\n',label,score);
     if score<best,best=score;chosenDDV=label;end
@@ -119,9 +120,14 @@ if ~isfield(rates,'FIR_OE'),error('No finite OE validation model');end
 labels=[labels {'FIR_OE'}];
 end
 % Nonlinear finite-memory input map + position output-error fit (not NARX).
+nlReport=table();weightedRates=struct();
+if ~cfg.nlFocus||~cfg.nlFilterBank||cfg.nlReference||cfg.nlWiener
+methodTimer=tic;
 [rates.NL_OE,nlReport,nlBest,weightedRates]=bb_nl_search(ramTr,va,vDDV,cfg,oeLags,oeBetas,oeRidge);
 if nlBest<bestAll,bestAll=nlBest;chosenRate='NL_OE';end
 labels=[labels {'NL_OE'}];
+timings.RAM_NL_OE=toc(methodTimer);
+end
 if cfg.oeZeroRateAtNull&&~cfg.nlFocus
     zeroBest=Inf;
     for beta=oeBetas
@@ -159,7 +165,9 @@ end
 labels=[labels extraLabels];
 if ~isempty(extraReport),reports.StructuralSelection=extraReport;end
 if cfg.nlFocus&&cfg.nlFilterBank
+    methodTimer=tic;
     [fb,fbReport,fbScore]=bb_fb_search(ramTr,va,vDDV,cfg,oeBetas,oeRidge);
+    timings.RAM_NL_FB=toc(methodTimer);
     rates.NL_FB=fb;labels=[labels {'NL_FB'}];reports.FB_Selection=fbReport;
     if fbScore<bestAll,bestAll=fbScore;chosenRate='NL_FB';end
 end
@@ -208,7 +216,14 @@ if cfg.holdBaselines
 end
 timings.Evaluation=timings.Evaluation+toc(stageTimer);stageTimer=tic;
 if cfg.nlDiagnostics
-    [curve,holds,equilibrium]=bb_nl_diagnostics(nlReport,configs.(chosenRate),tr,va,te,cfg);
+    diagnosticReport=nlReport;
+    if strcmp(chosenRate,'NL_FB')||isempty(diagnosticReport)
+        diagnosticReport=reports.FB_Selection;
+        diagnosticReport.Search=repmat({'coarse'},height(diagnosticReport),1);
+        diagnosticReport.Lags=repmat(cfg.fbRawLags,height(diagnosticReport),1);
+        diagnosticReport.TanhScale=ones(height(diagnosticReport),1);
+    end
+    [curve,holds,equilibrium]=bb_nl_diagnostics(diagnosticReport,configs.(chosenRate),tr,va,te,cfg);
     reports.BetaCurve=curve;
     reports.HoldVariability=holds;
     reports.NullEquilibrium=equilibrium;
@@ -288,7 +303,7 @@ if ~isempty(oeChoices)
     reports.OE_Selection=oeTable;
 end
 reports.Summary=summary;
-reports.NL_Selection=nlReport;
+if ~isempty(nlReport),reports.NL_Selection=nlReport;end
 reports.Split=manifest;
 reports.ValidationSelection=cell2table(choices,'VariableNames',{'Stage','Label','Beta','Calibrated','Gain','Bias','ValidationRMSE'});
 reports.SeedSensitivity=cell2table(seedRows,'VariableNames',{'Seed','ValidationRAMRMSE'});

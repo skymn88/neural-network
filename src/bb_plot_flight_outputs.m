@@ -6,10 +6,10 @@ figures=[];
 for i=1
  fl=flights(i);u=bb_predict_batch(plant.ddv,fl);
  ram=bb_rollout_rate(plant.rate,fl,fl.S.RAM(1),struct('DDV',u));
- label=['Plant ' selection.RAM];predictedCurrent=[];
+ label=['Plant ' selection.RAM];
  if ~isempty(closed)
   if strcmp(closed.selected,'Hybrid')
-   [ram,info]=bb_closed_loop(closed.controller,closed.plant,fl,fl.S.RAM(1));predictedCurrent=info.current;
+   [ram,info]=bb_closed_loop(closed.controller,closed.plant,fl,fl.S.RAM(1));u=info.ddv;
   else
    ram=bb_rollout_rate(closed.setpoint,fl,fl.S.RAM(1));
   end
@@ -17,13 +17,9 @@ for i=1
  end
  angle=polyval(flipud(plant.angle.coefficients),ram/plant.angle.scale);
  h=figure('Name',[fl.name ' | ' label],'NumberTitle','off');figures=[figures h]; %#ok<AGROW>
- subplot(3,1,1);plot(fl.t,fl.S.CoilCurrent,'k');hold on;
- if isempty(predictedCurrent)
-  legend('Measured current (input)','Location','best');
- else
-  plot(fl.t,predictedCurrent,'r--');legend('Measured current','Predicted current','Location','best');
- end
- ylabel('Current');grid on;
+ subplot(3,1,1);plot(fl.t,fl.S.DDV,'k',fl.t,u,'r--');
+ legend('Measured DDV','Predicted DDV','Location','best');
+ ylabel('DDV');grid on;
  title([fl.name ' | full-flight diagnostic, not split score'],'Interpreter','none');
  subplot(3,1,2);plot(fl.t,fl.S.RAM,'k',fl.t,ram,'r--');ylabel('RAM');grid on;
  legend('Measured',label,'Location','best','Interpreter','none');

@@ -3,8 +3,8 @@ function bb_stamp_timings(file,layout,timings,cfg)
 names=fieldnames(timings);seconds=zeros(numel(names),1);
 for j=1:numel(names),seconds(j)=timings.(names{j});end
 t=table(names,seconds,'VariableNames',{'Stage','Seconds'});
-if cfg.legacySheets,writetable(t,file,'Sheet','Timings');return;end
+if cfg.legacySheets,writetable(t,file,'UseExcel',false,'Sheet','Timings');return;end
 % layout rows point at the table header (one title row precedes it).
-writetable(t,file,'Sheet','Summary','Range',sprintf('A%d',layout.summaryTimeRow));
-writetable(t,file,'Sheet','Config','Range',sprintf('A%d',layout.configTimeRow));
+writetable(t,file,'UseExcel',false,'Sheet','Summary','Range',sprintf('A%d',layout.summaryTimeRow));
+writetable(t,file,'UseExcel',false,'Sheet','Config','Range',sprintf('A%d',layout.configTimeRow));
 end

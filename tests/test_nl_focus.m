@@ -18,5 +18,7 @@ plant.ddv=bb_fit_candidate(f,c,'FIR',{'CoilCurrent'},{'DDV'},'FIR');plant.rate=m
 plant.angle=struct('coefficients',[0;2],'scale',1);
 old=get(0,'DefaultFigureVisible');cleanup=onCleanup(@()set(0,'DefaultFigureVisible',old)); %#ok<NASGU>
 set(0,'DefaultFigureVisible','off');figs=bb_plot_flight_outputs(f,plant,struct('RAM','NL_OE'),'');
+axesList=findall(figs,'Type','axes');labels=cell(numel(axesList),1);for j=1:numel(axesList),labels{j}=get(get(axesList(j),'YLabel'),'String');end
+assert(any(strcmp(labels,'DDV')));
 assert(numel(figs)==1);assert(numel(findall(figs,'Type','axes'))==3);close(figs);
 end

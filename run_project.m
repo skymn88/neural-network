@@ -3,8 +3,8 @@ function resultsDir=run_project(source,mode,overrides)
 %   run_project()                 % your flights, plant
 %   run_project('user','closed')  % requires measured 64 Hz RAMSetpoint
 % Optional settings: edit src/bb_config.m ONCE, then use the short commands.
-% Default training: OOF DDV, all OE samples; no hold baselines.
-% Optional: nlDiagnostics=true; nlWiener=true; oeTransitionWeight=[0 2 5].
+% Default: RAM NL_FB, beta [-.3 0], OOF DDV, all OE samples, diagnostics.
+% Optional: nlReference=true; nlWiener=true; oeTransitionWeight=[0 2 5].
 % holdBaselines=true restores HoldInitial and TrainMean only when requested.
 % Optional experiments: nlJointSearch=true; nlWideBeta=true;
 % nlRefitTrainVal=true; nlStateLeak=true. All are OFF by default.

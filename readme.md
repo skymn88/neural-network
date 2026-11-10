@@ -8,7 +8,7 @@ MATLAB **R2019a + Deep Learning Toolbox** ile uçuş kayıtlarından aktüatör 
 Coil Current → DDV modeli → RAM durum modeli → Deflection dönüşümü
 ```
 
-RAM tarafında varsayılan aday `NL_OE`; `HoldInitial` yalnız `holdBaselines=true` ile açılan referanstır. Eski çok-aileli arama `nlFocus=false` ile korunur. DDV de varsayılan olarak NL_OE ile eğitilir. NARX aktif eğitimde kullanılmaz. Açı için lineer/kübik geometrik dönüşüm validation'da karşılaştırılır. Ayrıntılar: [modelleme](docs/modeling.md).
+RAM tarafında varsayılan aday `NL_FB`; `HoldInitial` yalnız `holdBaselines=true` ile açılan referanstır. Eski çok-aileli arama `nlFocus=false` ile korunur. DDV için NL_OE ve NL_FB validation ile karşılaştırılır. NARX aktif eğitimde kullanılmaz. Açı için lineer/kübik geometrik dönüşüm validation'da karşılaştırılır. Ayrıntılar: [modelleme](docs/modeling.md).
 
 ## Gerçek uçuşlarınla başla
 
@@ -128,7 +128,7 @@ run_project('user','closed',opts);
 
 Güncel RAM odağı: `nlFocus=true` varsayılanıyla NL_OE raporlanır; HoldInitial/TrainMean varsayılan kapalıdır (DDV de yalnız NL_OE kullanır). `nlRefine=true`, kaba NL_OE kazananının beta çevresini ve `nlTanhScales=[.5 1 2]` doygunluk ölçeklerini validation'da karşılaştırır; iyileşmezse kaba kazanan korunur. `nlFocus=false` eski çok-aileli aramayı geri açar. Odak modunda eski `hamEnabled`/`oeZeroRateAtNull` seçenekleri RAM aramasını genişletmez; açık force/pressure seçenekleri yalnız NL varyantlarını ekler.
 
-`run_project('user')` sonunda ilk uçuş Current/RAM/Angle olarak 3×1 çizilir, sonuç klasörüne FIG/PNG kaydedilir. Plant'te current girdidir, tahmin eğrisi yoktur. `src/bb_plot_flight_outputs.m` içindeki `for i=1` döngüsünü tüm uçuşlar için değiştirebilirsin. Tam-uçuş grafiği split skorunun yerine geçmez; `makePlots=false` çizimi kapatır. Seçilmiş beta/lag/ridge/tanh ölçeği kısa özette görünür.
+`run_project('user')` sonunda ilk uçuş DDV/RAM/Angle olarak 3×1 çizilir, sonuç klasörüne FIG/PNG kaydedilir. Üç panelde de ölçülen ve tahmin edilen çıktı vardır. `src/bb_plot_flight_outputs.m` içindeki `for i=1` döngüsünü tüm uçuşlar için değiştirebilirsin. Tam-uçuş grafiği split skorunun yerine geçmez; `makePlots=false` çizimi kapatır. Seçilmiş beta/lag/ridge/tanh ölçeği kısa özette görünür.
 
 DDV NL_OE, current geçmişinin doğrusal olmayan bazlarından doğrudan DDV çıktı hatasını ridge LS ile öğrenir (`ddvRidge=1e-3`); RAM integratörü DDV'ye uygulanmaz. Varsayılan eğitim artık Deep Learning Toolbox gerektirmez; önceki MLP aramaları yalnız `nlFocus=false` yolundadır. Açı statik RAM→açı dönüşümüdür.
 
@@ -146,7 +146,7 @@ DDV NL_OE, current geçmişinin doğrusal olmayan bazlarından doğrudan DDV ç�
 | `nlRefitTrainVal` | Seçim sabitlenince TRAIN+VAL ağırlık eğitimi; `RefitTest`, `RefitPerFlight`, `RefitInfo` |
 | `nlStateLeak` | TRAIN'de öğrenilen deneysel durum sızıntısı; validation iyileşmezse reddedilir; `StateLeak` |
 
-İlk teşhis denemesi: yalnız `nlDiagnostics=true` yapıp `run_project()` çalıştır. İkinci denemede gerekirse `nlWideBeta` ve `nlJointSearch` aç. Refit ve state-leak bağımsız deneylerdir; closed moduna geçmeyi gerektirmez. Mevcut plot/MAT çıktıları korunur, yeni teşhisler için ayrı çıktı dosyası oluşturulmaz. Refit modeli mevcut `trained_models.mat` içine eklenir; testte daha iyi diye orijinal modelin yerine otomatik geçirilmez.
+Teşhis varsayılan açıktır: `run_project()` yeterlidir. İkinci denemede gerekirse `nlWideBeta` ve `nlJointSearch` aç. Refit ve state-leak bağımsız deneylerdir; closed moduna geçmeyi gerektirmez. Mevcut plot/MAT çıktıları korunur, yeni teşhisler için ayrı çıktı dosyası oluşturulmaz. Refit modeli mevcut `trained_models.mat` içine eklenir; testte daha iyi diye orijinal modelin yerine otomatik geçirilmez.
 
 Kaba beta ızgarasını tek seferlik genişletmek için:
 ```matlab
@@ -171,7 +171,9 @@ Kısa kullanım: config'te istediğin seçenekleri aç, `start_here` kontrolleri
 Varsayılan workbook artık beş sayfadır: **Summary, PerFlight, Diagnostics, Search, Config**. Eski sayfa isimleri aşağıdaki açıklamalarda artık aynı isimli tablo/blokları ifade eder. `legacySheets=true` eski çok-sayfalı düzeni geri açar. Summary tüm Model×Stage Fit/RMSE değerlerini Train/Val/Test yan yana gösterir; ham metrikler MAT içinde korunur. `print_last_results` yeni düzeni `selection.mat` ile yeniden basar.
 
 - `nlDiagnostics=true`: Diagnostics içinde **BandGain** ve **Alignment** dahil teşhisler. Bantlar 0–0.3, 0.3–1, 1–3, 3–8, 8–32 Hz; validation/test DDV ve RAM component/cascade karşılaştırılır.
-- `nlFilterBank=true`: RAM'de ek **NL_FB** adayı; `ddvFilterBank=true`: DDV'de aynı özellik yapısını karşılaştırır. İkisi de varsayılan false; seçim yalnız validation. DDV aday Fit/RMSE değerleri Diagnostics/DDVPerformance bloğundadır.
+- `nlFilterBank=true`: RAM'de **NL_FB** adayı; `ddvFilterBank=true`: DDV'de aynı özellik yapısını karşılaştırır. İkisi de varsayılan true; seçim yalnız validation. DDV aday Fit/RMSE değerleri Diagnostics/DDVPerformance bloğundadır.
 - Süreler Command Window sonunda, Summary/Config içinde ve `selection.mat` içindedir. Ana rapor yazımı süreye dahildir; son küçük süre damgası ve MAT güncellemesi ölçümün dışındadır.
 
 Kullanım değişmedi: config'te istediğin bayrakları aç, `start_here`, ardından `run_project()`. OOF, tüm OE örnekleri ve baseline'ların kapalı olması korunur; WH/lambda araması kapalı kalır.
+
+Varsayılan hızlı akış: RAM NL_FB, `betaCandidates=[-.3 0]`, `nlRefine=false`, OOF ve tüm TRAIN satırları. RAM NL_OE karşılaştırması için `nlReference=true`; NL_WH açılırsa ihtiyaç duyduğu NL_OE de eğitilir. WH/lambda araması kapalı kalır. `RAM_NL_FB`, `RAM_NL_OE` ve `DDV_*` süreleri eğitim + validation değerlendirmesini içerir; RAMSearch/DDVTraining alt süreleridir, toplama tekrar eklenmez. Excel yazımı `UseExcel=false` ile boş Excel şablon sayfalarını önler; yeni sonuç klasörüne yazılır.
