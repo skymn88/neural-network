@@ -15,9 +15,6 @@ model.noIntercept=cfg.oeZeroRateAtNull;
 if isfield(cfg,'oeCustom')&&cfg.oeCustom
  model.featureSpec=cfg.featureSpec;model.inputNames={'DDV'};model.nInputs=1;
  model.inputBasis='linear';
-model.tanhScale=1;
-if isfield(cfg,'oeTanhScale'),model.tanhScale=cfg.oeTanhScale;end
-if ~isfinite(model.tanhScale)||model.tanhScale<=0,error('Invalid tanh scale');end
  if strcmp(model.featureSpec.basis,'nonlinear'),model.inputBasis='nonlinear';end
 end
 if model.noIntercept&&cfg.usePressure&&~isfield(model,'featureSpec')
@@ -47,9 +44,16 @@ model.xMean=mx;model.xStd=sqrt(sx/max(1,nx-1));model.xStd(model.xStd<1e-10)=1;
 % Null DDV must stay zero: no centering or intercept for the constrained variant.
 if model.noIntercept,model.xMean(:)=0;end
 model.yMean=0;model.yStd=sqrt(sy/max(1,ny-1));if model.yStd<1e-10,model.yStd=1;end
-G=[];h=[];n=0;a=1+beta/cfg.Fs;
+lambda=cfg.oeTransitionWeight;
+if ~isscalar(lambda)||~isfinite(lambda)||lambda<0,error('OE fit requires one nonnegative transition weight');end
+lo=Inf;hi=-Inf;
+for f=1:numel(flights),lo=min(lo,min(flights(f).S.RAM));hi=max(hi,max(flights(f).S.RAM));end
+threshold=max(1e-12,cfg.oeTransitionFraction*(hi-lo));
+G=[];h=[];n=0;weightSum=0;a=1+beta/cfg.Fs;
 for f=1:numel(flights)
  fl=flights(f);state=[];ix=indices{f};
+ moving=false(numel(fl.t),1);
+ if lambda>0,moving=bb_transition_mask(fl.S.RAM,cfg.Fs,threshold,cfg.oeTransitionSeconds);end
  for b=1:cfg.oeChunkRows:numel(fl.t)
   ii=(b:min(numel(fl.t),b+cfg.oeChunkRows-1))';
   X=bb_oe_features(model,fl,ii);Z=bsxfun(@rdivide,bsxfun(@minus,X,model.xMean),model.xStd);
@@ -60,14 +64,18 @@ for f=1:numel(flights)
   keep=ismember(ii,ix);A=A(keep,:);k=ii(keep)-1;
   Y=(fl.S.RAM(ii(keep))-fl.S.RAM(1)*a.^k)/model.yStd;
   if isempty(G),G=zeros(size(Z,2));h=zeros(size(Z,2),1);end
-  G=G+A'*A;h=h+A'*Y;n=n+sum(keep);
+  w=1+lambda*double(moving(ii(keep)));
+  if lambda==0,G=G+A'*A;h=h+A'*Y;
+  else,G=G+A'*bsxfun(@times,A,w);h=h+A'*(Y.*w);end
+  n=n+sum(keep);weightSum=weightSum+sum(w);
  end
 end
-scale=sqrt(diag(G)'/n);scale(scale<1e-12)=1;
-Q=bsxfun(@rdivide,bsxfun(@rdivide,G,scale),scale')/n;
+scale=sqrt(diag(G)'/weightSum);scale(scale<1e-12)=1;
+Q=bsxfun(@rdivide,bsxfun(@rdivide,G,scale),scale')/weightSum;
 R=eye(size(Q));if ~model.noIntercept,R(1,1)=0;end
-w=(Q+ridge*R)\(h./scale'/n);model.weights=w./scale';
+w=(Q+ridge*R)\(h./scale'/weightSum);model.weights=w./scale';
 model.beta=beta;model.rateGain=1;model.rateBias=0;model.ridge=ridge;model.trainRows=n;
+model.transitionWeight=lambda;model.transitionThreshold=threshold;model.weightSum=weightSum;
 model.objective='position output error';model.stateKind='integrator_or_leaky_integrator';
 end
 function [n,m,s]=localMoments(n,m,s,X)

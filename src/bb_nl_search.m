@@ -1,4 +1,20 @@
-function [bestModel,report,best]=bb_nl_search(tr,va,vDDV,cfg,lags,betas,ridges)
+function [bestModel,report,best,weighted]=bb_nl_search(tr,va,vDDV,cfg,lags,betas,ridges)
+% Same split/search per lambda. No test input. Always retain lambda=0 reference.
+weights=unique([0 cfg.oeTransitionWeight(:)']);
+if any(~isfinite(weights))||any(weights<0),error('Invalid transition weights');end
+best=Inf;bestModel=[];report=table();weighted=struct();
+for j=1:numel(weights)
+ c=cfg;c.oeTransitionWeight=weights(j);
+ [m,r,score]=localSearch(tr,va,vDDV,c,lags,betas,ridges);
+ if numel(weights)>1
+  r.TransitionWeight=repmat(weights(j),height(r),1);
+  label=matlab.lang.makeValidName(sprintf('NL_OE_lambda_%g',weights(j)));weighted.(label)=m;
+ end
+ report=[report;r]; %#ok<AGROW>
+ if score<best,best=score;bestModel=m;end
+end
+end
+function [bestModel,report,best]=localSearch(tr,va,vDDV,cfg,lags,betas,ridges)
 % Coarse legacy NL_OE grid, then local refinement ONLY on validation.
 c=cfg;c.oeNonlinear=true;c.oeZeroRateAtNull=false;c.oeTanhScale=1;
 best=Inf;bestModel=[];rows={};timings=[];

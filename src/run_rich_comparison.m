@@ -10,7 +10,8 @@ for j=1:numel(names)
     if ~isfield(cfg,names{j}),error('Unknown cfg field: %s',names{j});end
     cfg.(names{j})=overrides.(names{j});
 end
-if ~cfg.nlFocus&&(cfg.nlRefitTrainVal||cfg.nlStateLeak||cfg.nlJointSearch)
+if cfg.nlWiener&&cfg.clampRAM,error('NL_WH vectorized experiment requires clampRAM=false');end
+if ~cfg.nlFocus&&(cfg.nlRefitTrainVal||cfg.nlStateLeak||cfg.nlJointSearch||cfg.nlWiener)
     error('Refit, state leakage and joint search require nlFocus=true');
 end
 if strcmp(mode,'closed'),cfg.useSetpoint=true;end
@@ -95,7 +96,7 @@ if ~cfg.nlFocus||cfg.nlFIRReference
 for beta=oeBetas
  for lag=oeLags
   for ridge=oeRidge
-    baseCfg=cfg;baseCfg.oeZeroRateAtNull=false;
+    baseCfg=cfg;baseCfg.oeTransitionWeight=0;baseCfg.oeZeroRateAtNull=false;
     model=bb_oe_train(ramTr,baseCfg,beta,lag,ridge);model=bb_ram_bounds(model,tr,cfg);sse=0;n=0;worst=0;
     for f=1:numel(va)
         p=bb_rollout_rate(model,va(f),va(f).S.RAM(1),struct('DDV',vDDV{f}));idx=start:numel(p);
@@ -113,7 +114,7 @@ if ~isfield(rates,'FIR_OE'),error('No finite OE validation model');end
 labels=[labels {'FIR_OE'}];
 end
 % Nonlinear finite-memory input map + position output-error fit (not NARX).
-[rates.NL_OE,nlReport,nlBest]=bb_nl_search(ramTr,va,vDDV,cfg,oeLags,oeBetas,oeRidge);
+[rates.NL_OE,nlReport,nlBest,weightedRates]=bb_nl_search(ramTr,va,vDDV,cfg,oeLags,oeBetas,oeRidge);
 if nlBest<bestAll,bestAll=nlBest;chosenRate='NL_OE';end
 labels=[labels {'NL_OE'}];
 if cfg.oeZeroRateAtNull&&~cfg.nlFocus
@@ -121,7 +122,7 @@ if cfg.oeZeroRateAtNull&&~cfg.nlFocus
     for beta=oeBetas
      for lag=oeLags
       for ridge=oeRidge
-       model=bb_oe_train(ramTr,cfg,beta,lag,ridge);model=bb_ram_bounds(model,tr,cfg);sse=0;n=0;
+       zeroCfg=cfg;zeroCfg.oeTransitionWeight=0;model=bb_oe_train(ramTr,zeroCfg,beta,lag,ridge);model=bb_ram_bounds(model,tr,cfg);sse=0;n=0;
        for f=1:numel(va)
         p=bb_rollout_rate(model,va(f),va(f).S.RAM(1),struct('DDV',vDDV{f}));ix=start:numel(p);
         sse=sse+sum((p(ix)-va(f).S.RAM(ix)).^2);n=n+numel(ix);
@@ -160,6 +161,20 @@ if cfg.nlFocus&&cfg.nlStateLeak
         bestAll=leakScore;chosenRate='NL_OE_State';
     end
 end
+if cfg.nlFocus&&cfg.nlWiener
+    whBase=rates.NL_OE;
+    [wh,whReport]=bb_wh_train(whBase,ramTr,cfg);sse=0;n=0;
+    for f=1:numel(va)
+        p=bb_rollout_rate(wh,va(f),va(f).S.RAM(1),struct('DDV',vDDV{f}));ix=start:numel(p);
+        sse=sse+sum((p(ix)-va(f).S.RAM(ix)).^2);n=n+numel(ix);
+    end
+    whScore=sqrt(sse/n);whReport.ValidationRMSE=whScore;
+    whReport.Selected=isfinite(whScore)&&whScore<bestAll;
+    rates.NL_WH=wh;labels=[labels {'NL_WH'}];
+    if whReport.Selected,bestAll=whScore;chosenRate='NL_WH';end
+    writetable(whReport,fullfile(outDir,'comparison.xlsx'),'Sheet','WH_Selection');
+    writetable(table(wh.wh.knots,wh.wh.values,'VariableNames',{'RawRate','MappedRate'}),fullfile(outDir,'comparison.xlsx'),'Sheet','WH_Map');
+end
 seedRows={cfg.seed,bestAll};
 
 if ~isfinite(bestAll),error('All validation models failed');end
@@ -168,14 +183,15 @@ selection=struct('DDV',chosenDDV,'RAM',chosenRate,'criterion','validation cascad
 selectedRate=rates.(chosenRate);selection.RAMBeta=selectedRate.beta;
 selection.RAMLags=selectedRate.inputLags;
 if isfield(selectedRate,'ridge'),selection.RAMRidge=selectedRate.ridge;end
+if isfield(selectedRate,'transitionWeight'),selection.TransitionWeight=selectedRate.transitionWeight;end
 if isfield(selectedRate,'tanhScale'),selection.RAMTanhScale=selectedRate.tanhScale;end
 % No test outputs were used above.
 configs=struct();
 for j=1:numel(labels)
     label=labels{j};configs.(label)=struct('ddv',ddvModels.(chosenDDV),'rate',rates.(label),'angle',angle);
 end
-configs.HoldInitial=struct('ddv',ddvModels.(chosenDDV),'rate',bb_hold_model(cfg),'angle',angle);
-if cfg.trainMeanBaseline
+if cfg.holdBaselines
+    configs.HoldInitial=struct('ddv',ddvModels.(chosenDDV),'rate',bb_hold_model(cfg),'angle',angle);
     configs.TrainMean=struct('ddv',ddvModels.(chosenDDV),'rate',bb_train_mean(tr,cfg),'angle',angle);
 end
 if cfg.nlDiagnostics
@@ -183,6 +199,9 @@ if cfg.nlDiagnostics
     writetable(curve,fullfile(outDir,'comparison.xlsx'),'Sheet','BetaCurve');
     writetable(holds,fullfile(outDir,'comparison.xlsx'),'Sheet','HoldVariability');
     writetable(equilibrium,fullfile(outDir,'comparison.xlsx'),'Sheet','NullEquilibrium');
+    [rateMap,steps]=bb_rate_diagnostics(configs.(chosenRate),tr,va,cfg);
+    writetable(rateMap,fullfile(outDir,'comparison.xlsx'),'Sheet','RateMap');
+    writetable(steps,fullfile(outDir,'comparison.xlsx'),'Sheet','StepSmoothing');
 end
 refitModels=struct();
 if cfg.nlFocus&&cfg.nlRefitTrainVal
@@ -221,10 +240,16 @@ if cfg.diagnostics
     alignment=bb_alignment_report(tr,va,te,cfg);
     writetable(alignment,fullfile(outDir,'comparison.xlsx'),'Sheet','Alignment');
 end
-events=bb_event_report(configs,tr,va,te,cfg);
+eventConfigs=configs;wn=fieldnames(weightedRates);
+for j=1:numel(wn)
+ eventConfigs.(wn{j})=struct('ddv',ddvModels.(chosenDDV),'rate',weightedRates.(wn{j}),'angle',angle);
+end
+events=bb_event_report(eventConfigs,tr,va,te,cfg);
 writetable(compact,fullfile(outDir,'comparison.xlsx'),'Sheet','Compact');
 runInfo=table({cfg.version},{source},logical(quick),cfg.Fs,numel(tr),numel(va),numel(te),...
     'VariableNames',{'Version','Source','SmokeMode','Fs','TrainFlights','ValidationFlights','TestFlights'});
+runInfo.RAMTrainInput={cfg.ramTrainInput};runInfo.OEMaxTrainRows=cfg.oeMaxTrainRows;
+runInfo.HoldBaselines=cfg.holdBaselines;runInfo.WienerEnabled=cfg.nlWiener;
 writetable(runInfo,fullfile(outDir,'comparison.xlsx'),'Sheet','RunInfo');
 writetable(details,fullfile(outDir,'comparison.xlsx'),'Sheet','PerFlight');
 writetable(audit,fullfile(outDir,'comparison.xlsx'),'Sheet','DataAudit');

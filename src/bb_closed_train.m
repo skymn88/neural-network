@@ -17,7 +17,7 @@ for tau=cfg.ctrlTaus
 end
 closed.hybridValidationRMSE=best;
 if ~isfinite(best),warning('bb:ClosedDivergence','No acceptable hybrid validation rollout; reporting first candidate as failed.');end
-sc=cfg;sc.usePressure=false;sc.oeZeroRateAtNull=false;sc.oeInputName='RAMSetpoint';bestSP=Inf;
+sc=cfg;sc.oeTransitionWeight=0;sc.usePressure=false;sc.oeZeroRateAtNull=false;sc.oeInputName='RAMSetpoint';bestSP=Inf;
 for beta=betas(betas<0)
  for lag=lags
   for ridge=ridges

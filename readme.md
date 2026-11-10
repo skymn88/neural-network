@@ -8,7 +8,7 @@ MATLAB **R2019a + Deep Learning Toolbox** ile uçuş kayıtlarından aktüatör 
 Coil Current → DDV modeli → RAM durum modeli → Deflection dönüşümü
 ```
 
-RAM tarafında varsayılan aday `NL_OE`; `HoldInitial` basit referanstır. Eski çok-aileli arama `nlFocus=false` ile korunur. DDV de varsayılan olarak NL_OE ile eğitilir. NARX aktif eğitimde kullanılmaz. Açı için lineer/kübik geometrik dönüşüm validation'da karşılaştırılır. Ayrıntılar: [modelleme](docs/modeling.md).
+RAM tarafında varsayılan aday `NL_OE`; `HoldInitial` yalnız `holdBaselines=true` ile açılan referanstır. Eski çok-aileli arama `nlFocus=false` ile korunur. DDV de varsayılan olarak NL_OE ile eğitilir. NARX aktif eğitimde kullanılmaz. Açı için lineer/kübik geometrik dönüşüm validation'da karşılaştırılır. Ayrıntılar: [modelleme](docs/modeling.md).
 
 ## Gerçek uçuşlarınla başla
 
@@ -114,7 +114,7 @@ C/Simulink dağıtımı daha sonraki aşamadır; eski doğrulanmamış S-Functio
 
 Teşhis için `cfg.diagnostics=true`: seçili modelin beş aşaması, `Alignment` sayfası ve hold hata eğimi. `cfg.printTestForAll=false` kompakt tabloda diğer adayların test hücrelerini gizler; ayrıntılı XLSX korunur. Varsayılanlar `false` / `true`. Ayarlar `src/bb_config.m` içindedir.
 
-Cascade eğitimi: `cfg.ramTrainInput='oof'` yalnız TRAIN uçuşları arasında DDV LOFO tahminleriyle OE modellerini eğitir (varsayılan `'measured'`). Üçten az TRAIN uçuşunda uyarıyla ölçülen DDV kullanılır. `cfg.reportLoo=true` yalnız DDV LOFO teşhisini de açabilir. `cfg.oeMaxTrainRows=Inf` tüm uygun örnekleri `oeChunkRows=2048` bloklarıyla işler. `cfg.oeZeroRateAtNull=true` intercept içermeyen ek `FIR_OE_Zero` adayını açar.
+Cascade eğitimi: `cfg.ramTrainInput='oof'` yalnız TRAIN uçuşları arasında DDV LOFO tahminleriyle OE modellerini eğitir (varsayılan `'oof'`). Üçten az TRAIN uçuşunda uyarıyla ölçülen DDV kullanılır. `cfg.reportLoo=true` yalnız DDV LOFO teşhisini de açabilir. `cfg.oeMaxTrainRows=Inf` tüm uygun örnekleri `oeChunkRows=2048` bloklarıyla işler. `cfg.oeZeroRateAtNull=true` intercept içermeyen ek `FIR_OE_Zero` adayını açar.
 
 Yapısal adaylar (hepsi varsayılan kapalı): `hamEnabled` → HAM_OE; `clampRAM` → TRAIN aralığı + `clampMargin` kadar kıskaç; `useForce` → ek `_F` adayları. `usePressure=true` ile `pressureInteractions=true` ek `_P` adaylarını açar; eski ham basınç yolu korunur, yeni `_P` modelleri yalnız DDV×sqrt(Ps−Pr) kullanır. Eksik kuvvet/basınç kanalı açık hatadır. `hamDeadbands` ve `hamScales` fiziksel DDV birimindedir, kendi sensör ölçeğine göre ayarla.
 
@@ -126,7 +126,7 @@ run_project('user','closed',opts);
 ```
 `ctrlNoiseStd=0` varsayılandır (RAM birimi); `ctrlLags`, `ctrlTaus`, `ctrlRidge` kontrolcü aramasını belirler. `ClosedLoop`/`ClosedSelection` sayfaları ve `closed_models.mat` ayrı üretilir. Sabit sentetik fixture setpoint içermediğinden closed komutu için hazır veri değildir; veri değiştirilmez.
 
-Güncel RAM odağı: `nlFocus=true` varsayılanıyla yalnız NL_OE ve HoldInitial raporlanır (DDV de yalnız NL_OE kullanır). `nlRefine=true`, kaba NL_OE kazananının beta çevresini ve `nlTanhScales=[.5 1 2]` doygunluk ölçeklerini validation'da karşılaştırır; iyileşmezse kaba kazanan korunur. `nlFocus=false` eski çok-aileli aramayı geri açar. Odak modunda eski `hamEnabled`/`oeZeroRateAtNull` seçenekleri RAM aramasını genişletmez; açık force/pressure seçenekleri yalnız NL varyantlarını ekler.
+Güncel RAM odağı: `nlFocus=true` varsayılanıyla NL_OE raporlanır; HoldInitial/TrainMean varsayılan kapalıdır (DDV de yalnız NL_OE kullanır). `nlRefine=true`, kaba NL_OE kazananının beta çevresini ve `nlTanhScales=[.5 1 2]` doygunluk ölçeklerini validation'da karşılaştırır; iyileşmezse kaba kazanan korunur. `nlFocus=false` eski çok-aileli aramayı geri açar. Odak modunda eski `hamEnabled`/`oeZeroRateAtNull` seçenekleri RAM aramasını genişletmez; açık force/pressure seçenekleri yalnız NL varyantlarını ekler.
 
 `run_project('user')` sonunda ilk uçuş Current/RAM/Angle olarak 3×1 çizilir, sonuç klasörüne FIG/PNG kaydedilir. Plant'te current girdidir, tahmin eğrisi yoktur. `src/bb_plot_flight_outputs.m` içindeki `for i=1` döngüsünü tüm uçuşlar için değiştirebilirsin. Tam-uçuş grafiği split skorunun yerine geçmez; `makePlots=false` çizimi kapatır. Seçilmiş beta/lag/ridge/tanh ölçeği kısa özette görünür.
 
@@ -139,14 +139,14 @@ DDV NL_OE, current geçmişinin doğrusal olmayan bazlarından doğrudan DDV ç�
 | Bayrak | comparison.xlsx çıktısı / etkisi |
 |---|---|
 | `nlDiagnostics` | `BetaCurve`: beta–en iyi validation RMSE noktaları ve kenar uyarısı; `HoldVariability`, `NullEquilibrium`; `NL_Selection` içinde eğitim saniyesi |
-| `trainMeanBaseline` | TrainMean sabit referansı performans tablolarına eklenir; seçim dışıdır |
+| `holdBaselines` | HoldInitial ve TrainMean birlikte geri açılır; ikisi de seçim dışıdır |
 | `nlFIRReference` | NL odakta FIR_OE yalnız raporlanır; seçilemez |
 | `nlWideBeta` | Mevcut yerel aramaya 2× ve 3× beta büyüklükleri eklenir |
 | `nlJointSearch` | beta/lag/ridge/tanhScale ortak yerel araması; en fazla `nlJointBudget=16` ek aday |
 | `nlRefitTrainVal` | Seçim sabitlenince TRAIN+VAL ağırlık eğitimi; `RefitTest`, `RefitPerFlight`, `RefitInfo` |
 | `nlStateLeak` | TRAIN'de öğrenilen deneysel durum sızıntısı; validation iyileşmezse reddedilir; `StateLeak` |
 
-İlk deneme: `nlDiagnostics=true`, `trainMeanBaseline=true` yapıp `run_project()` çalıştır. İkinci denemede gerekirse `nlWideBeta` ve `nlJointSearch` aç. Refit ve state-leak bağımsız deneylerdir; closed moduna geçmeyi gerektirmez. Mevcut plot/MAT çıktıları korunur, yeni teşhisler için ayrı çıktı dosyası oluşturulmaz. Refit modeli mevcut `trained_models.mat` içine eklenir; testte daha iyi diye orijinal modelin yerine otomatik geçirilmez.
+İlk teşhis denemesi: yalnız `nlDiagnostics=true` yapıp `run_project()` çalıştır. İkinci denemede gerekirse `nlWideBeta` ve `nlJointSearch` aç. Refit ve state-leak bağımsız deneylerdir; closed moduna geçmeyi gerektirmez. Mevcut plot/MAT çıktıları korunur, yeni teşhisler için ayrı çıktı dosyası oluşturulmaz. Refit modeli mevcut `trained_models.mat` içine eklenir; testte daha iyi diye orijinal modelin yerine otomatik geçirilmez.
 
 Kaba beta ızgarasını tek seferlik genişletmek için:
 ```matlab
@@ -154,3 +154,14 @@ run_project('user','plant',struct('nlDiagnostics',true, ...
     'betaCandidates',[0 -.003 -.01 -.03 -.1 -.3 -1 -2 -3]));
 ```
 `BetaCurve` bir alt zarf tablosudur: her beta için diğer ayarlar arasındaki en düşük validation hatası; sabit diğer ayarlarla yapılmış kontrollü eğri değildir. İstersen Excel'de Beta/BestValidationRMSE sütunlarını çiz. Eğitim süreleri hata değil maliyet ölçüsüdür, seçimi değiştirmez.
+
+### Geçiş keskinliği deneyi
+
+`run_project()` artık `ramTrainInput='oof'`, `oeMaxTrainRows=Inf`, `holdBaselines=false` ile başlar; uzun override gerekmez. Üçten az TRAIN uçuşunda OOF uyarıyla ölçülen DDV'ye döner. `holdBaselines=true` yalnız istenirse iki sabit referansı geri açar; eski `trainMeanBaseline` bayrağı tek başına onları açmaz.
+
+Yeni seçenekler `src/bb_config.m` içinde:
+- `nlDiagnostics=true`: `RateMap` (TRAIN/VAL, 30 kutu) ve `StepSmoothing` (VAL'daki en büyük beş ölçülen geçiş).
+- `nlWiener=true`: NL_WH karşılaştırması; `WH_Selection`, `WH_Map`. Varsayılan false. FIR ağırlıkları donuk, monoton harita/beta TRAIN'de öğrenilir; yalnız daha iyi validation RMSE ile seçilir.
+- `oeTransitionWeight=[0 2 5]`: lambda=0/2/5 için aynı NL araması. Varsayılan 0. `NL_Selection` ve `EventErrors` lambda bilgisi taşır. Geçiş eşiği TRAIN RAM aralığının `oeTransitionFraction=.01` katı, uzatma `oeTransitionSeconds=1.5` saniyedir.
+
+Kısa kullanım: config'te istediğin seçenekleri aç, `start_here` kontrollerinden sonra `run_project()` çalıştır. Setpoint gerekmez. Smoke, kısa kod kontrolü için 700 örnek bütçesi ve measured DDV kullanır; gerçek run varsayılanlarını değiştirmez. Sabit sentetik MAT dosyası korunur.

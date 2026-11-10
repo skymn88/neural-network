@@ -7,6 +7,12 @@ if ~(a>0 && a<=1),error('Invalid integrator coefficient');end
 rate=bb_predict_batch(model,flight,override);
 if isfield(model,'rateGain'),rate=model.rateGain*rate;end
 if isfield(model,'rateBias'),rate=rate+model.rateBias;end
+if isfield(model,'wh'),rate=bb_wh_map(model.wh,rate);end
+if isfield(model,'wh')&&~isfield(model,'ramBounds')&&~isfield(model,'stateLeak')
+    x=bb_wh_rollout(model,rate,x0);info=struct('diverged',any(~isfinite(x)));
+    if isfield(model,'divergenceThreshold'),info.diverged=info.diverged||any(abs(x)>model.divergenceThreshold);end
+    return;
+end
 if size(rate,2)~=1,error('Rate model must have one output');end
 info=struct('diverged',false);
 if isfield(model,'divergenceThreshold'),info.diverged=abs(x0)>model.divergenceThreshold;end

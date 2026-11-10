@@ -14,7 +14,7 @@ if strncmp(label,'HAM_OE',6)
  end
 end
 for j=1:numel(specs)
- c=cfg;c.oeCustom=true;c.oeZeroRateAtNull=false;c.featureSpec=specs{j};
+ c=cfg;c.oeTransitionWeight=0;c.oeCustom=true;c.oeZeroRateAtNull=false;c.featureSpec=specs{j};
  c.featureSpec.force=~isempty(strfind(label,'_F')); %#ok<STREMP>
  c.featureSpec.pressure=~isempty(strfind(label,'_P')); %#ok<STREMP>
  for beta=betas

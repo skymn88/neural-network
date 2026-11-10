@@ -8,6 +8,9 @@ old=rng;cleanup=onCleanup(@()rng(old)); %#ok<NASGU>
 [c,kind]=bb_rich_config(cfg,ddvLabel);
 for j=1:numel(labels)
  selected=rates.(labels{j});if ~isfield(selected,'objective'),continue;end
+ if isfield(selected,'wh')
+  warning('bb:WHCV','Skipping WH LOFO: nested map fitting is not enabled.');continue;
+ end
  if isfield(selected,'stateLeak')
   warning('bb:LeakCV','Skipping state-leak LOFO: nested leakage fitting is not enabled.');continue;
  end
@@ -20,6 +23,8 @@ for j=1:numel(labels)
   oc=cfg;oc.oeZeroRateAtNull=false;
   if isfield(selected,'oeConfig'),oc=selected.oeConfig;end
   if isfield(selected,'inputBasis'),oc.oeNonlinear=strcmp(selected.inputBasis,'nonlinear');end
+  oc.oeTransitionWeight=0;
+  if isfield(selected,'transitionWeight'),oc.oeTransitionWeight=selected.transitionWeight;end
   if isfield(selected,'tanhScale'),oc.oeTanhScale=selected.tanhScale;end
   m=bb_oe_train(rt,oc,selected.beta,selected.inputLags,selected.ridge);m=bb_ram_bounds(m,train,cfg);
   p=bb_rollout_rate(m,tr(f),tr(f).S.RAM(1),struct('DDV',u));ix=cfg.evalStartIndex:numel(p);

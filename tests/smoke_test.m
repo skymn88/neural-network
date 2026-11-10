@@ -4,12 +4,14 @@ if nargin<1,runUnits=true;end
 if runUnits
     test_comparison();test_rate_model();test_rich_model();test_oe_model();test_compact_summary();
 end
-out=run_rich_comparison('synthetic',true);
+out=run_rich_comparison('synthetic',true,'plant',struct('oeMaxTrainRows',700,'ramTrainInput','measured','makePlots',false));
 assert(exist(fullfile(out,'comparison.xlsx'),'file')==2);
 assert(exist(fullfile(out,'trained_models.mat'),'file')==2);
 assert(exist(fullfile(out,'summary_short.txt'),'file')==2);
 t=readtable(fullfile(out,'comparison.xlsx'),'Sheet','Summary');
-assert(all(ismember({'NL_OE','HoldInitial'},unique(t.Model))));
+assert(any(strcmp(t.Model,'NL_OE')));
+c=bb_config();
+if ~c.holdBaselines,assert(~any(ismember(t.Model,{'HoldInitial','TrainMean'})));end
 assert(all(t.CoveragePct==100),'Nonfinite smoke predictions');
 fprintf('SMOKE PASS (code flow only): %s\n',out);
 end

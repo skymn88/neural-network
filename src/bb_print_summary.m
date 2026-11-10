@@ -21,6 +21,7 @@ if isfield(selection,'RAMBeta')
     if isfield(selection,'RAMRidge'),lines{end+1}=sprintf('RAM ridge %.6g',selection.RAMRidge);end
     if isfield(selection,'RAMTanhScale'),lines{end+1}=sprintf('RAM tanh scale %.6g',selection.RAMTanhScale);end
 end
+if isfield(selection,'TransitionWeight'),lines{end+1}=sprintf('RAM transition lambda %.6g',selection.TransitionWeight);end
 if isfield(selection,'closedAccepted')&&~selection.closedAccepted
     lines{end+1}='CLOSED: no acceptable validation candidate; failed rollouts are diagnostic only.';
 end
@@ -54,8 +55,10 @@ for q=1:numel(stages)
         rows(end+1,:)=[{labels{j},stages{q}},num2cell(fits),num2cell(rmse)]; %#ok<AGROW>
     end
 end
-lines{end+1}='';lines{end+1}='Selected RAM and baseline diagnostics (Tr / Va / Te):';
-focus={'HoldInitial'};if any(strcmp(labels,'TrainMean')),focus=[focus {'TrainMean'}];end;if isfield(selection,'RAM'),focus=[{selection.RAM} focus];end
+lines{end+1}='';lines{end+1}='Selected RAM diagnostics (Tr / Va / Te):';
+focus={};
+if any(strcmp(labels,'HoldInitial')),focus=[focus {'HoldInitial'}];end
+if any(strcmp(labels,'TrainMean')),focus=[focus {'TrainMean'}];endif isfield(selection,'RAM'),focus=[{selection.RAM} focus];end
 for j=1:numel(focus)
     step=nan(1,3);normError=nan(1,3);coverage=nan(1,3);
     for s=1:3

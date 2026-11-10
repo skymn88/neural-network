@@ -3,7 +3,7 @@ function model=bb_oe_train(flights,cfg,beta,lags,ridge)
 % No differentiated position target, no output history in network inputs.
 if beta>0||1+beta/cfg.Fs<=0||ridge<=0,error('Invalid OE settings');end
 if isinf(cfg.oeMaxTrainRows)||cfg.oeZeroRateAtNull||...
-        (isfield(cfg,'oeCustom')&&cfg.oeCustom)||isfield(cfg,'oeInputName')
+        (isfield(cfg,'oeCustom')&&cfg.oeCustom)||isfield(cfg,'oeInputName')||any(cfg.oeTransitionWeight~=0)
     model=bb_oe_stream(flights,cfg,beta,lags,ridge);return;
 end
 names={'DDV'};if cfg.usePressure,names=[names {'SupplyPressure','ReturnPressure'}];end
@@ -40,6 +40,7 @@ R=eye(size(Q,2));R(1,1)=0; % Do not regularize the physical rate bias.
 w=(Q'*Q/size(Q,1)+ridge*R)\(Q'*Y/size(Q,1));
 model.weights=bsxfun(@rdivide,w,scale');model.beta=beta;
 model.rateGain=1;model.rateBias=0;model.ridge=ridge;model.trainRows=size(Q,1);
+model.transitionWeight=0;
 model.objective='position output error';model.stateKind='integrator_or_leaky_integrator';
 end
 function ix=localIndices(first,last,count)

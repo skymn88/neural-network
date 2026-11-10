@@ -35,3 +35,7 @@ NL odak güncellemesinde `test_nl_focus`: kaba kazananın korunması, minimum va
 Yeni opt-in NL testleri: kapalı varsayılanlar, ortak arama bütçesi, beta zaman sabiti/denge, TrainMean x0 bağımsızlığı, sıfır leakage ile eski denklik, validation reddi, hedef olmadan çıkarım, sabit hiperparametreli refit, yalnız test etiketleri ve gruplanmış OOF sızıntı kontrolü. MATLAB bulunmadığından bu testler burada çalıştırılmadı; statik kontrol ve bağımsız Python sayısal kontrolleri ayrı raporlanır.
 
 Bu güncellemede gerçekte geçen kontroller: 74 dosyada R2019a MISS_HIT, bağımlılık/yeni dosya/test bağlantısı kontrolleri ve değişmeyen sentetik SHA256; Python referans hesabında sıfır sızıntı denkliği, nonlinear dengeye yakınsama ve beta=−1 zaman sabiti. MATLAB eğitimi, unit/smoke ve gerçek uçuş validasyonu çalıştırılmadı.
+
+Geçiş/NL_WH testleri: sıfır ve pozitif ağırlıkta yoğun LS–blok denklik, lambda aday kapsamı, monoton/sıfır ankrajlı/asimetrik doygun harita, vectorize rollout–tek-adım denklik ve x0, sabit beta refit, hedef olmadan çıkarım, RateMap örnek sayısı ve StepSmoothing süre hesabı. MATLAB yok; yeni testler yalnız statik olarak kontrol edilir.
+
+Bu güncellemede 81 MATLAB dosyası R2019a statik kontrolden geçti. Bağımsız Python/NumPy/SciPy referansında monoton harita, kararlı beta parametrelemesi, vectorize/rekürsif rollout ve lambda 0/2/5 bloklu ağırlıklı normal denklem denklikleri çalıştırıldı. Bunlar MATLAB çalıştırması veya gerçek veri başarısı değildir. Sentetik MAT SHA256 aynı kaldı.

@@ -40,6 +40,7 @@ for j=1:numel(names)
  null.S.(names{j})=repmat(value,numel(null.t),1);
 end
 v=bb_predict_batch(m,null);drive=v(end)*m.rateGain+m.rateBias;
+if isfield(m,'wh'),drive=bb_wh_map(m.wh,drive);end
 tau=Inf;if m.beta<0,tau=-1/(cfg.Fs*log(1+m.beta/cfg.Fs));end
 xeq=NaN;stable=false;note='Unclamped equilibrium, DDV history zero; auxiliary inputs at TRAIN means.';
 if m.beta<0
