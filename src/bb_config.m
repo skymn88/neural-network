@@ -2,6 +2,8 @@ function cfg = bb_config()
 % Repository configuration: compact reports, optional force, position-output-error FIR.
 % MATLAB R2019a + Deep Learning Toolbox. No Signal Processing Toolbox needed.
 cfg.version = 'plant';
+cfg.nlStateSpace = true; % compare full-free-run state-dependent RAM residual
+cfg.ssMaxEvals = 80;
 cfg.nlReference = false; % optional RAM NL_OE comparison when NL_FB is active
 cfg.nlFocus = true; % requested RAM focus; false restores multi-family search
 cfg.nlRefine = false; % refine beta and nonlinear saturation around coarse winner

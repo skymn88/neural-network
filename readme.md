@@ -177,3 +177,6 @@ Varsayılan workbook artık beş sayfadır: **Summary, PerFlight, Diagnostics, S
 Kullanım değişmedi: config'te istediğin bayrakları aç, `start_here`, ardından `run_project()`. OOF, tüm OE örnekleri ve baseline'ların kapalı olması korunur; WH/lambda araması kapalı kalır.
 
 Varsayılan hızlı akış: RAM NL_FB, `betaCandidates=[-.3 0]`, `nlRefine=false`, OOF ve tüm TRAIN satırları. RAM NL_OE karşılaştırması için `nlReference=true`; NL_WH açılırsa ihtiyaç duyduğu NL_OE de eğitilir. WH/lambda araması kapalı kalır. `RAM_NL_FB`, `RAM_NL_OE` ve `DDV_*` süreleri eğitim + validation değerlendirmesini içerir; RAMSearch/DDVTraining alt süreleridir, toplama tekrar eklenmez. Excel yazımı `UseExcel=false` ile boş Excel şablon sayfalarını önler; yeni sonuç klasörüne yazılır.
+
+### Durum bağımlı RAM deneyi
+`run_project()` artık NL_FB ile `NL_SS` adayını karşılaştırır (`nlStateSpace=true`, kapatmak için false). `ssMaxEvals=80` TRAIN serbest-koşu optimizasyon bütçesidir. Seçim yalnız validation; Search/SS_Selection ve RAM_NL_SS süresi raporlanır. Refit, stateLeak ve LOFO ile birlikte kullanımı bu ilk sürümde engellenir. Excel yalnız tamamen boş Sheet1/2/3 sayfalarını kaldırır; dolu sayfalara dokunmaz. MATLAB testleri bu geliştirme ortamında çalıştırılmamıştır; yerelde önce `start_here`, sonra `run_project()` çalıştırın.

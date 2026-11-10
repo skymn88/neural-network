@@ -12,6 +12,7 @@ for j=1:numel(names)
     if ~isfield(cfg,names{j}),error('Unknown cfg field: %s',names{j});end
     cfg.(names{j})=overrides.(names{j});
 end
+if cfg.nlStateSpace&&(cfg.nlRefitTrainVal||cfg.nlStateLeak||cfg.reportLoo),error('Disable refit/stateLeak/reportLoo for the isolated state-space comparison');end
 if cfg.nlWiener&&cfg.clampRAM,error('NL_WH vectorized experiment requires clampRAM=false');end
 if ~cfg.nlFocus&&(cfg.nlRefitTrainVal||cfg.nlStateLeak||cfg.nlJointSearch||cfg.nlWiener)
     error('Refit, state leakage and joint search require nlFocus=true');
@@ -170,6 +171,13 @@ if cfg.nlFocus&&cfg.nlFilterBank
     timings.RAM_NL_FB=toc(methodTimer);
     rates.NL_FB=fb;labels=[labels {'NL_FB'}];reports.FB_Selection=fbReport;
     if fbScore<bestAll,bestAll=fbScore;chosenRate='NL_FB';end
+end
+if cfg.nlFocus&&cfg.nlStateSpace
+    methodTimer=tic;
+    [ss,ssReport,ssScore]=bb_ss_train(rates.(chosenRate),ramTr,va,vDDV,cfg);
+    timings.RAM_NL_SS=toc(methodTimer);rates.NL_SS=ss;labels=[labels {'NL_SS'}];
+    reports.SS_Selection=ssReport;
+    if ssScore<bestAll,bestAll=ssScore;chosenRate='NL_SS';end
 end
 if cfg.nlFocus&&cfg.nlStateLeak
     [leak,leakReport,leakScore]=bb_state_leak_fit(rates.(chosenRate),ramTr,va,vDDV,cfg);

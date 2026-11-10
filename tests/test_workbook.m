@@ -12,6 +12,8 @@ layout=bb_write_workbook(file,r,s,c,t);t.ReportWrite=4;t.Total=10;bb_stamp_timin
 [~,sheets]=xlsfinfo(file);assert(numel(sheets)==5&&all(ismember({'Summary','PerFlight','Diagnostics','Search','Config'},sheets)));
 a=readcell(file,'Sheet','Summary');assert(strcmp(a{layout.summaryTimeRow,1},'Stage'));
 assert(strcmp(a{layout.summaryTimeRow+1,1},'DDVTraining')&&a{layout.summaryTimeRow+1,2}==1);
+writecell({'KEEP'},file,'Sheet','Sheet1','UseExcel',false);bb_clean_workbook(file);
+kept=readcell(file,'Sheet','Sheet1');assert(strcmp(kept{1},'KEEP'));
 localDelete(file);c.legacySheets=true;layout=bb_write_workbook(file,r,s,c,t);bb_stamp_timings(file,layout,t,c);
 a=readtable(file,'Sheet','Summary');assert(isequal(a.FitPct,FitPct));
 % Guard the previously introduced concatenated end/if token explicitly.
