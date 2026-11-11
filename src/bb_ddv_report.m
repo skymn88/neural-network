@@ -13,4 +13,16 @@ for j=1:numel(labels)
  end
 end
 report=cell2table(rows,'VariableNames',{'Model','Stage','Split','FitPct','RMSE'});
+if cfg.ddvAllSamples
+ report.SampledFit=nan(height(report),1);report.SampledRMSE=nan(height(report),1);
+ report.AllSamplesFit=nan(height(report),1);report.AllSamplesRMSE=nan(height(report),1);
+ for j=1:height(report)
+  label=report.Model{j};if endsWith(label,'_Sampled'),continue;end
+  ref=find(strcmp(report.Model,[label '_Sampled'])&strcmp(report.Split,report.Split{j}),1);
+  if ~isempty(ref)
+   report.SampledFit(j)=report.FitPct(ref);report.SampledRMSE(j)=report.RMSE(ref);
+   report.AllSamplesFit(j)=report.FitPct(j);report.AllSamplesRMSE(j)=report.RMSE(j);
+  end
+ end
+end
 end

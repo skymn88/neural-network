@@ -13,6 +13,7 @@ for s=1:2
  count=zeros(B,1);sy=count;sp=count;sr=count;
  for f=1:numel(sets{s})
   fl=sets{s}(f);[p,r]=bb_rollout_rate(plant.rate,fl,fl.S.RAM(1));
+  if isfield(plant.rate,'dynamicMLP'),r=[0;diff(p)]*cfg.Fs;end
   v=[0;diff(fl.S.RAM)]*cfg.Fs;vp=[0;diff(p)]*cfg.Fs;ix=cfg.evalStartIndex:numel(v);
   for b=1:B
    mask=v(ix)>=edges(b)&v(ix)<edges(b+1);ii=ix(mask);

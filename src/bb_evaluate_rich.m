@@ -12,8 +12,9 @@ for s=1:3
         for j=1:numel(labels)
             label=labels{j};c=configs.(label);
             u=bb_predict_batch(c.ddv,fl);
-            [rd,g]=bb_rollout_rate(c.rate,fl,fl.S.RAM(1));rc=bb_rollout_rate(c.rate,fl,fl.S.RAM(1),struct('DDV',u));
-            one=[fl.S.RAM(1);bb_ram_step(c.rate,fl.S.RAM(1:end-1),g(2:end))];
+            [rd,g,ramInfo]=bb_rollout_rate(c.rate,fl,fl.S.RAM(1));rc=bb_rollout_rate(c.rate,fl,fl.S.RAM(1),struct('DDV',u));
+            if isfield(c.rate,'dynamicMLP'),g=ramInfo.externalInputs;end
+            one=[fl.S.RAM(1);bb_ram_step(c.rate,fl.S.RAM(1:end-1),g(2:end,:))];
             if isfield(c.rate,'constantRAM'),one(:)=c.rate.constantRAM;end
             if isfield(c.rate,'ramBounds'),one=min(max(one,c.rate.ramBounds(1)),c.rate.ramBounds(2));end
             angle=polyval(flipud(c.angle.coefficients),rc/c.angle.scale);

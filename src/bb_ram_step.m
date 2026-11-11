@@ -1,5 +1,6 @@
 function next=bb_ram_step(model,x,rate)
 % Single-state un-clamped update, shared by open/closed/one-step inference.
+if isfield(model,'dynamicMLP'),next=bb_dmlp_step(model,x,rate);return;end
 next=(1+model.beta/model.Fs)*x+rate/model.Fs;
 if isfield(model,'stateSpace')
  q=model.stateSpace;z=(x-q.center)/q.scale;v=tanh(rate/q.driveScale);

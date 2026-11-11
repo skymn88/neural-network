@@ -1,6 +1,9 @@
 function [model,report,best]=bb_fb_search(tr,va,vDDV,cfg,betas,ridges)
 % Fixed bank; only beta/ridge/lambda selected on validation, no test input.
 best=Inf;model=[];rows={};c=cfg;c.oeFilterBank=true;c.oeZeroRateAtNull=false;
+scales=1;if cfg.fbTanhSearch,scales=cfg.nlTanhScales;end
+for scale=scales(:)'
+c.oeTanhScale=scale;
 for weight=unique([0 cfg.oeTransitionWeight(:)'])
  c.oeTransitionWeight=weight;
  for beta=betas
@@ -11,11 +14,12 @@ for weight=unique([0 cfg.oeTransitionWeight(:)'])
     p=bb_rollout_rate(m,va(f),va(f).S.RAM(1),struct('DDV',vDDV{f}));ix=cfg.evalStartIndex:numel(p);
     sse=sse+sum((p(ix)-va(f).S.RAM(ix)).^2);n=n+numel(ix);
    end
-   score=sqrt(sse/n);rows(end+1,:)={beta,ridge,weight,numel(m.weights),seconds,score}; %#ok<AGROW>
+   score=sqrt(sse/n);rows(end+1,:)={beta,ridge,weight,numel(m.weights),seconds,score,scale}; %#ok<AGROW>
    if isfinite(score)&&score<best,best=score;model=m;model.name='NL_FB';end
   end
  end
 end
+end
 if isempty(model),error('No finite NL_FB validation model');end
-report=cell2table(rows,'VariableNames',{'Beta','Ridge','TransitionWeight','Coefficients','TrainSeconds','ValidationRMSE'});
+report=cell2table(rows,'VariableNames',{'Beta','Ridge','TransitionWeight','Coefficients','TrainSeconds','ValidationRMSE','TanhScale'});
 end

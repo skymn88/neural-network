@@ -9,7 +9,7 @@ while exist(out,'dir'),out=sprintf('%s_%02d',root,k);k=k+1;end
 mkdir(out);diary(fullfile(out,'checks.log'));diary on;
 fprintf('PROJECT CHECKS | MATLAB %s | %s\n',version,datestr(now));
 try
-    test_hold_model();test_state_space();test_raw_fixture();test_diagnostics();test_oe_stream();test_structural_models();test_ram_loo();test_closed_models();test_nl_focus();test_nl_extensions();test_refit_leak();test_transition_weighting();test_wh_model();test_filter_bank();test_band_gain();test_workbook();
+    test_dynamic_mlp();test_ddv_stream();test_hold_model();test_state_space();test_raw_fixture();test_diagnostics();test_oe_stream();test_structural_models();test_ram_loo();test_closed_models();test_nl_focus();test_nl_extensions();test_refit_leak();test_transition_weighting();test_wh_model();test_filter_bank();test_band_gain();test_workbook();
     test_comparison(); % includes split-policy checks N=1..20
     test_rate_model();test_rich_model();test_oe_model();test_compact_summary();
     test_cascade_fixture(fullfile(paths.fixtures,'cascade.mat'));

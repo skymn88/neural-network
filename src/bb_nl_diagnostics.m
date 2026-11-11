@@ -61,8 +61,8 @@ if m.beta<0
 else
  note=[note ' beta=0: no unique linear equilibrium.'];
 end
-if isfield(m,'stateSpace')
- xeq=NaN;stable=false;tau=NaN;note='State-dependent model: linear equilibrium and memory formula are not applicable.';
+if isfield(m,'stateSpace')||isfield(m,'dynamicMLP')
+ xeq=NaN;stable=false;tau=NaN;drive=NaN;note='State-dependent model: linear equilibrium and memory formula are not applicable.';
 end
 equilibrium=table(m.beta,tau,drive,xeq,stable,mean(x),min(x),max(x),{note},...
  'VariableNames',{'Beta','LinearMemorySeconds','ZeroDDVRate','EquilibriumRAM','LocallyStable','TrainMean','TrainMin','TrainMax','Note'});

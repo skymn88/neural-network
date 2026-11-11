@@ -2,7 +2,16 @@ function cfg = bb_config()
 % Repository configuration: compact reports, optional force, position-output-error FIR.
 % MATLAB R2019a + Deep Learning Toolbox. No Signal Processing Toolbox needed.
 cfg.version = 'plant';
-cfg.nlHold = true; % exact position memory, learned asymmetric increments
+cfg.dynamicMLP = true;
+cfg.dmlpHidden = 4;
+cfg.dmlpHorizon = 128;
+cfg.dmlpWindows = 64;
+cfg.dmlpMaxEvals = 200;
+cfg.ddvAllSamples = false;
+cfg.fbSteadyStart = false;
+cfg.fbUniquePoles = false; % opt-in remove redundant zero pole
+cfg.fbTanhSearch = false;
+cfg.nlHold = false; % exact position memory, learned asymmetric increments
 cfg.holdLags = [0 8];
 cfg.holdDeadbandFractions = [0 .02 .05];
 cfg.holdRidge = [1e-3 .1];

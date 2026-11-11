@@ -182,6 +182,17 @@ Varsayılan hızlı akış: RAM NL_FB, `betaCandidates=[-.3 0]`, `nlRefine=false
 NL_SS başarısız gerçek-veri denemesi sonrasında varsayılan kapalıdır (`nlStateSpace=false`); isteğe bağlı açılabilir. `ssMaxEvals=80` TRAIN serbest-koşu optimizasyon bütçesidir. Seçim yalnız validation; Search/SS_Selection ve RAM_NL_SS süresi raporlanır. Refit, stateLeak ve LOFO ile birlikte kullanımı bu ilk sürümde engellenir. Excel yalnız tamamen boş Sheet1/2/3 sayfalarını kaldırır; dolu sayfalara dokunmaz. MATLAB testleri bu geliştirme ortamında çalıştırılmamıştır; yerelde önce `start_here`, sonra `run_project()` çalıştırın.
 
 ### Pulse / hold karşılaştırması ve bağımsız çizim
-Varsayılan `nlStateSpace=false`, `nlHold=true`: NL_FB yanında NL_HOLD denenir; seçim yalnız validation RAM cascade RMSE. `holdLags=[0 8]`, `holdDeadbandFractions=[0 .02 .05]` (TRAIN DDV std oranı), `holdRidge=[1e-3 .1]`; toplam 12 kapalı-form aday. NL_HOLD beta=0, intercept yok, kısa sonlu DDV hafızası ve asimetrik nonlinear baz kullanır. WH/lambda araması kapalı kalır. Search/Hold_Selection ve RAM_NL_HOLD sürelerini inceleyin.
+NL_HOLD başarısız gerçek-veri denemesi sonrası varsayılan kapalıdır (`nlHold=false`); isteğe bağlı açılırsa NL_FB yanında denenir; seçim yalnız validation RAM cascade RMSE. `holdLags=[0 8]`, `holdDeadbandFractions=[0 .02 .05]` (TRAIN DDV std oranı), `holdRidge=[1e-3 .1]`; toplam 12 kapalı-form aday. NL_HOLD beta=0, intercept yok, kısa sonlu DDV hafızası ve asimetrik nonlinear baz kullanır. WH/lambda araması kapalı kalır. Search/Hold_Selection ve RAM_NL_HOLD sürelerini inceleyin.
 
 Yeniden eğitim yapmadan grafik: MATLAB Editor ile `src/plot_saved_flights.m` dosyasını açıp Run. Bu bir script'tir. `for i=1` ilk uçuş, `for i=[2 5]` seçilenler, `for i=1:numel(rawFlights)` hepsini çizer. Boş resultsFolder en son kullanıcı koşusunu bulur; farklı koşu için script başındaki resultsFolder yolunu doldurun. Gerçek veri dosyaları/sırası aynı kalmalıdır; figürler kaydedilmez, açık pencerelerde gösterilir.
+
+### Dinamik MLP ve isteğe bağlı DDV karşılaştırmaları
+`run_project()` RAM için NL_FB ve **DMLP** karşılaştırır (`dynamicMLP=true`); NL_SS/NL_HOLD kapalıdır. DMLP küçük tanh ağının bütün ağırlıklarını TRAIN çok-adımlı konum hatasıyla birlikte öğrenir. Varsayılan 4 gizli nöron, 128 örneklik pencere, TRAIN uçuşlarına dağıtılmış en fazla 64 pencere, 200 amaç değerlendirmesi; validation/test tam uçuş serbest koşudur. `Search/DMLP_Selection` pencere hatası, bütçe/çıkış kodu ve validation RMSE; `RAM_DMLP` toplam yöntem süresidir. Pencere hatası tüm-TRAIN Fit değildir. Refit/stateLeak/LOFO deneyi için dynamicMLP kapatılmalıdır. Basınç/force girdileri bu ilk DMLP adayında desteklenmez.
+
+Ek seçenekler **varsayılan false**; eski DDV/FB davranışı korunur:
+- `ddvAllSamples=true`: tüm uygun TRAIN satırları uniform, iki geçişli blok normal denklemler; maxTrainRows/mixed örnekleme kullanılmaz. OOF/refit aynı yolu izler. DDVPerformance'ta SampledFit/RMSE ve AllSamplesFit/RMSE yan yana; sampled modeller rapor referansıdır, bu modda seçim all-sample adaylar arasındadır. Ek referans eğitimi süreye dahildir.
+- `fbTanhSearch=true`: RAM NL_FB için `nlTanhScales=[.5 1 2]` taranır; varsayılan yalnız 1. Search TanhScale sütunu ve seçili konfigürasyon değeri gösterir.
+- `fbSteadyStart=true`: filtre bankası ilk girişin sabit rejiminde başlatılır; bütün sonraki örneklerde durum taşınır.
+- `fbUniquePoles=true`: ham lag-0 ile aynı olan sıfır kutbu çıkarılır. Varsayılan sonuçları korumak için bu da opt-in'dir.
+
+Önce `start_here`, sonra `run_project()`. Bağımsız çizim script'i `src/plot_saved_flights.m` değişmedi. DDV gürültüsü için Diagnostics/BandGain yüksek frekans genlik oranlarını da inceleyin; yeni seçeneklerin gürültüyü azaltacağı garanti edilmez.

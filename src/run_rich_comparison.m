@@ -12,6 +12,7 @@ for j=1:numel(names)
     if ~isfield(cfg,names{j}),error('Unknown cfg field: %s',names{j});end
     cfg.(names{j})=overrides.(names{j});
 end
+if cfg.dynamicMLP&&(cfg.nlRefitTrainVal||cfg.nlStateLeak||cfg.reportLoo),error('Disable dynamicMLP for refit/stateLeak/reportLoo experiments');end
 if cfg.nlStateSpace&&(cfg.nlRefitTrainVal||cfg.nlStateLeak||cfg.reportLoo),error('Disable refit/stateLeak/reportLoo for the isolated state-space comparison');end
 if cfg.nlWiener&&cfg.clampRAM,error('NL_WH vectorized experiment requires clampRAM=false');end
 if ~cfg.nlFocus&&(cfg.nlRefitTrainVal||cfg.nlStateLeak||cfg.nlJointSearch||cfg.nlWiener)
@@ -50,6 +51,10 @@ ddvModels=struct();rates=struct();choices={};best=Inf;start=cfg.evalStartIndex;
 for j=1:numel(labels)
     methodTimer=tic;label=labels{j};[c,kind]=bb_rich_config(cfg,label);
     ddvModels.(label)=bb_fit_candidate(tr,c,label,{'CoilCurrent'},{'DDV'},kind);
+    if cfg.ddvAllSamples&&ismember(kind,{'NL','FB'})
+        ref=c;ref.ddvAllSamples=false;
+        ddvModels.([label '_Sampled'])=bb_fit_candidate(tr,ref,[label '_Sampled'],{'CoilCurrent'},{'DDV'},kind);
+    end
     sse=0;n=0;
     for f=1:numel(va)
         p=bb_predict_batch(ddvModels.(label),va(f));idx=start:numel(p);
@@ -194,6 +199,13 @@ if cfg.nlFocus&&cfg.nlStateLeak
         bestAll=leakScore;chosenRate='NL_OE_State';
     end
 end
+if cfg.nlFocus&&cfg.dynamicMLP
+    methodTimer=tic;
+    [dynamic,dynamicReport,dynamicScore]=bb_dmlp_train(ramTr,va,vDDV,cfg);
+    timings.RAM_DMLP=toc(methodTimer);rates.DMLP=dynamic;labels=[labels {'DMLP'}];
+    reports.DMLP_Selection=dynamicReport;
+    if dynamicScore<bestAll,bestAll=dynamicScore;chosenRate='DMLP';end
+end
 timings.RAMSearch=toc(stageTimer);stageTimer=tic;
 if cfg.nlFocus&&cfg.nlWiener
     whBase=rates.NL_OE;
@@ -236,7 +248,9 @@ if cfg.nlDiagnostics
         diagnosticReport=reports.FB_Selection;
         diagnosticReport.Search=repmat({'coarse'},height(diagnosticReport),1);
         diagnosticReport.Lags=repmat(cfg.fbRawLags,height(diagnosticReport),1);
-        diagnosticReport.TanhScale=ones(height(diagnosticReport),1);
+        if ~ismember('TanhScale',diagnosticReport.Properties.VariableNames)
+            diagnosticReport.TanhScale=ones(height(diagnosticReport),1);
+        end
     end
     if strcmp(chosenRate,'NL_HOLD')
         diagnosticReport=reports.Hold_Selection;
@@ -244,6 +258,7 @@ if cfg.nlDiagnostics
         diagnosticReport.TanhScale=ones(height(diagnosticReport),1);
     end
     [curve,holds,equilibrium]=bb_nl_diagnostics(diagnosticReport,configs.(chosenRate),tr,va,te,cfg);
+    curve.ReferenceOnly=repmat(strcmp(chosenRate,'DMLP'),height(curve),1);
     reports.BetaCurve=curve;
     reports.HoldVariability=holds;
     reports.NullEquilibrium=equilibrium;
@@ -294,7 +309,7 @@ if cfg.reportLoo
     end
 end
 timings.Diagnostics=timings.Diagnostics+toc(stageTimer);stageTimer=tic;
-if cfg.ddvFilterBank,reports.DDVPerformance=bb_ddv_report(ddvModels,tr,va,te,cfg);end
+if cfg.ddvFilterBank||cfg.ddvAllSamples,reports.DDVPerformance=bb_ddv_report(ddvModels,tr,va,te,cfg);end
 timings.Evaluation=timings.Evaluation+toc(stageTimer);stageTimer=tic;
 compact=bb_print_summary(summary,selection,outDir,cfg);
 audit=bb_data_diagnostics(tr,va,te,cfg);

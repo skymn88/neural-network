@@ -1,5 +1,9 @@
 function Y=bb_forward(model,X)
 % Toolbox-free portable forward inference for trained MLP/NARX.
+if isfield(model,'dynamicMLP')
+ q=model.dynamicMLP;U=bb_dmlp_inputs(X);
+ Y=bsxfun(@rdivide,bsxfun(@minus,U,q.uMean),q.uStd);return;
+end
 if size(X,2)~=numel(model.xMean)
     error('Wrong input feature width: got %d expected %d',size(X,2),numel(model.xMean));
 end

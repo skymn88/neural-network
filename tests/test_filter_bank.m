@@ -19,4 +19,14 @@ assert(all(isfinite(p)));
  g=f;g.S.CoilCurrent=info.current;assert(max(abs(bb_predict_batch(plant.ddv,g)-info.ddv))<1e-10);
  g.S.DDV=info.ddv;assert(max(abs(bb_rollout_rate(plant.rate,g,0)-p))<1e-9);
 models.NL_FB=plant.ddv;report=bb_ddv_report(models,f,f,f,c);assert(height(report)==3&&all(isfinite(report.RMSE)));
+% Opt-in steady start: constant input has no IIR startup transient.
+c.fbSteadyStart=true;c.fbUniquePoles=true;spec=bb_fb_spec(c);
+assert(~any(spec.poles==0));U=ones(25,1)*.7;X=bb_filter_bank(U,spec);
+assert(max(abs(X(:)-.7))<1e-12);
+state=[];parts=[];for k=1:25,[z,state]=bb_filter_bank(U(k),spec,state);parts=[parts;z];end %#ok<AGROW>
+assert(max(abs(parts(:)-X(:)))<1e-12);
+c.fbTanhSearch=true;c.nlTanhScales=[.5 1];
+[~,scaleReport,~]=bb_fb_search(f,f,{f.S.DDV},c,-.3,1e-3);
+assert(height(scaleReport)==2&&isequal(sort(scaleReport.TanhScale),[.5;1]));
+
 end

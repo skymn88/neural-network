@@ -19,6 +19,7 @@ for k=1:N
  buffer.S.CoilCurrent=[buffer.S.CoilCurrent(2:end);current(k)];
  [ddv(k),ddvBank]=localStep(plant.ddv,buffer,L,ddvBank);
  buffer.S.DDV=[buffer.S.DDV(2:end);ddv(k)];
+ if k==1&&isfield(plant.rate,'dynamicMLP'),buffer.S.DDV(:)=ddv(k);end
  for j=1:numel(aux)
   if isfield(buffer.S,aux{j}),buffer.S.(aux{j})=[buffer.S.(aux{j})(2:end);flight.S.(aux{j})(k)];end
  end

@@ -1,5 +1,8 @@
 function model=bb_fit_candidate(flights,cfg,name,inputNames,outputNames,kind)
 % Train-only candidate fit. GP uses base MATLAB Cholesky; no new toolbox.
+if isfield(cfg,'ddvAllSamples')&&cfg.ddvAllSamples&&ismember(kind,{'NL','FB'})
+ model=bb_ddv_stream(flights,cfg,name,inputNames,outputNames,kind);return;
+end
 if strcmp(kind,'MLP')
     model=bb_train(flights,cfg,name,inputNames,outputNames,'mlp');
     return;
