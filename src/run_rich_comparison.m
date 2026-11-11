@@ -20,6 +20,7 @@ experimental=cfg.oeWindowSearch||any(cfg.oeWindowSeconds>0)||strcmp(cfg.selectio
 if experimental&&(~cfg.nlFocus||cfg.nlFIRReference||cfg.hamEnabled||cfg.nlWiener||cfg.nlStateLeak||cfg.nlRefitTrainVal||cfg.reportLoo||cfg.useForce||(cfg.usePressure&&cfg.pressureInteractions))
  error('Window/hold selection currently supports NL_OE, NL_FB, NL_HOLD, DMLP and NL_SS; disable other experiments');
 end
+if cfg.nullCenter&&(~cfg.nlFocus||cfg.reportLoo),error('nullCenter requires nlFocus and reportLoo=false');end
 if cfg.dynamicMLP&&(cfg.nlRefitTrainVal||cfg.nlStateLeak||cfg.reportLoo),error('Disable dynamicMLP for refit/stateLeak/reportLoo experiments');end
 if cfg.nlStateSpace&&(cfg.nlRefitTrainVal||cfg.nlStateLeak||cfg.reportLoo),error('Disable refit/stateLeak/reportLoo for the isolated state-space comparison');end
 if cfg.nlWiener&&cfg.clampRAM,error('NL_WH vectorized experiment requires clampRAM=false');end
@@ -83,6 +84,11 @@ if strcmp(cfg.ramTrainInput,'oof')||cfg.reportLoo
     if strcmp(cfg.ramTrainInput,'oof'),ramTr=oofTr;end
 end
 timings.OOF=toc(stageTimer);stageTimer=tic;
+if cfg.nullCenter
+ [cfg.nullDDVCenter,nullInfo]=bb_train_null(tr,cfg);
+ if ~nullInfo.RootFound,error('No TRAIN pilot null root: run StaticNull with nullCenter=false first');end
+ reports.NullCenterTraining=struct2table(nullInfo);
+end
 if isfinite(cfg.holdDroopMax)
  cfg.selectionPulse=bb_pulse_flight(tr,cfg);
  cfg.selectionPulse.S.DDV=bb_predict_batch(ddvModels.(chosenDDV),cfg.selectionPulse);
@@ -302,6 +308,9 @@ if cfg.nlDiagnostics
     [rateMap,steps]=bb_rate_diagnostics(configs.(chosenRate),tr,va,cfg);
     reports.RateMap=rateMap;
     reports.StepSmoothing=steps;
+end
+if cfg.staticNull
+ [reports.StaticNull,reports.StaticNullCurve]=bb_static_null(configs.(chosenRate),tr,cfg);
 end
 if cfg.pulseHold,reports.PulseHold=bb_pulse_report(configs,tr,cfg,outDir);end
 if cfg.horizonFit,reports.HorizonFit=bb_horizon_report(configs,va,te,cfg);end

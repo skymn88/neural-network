@@ -2,6 +2,10 @@ function model=bb_oe_stream(flights,cfg,beta,lags,ridge)
 % Two-pass, blockwise OE normal equations; O(features^2 + chunk*features) memory.
 if beta>0||1+beta/cfg.Fs<=0||ridge<=0,error('Invalid OE settings');end
 if cfg.oeChunkRows<1||cfg.oeChunkRows~=floor(cfg.oeChunkRows),error('Invalid chunk size');end
+if cfg.nullCenter&&(~isfield(cfg,'oeInputName')||strcmp(cfg.oeInputName,'DDV'))
+ for f=1:numel(flights),flights(f).S.DDV=flights(f).S.DDV-cfg.nullDDVCenter;end
+ model.ddvCenter=cfg.nullDDVCenter;
+end
 model.name='FIR_OE';model.kind='FIR';model.mode='mlp';model.Fs=cfg.Fs;
 model.inputNames={'DDV'};
 if cfg.usePressure,model.inputNames=[model.inputNames {'SupplyPressure','ReturnPressure'}];end

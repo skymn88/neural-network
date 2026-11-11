@@ -7,7 +7,7 @@ if cfg.legacySheets
 end
 selected=localKV(selection);flags=localKV(cfg);time=localTime(timings);
 summary=cell(0,0);summary=localBlock(summary,'Selected configuration',selected);
-keep={'selectionMode','selectionWindowSeconds','oeWindowSeconds','holdDroopMax','pulseHold','horizonFit','dynamicMLP','ddvAllSamples','fbSteadyStart','fbUniquePoles','fbTanhSearch','nlFocus','ramTrainInput','oeMaxTrainRows','nlFilterBank','ddvFilterBank','nlWiener','oeTransitionWeight','holdBaselines','nlDiagnostics','nlRefitTrainVal','legacySheets'};
+keep={'staticNull','nullCenter','nullDDVCenter','dmlpBalancedLoss','dmlpPositionWeight','dmlpMoveRateWeight','dmlpHoldRateWeight','dmlpDisplacementWeight','selectionMode','selectionWindowSeconds','oeWindowSeconds','holdDroopMax','pulseHold','horizonFit','dynamicMLP','ddvAllSamples','fbSteadyStart','fbUniquePoles','fbTanhSearch','nlFocus','ramTrainInput','oeMaxTrainRows','nlFilterBank','ddvFilterBank','nlWiener','oeTransitionWeight','holdBaselines','nlDiagnostics','nlRefitTrainVal','legacySheets'};
 summary=localBlock(summary,'Settings',flags(ismember(flags.Setting,keep),:));
 layout.summaryTimeRow=size(summary,1)+3;summary=localBlock(summary,'Stage times (seconds)',time);
 summary=localBlock(summary,'Fit / RMSE by model and stage',bb_wide_summary(reports.Summary,selection,cfg));

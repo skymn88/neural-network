@@ -3,7 +3,12 @@ c=bb_config();c.dmlpHorizon=16;c.dmlpWindows=4;c.dmlpMaxEvals=20;c.evalStartInde
 f.name='dynamic';f.t=(0:119)'/64;f.S.DDV=.2*sin(f.t*4);
 f.S.RAM=cumsum(f.S.DDV)/64;f.S.Deflection=2*f.S.RAM;
 [m,r,score]=bb_dmlp_train(f,f,{f.S.DDV},c);
-assert(isfinite(score)&&r.TrainWindowRMSE<=r.InitialWindowRMSE+1e-12);
+assert(isfinite(score)&&r.TrainObjective<=r.InitialObjective+1e-12);
+combined=c.dmlpPositionWeight*(r.TrainWindowRMSE/m.dynamicMLP.xScale)^2+...
+ c.dmlpMoveRateWeight*(r.MoveRateRMSE/m.dynamicMLP.rateScale)^2+...
+ c.dmlpHoldRateWeight*(r.HoldRateRMSE/m.dynamicMLP.rateScale)^2+...
+ c.dmlpDisplacementWeight*(r.DisplacementRMSE/m.dynamicMLP.xScale)^2;
+assert(abs(combined-r.TrainObjective)<1e-9&&r.HoldSamples+r.MoveSamples==r.Windows*r.Horizon);
 g=f;g.S=rmfield(g.S,'RAM');a=bb_rollout_rate(m,f,0);b=bb_rollout_rate(m,g,0);
 assert(isequal(a,b),'Inference must not read RAM target');
 [~,rate,info]=bb_rollout_rate(m,g,0);assert(isequal(size(rate),size(a))&&size(info.externalInputs,2)==3);

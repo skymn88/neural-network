@@ -1,5 +1,5 @@
 function test_hold_model()
-c=bb_config();c.inputLags=2;c.evalStartIndex=8;c.trainStartIndex=8;
+c=bb_config();c.oeWindowSearch=false;c.inputLags=2;c.evalStartIndex=8;c.trainStartIndex=8;
 c.holdLags=[0 2];c.holdDeadbandFractions=[0 .02];c.holdRidge=1e-6;c.oeChunkRows=17;
 u=zeros(240,1);u(20:40)=.2;u(120:150)=-.15;
 f.name='pulse_hold';f.t=(0:239)'/64;f.S.DDV=u;

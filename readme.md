@@ -8,7 +8,7 @@ MATLAB **R2019a + Deep Learning Toolbox** ile uçuş kayıtlarından aktüatör 
 Coil Current → DDV modeli → RAM durum modeli → Deflection dönüşümü
 ```
 
-RAM tarafında varsayılan aday `NL_FB`; `HoldInitial` yalnız `holdBaselines=true` ile açılan referanstır. Eski çok-aileli arama `nlFocus=false` ile korunur. DDV için NL_OE ve NL_FB validation ile karşılaştırılır. NARX aktif eğitimde kullanılmaz. Açı için lineer/kübik geometrik dönüşüm validation'da karşılaştırılır. Ayrıntılar: [modelleme](docs/modeling.md).
+RAM tarafında varsayılan karşılaştırma `NL_FB` ve `DMLP`; `HoldInitial` yalnız `holdBaselines=true` ile açılan referanstır. Eski çok-aileli arama `nlFocus=false` ile korunur. DDV için NL_OE ve NL_FB validation ile karşılaştırılır. NARX aktif eğitimde kullanılmaz. Açı için lineer/kübik geometrik dönüşüm validation'da karşılaştırılır. Ayrıntılar: [modelleme](docs/modeling.md).
 
 ## Gerçek uçuşlarınla başla
 
@@ -189,7 +189,7 @@ Yeniden eğitim yapmadan grafik: MATLAB Editor ile `src/plot_saved_flights.m` do
 ### Dinamik MLP ve isteğe bağlı DDV karşılaştırmaları
 `run_project()` RAM için NL_FB ve **DMLP** karşılaştırır (`dynamicMLP=true`); NL_SS/NL_HOLD kapalıdır. DMLP küçük tanh ağının bütün ağırlıklarını TRAIN çok-adımlı konum hatasıyla birlikte öğrenir. Varsayılan 4 gizli nöron, 128 örneklik pencere, TRAIN uçuşlarına dağıtılmış en fazla 64 pencere, 200 amaç değerlendirmesi; validation/test tam uçuş serbest koşudur. `Search/DMLP_Selection` pencere hatası, bütçe/çıkış kodu ve validation RMSE; `RAM_DMLP` toplam yöntem süresidir. Pencere hatası tüm-TRAIN Fit değildir. Refit/stateLeak/LOFO deneyi için dynamicMLP kapatılmalıdır. Basınç/force girdileri bu ilk DMLP adayında desteklenmez.
 
-Ek seçenekler **varsayılan false**; eski DDV/FB davranışı korunur:
+Ek seçenekler bayraklarla yönetilir; güncel hazır deneyde ddvAllSamples/fbSteadyStart/fbUniquePoles açık, fbTanhSearch kapalıdır:
 - `ddvAllSamples=true`: tüm uygun TRAIN satırları uniform, iki geçişli blok normal denklemler; maxTrainRows/mixed örnekleme kullanılmaz. OOF/refit aynı yolu izler. DDVPerformance'ta SampledFit/RMSE ve AllSamplesFit/RMSE yan yana; sampled modeller rapor referansıdır, bu modda seçim all-sample adaylar arasındadır. Ek referans eğitimi süreye dahildir.
 - `fbTanhSearch=true`: RAM NL_FB için `nlTanhScales=[.5 1 2]` taranır; varsayılan yalnız 1. Search TanhScale sütunu ve seçili konfigürasyon değeri gösterir.
 - `fbSteadyStart=true`: filtre bankası ilk girişin sabit rejiminde başlatılır; bütün sonraki örneklerde durum taşınır.
@@ -198,7 +198,7 @@ Ek seçenekler **varsayılan false**; eski DDV/FB davranışı korunur:
 Önce `start_here`, sonra `run_project()`. Bağımsız çizim script'i `src/plot_saved_flights.m` değişmedi. DDV gürültüsü için Diagnostics/BandGain yüksek frekans genlik oranlarını da inceleyin; yeni seçeneklerin gürültüyü azaltacağı garanti edilmez.
 
 ### Opt-in PulseHold / HorizonFit ve pencereli OE
-Model varsayılanları değişmedi: `pulseHold=false`, `horizonFit=false`, `oeWindowSeconds=0`, `oeWindowSearch=false`, `selectionMode='fullFreeRun'`, `holdDroopMax=Inf`. `src/bb_config.m` içinde yalnız istenenleri açıp kısa `run_project()` komutunu kullanın:
+Eski akışı geri getiren kapalı ayarlar: `pulseHold=false`, `horizonFit=false`, `oeWindowSeconds=0`, `oeWindowSearch=false`, `selectionMode='fullFreeRun'`, `holdDroopMax=Inf`. Güncel hazır deney aşağıdaki StaticNull bölümündedir. `src/bb_config.m` içinde yalnız istenenleri açıp kısa `run_project()` komutunu kullanın:
 - `pulseHold=true`: TRAIN akım std'siyle ölçeklenen `pulseProfile=[.1 2;0 5;-.1 4;0 5]` (genlik çarpanı, saniye) bütün raporlanan RAM adaylarının akım→DDV→RAM→açı zincirine verilir. Diagnostics/PulseHold ve makePlots açıkken tek `pulse_hold.png`. Bu sinyal eğitim verisine eklenmez; fiziksel doğruluk referansı değildir.
 - `horizonFit=true`: Diagnostics/HorizonFit; validation/test RAM ve açı için 2/5/10/30 s resetli değerlendirme ve tam serbest koşu. RESET satırlarında her pencerenin başlangıç RAM'i ölçümden alınır, skorlar normal serbest-koşu fidelity olarak yorumlanmamalıdır. Bu teşhis seçim yapmaz.
 - `oeWindowSeconds=5`: OE eğitimi 5 s çakışmayan pencereler kullanır. Yalnız integratör resetlenir, giriş hafızası/filtreler kesilmez. `oeWindowSearch=true` ise [2 5 10] s ve beta [0 -.03 -.3] taranır. NL_OE için `nlReference=true`, NL_HOLD için `nlHold=true` ayrıca açılmalıdır; varsayılan NL_FB etkin kalır. NL_HOLD bu deneyde negatif beta da denediğinden bütün varyantları tam tutma garantisine sahip değildir.
@@ -208,3 +208,12 @@ Model varsayılanları değişmedi: `pulseHold=false`, `horizonFit=false`, `oeWi
 Yeni seçim/eğitim deneyleri NL_OE/NL_FB/NL_HOLD/DMLP/NL_SS yoluyla sınırlıdır; eski çok-aileli arama, FIR referansı, HAM, WH, stateLeak, refit/LOFO ve force/pressure etkileşim deneyiyle birlikte kullanılırsa açık hata verilir. Yeni pencere aramaları ek eğitim/değerlendirme süresi getirir.
 
 Koşu ve kontroller bittiğinde veya hata verdiğinde kullanıcı isteğiyle `bdclose('all')` ve `clear mex` çağrılır; Simulink yoksa ilk adım atlanır, normal grafikler açık kalır. `releaseAfterRun=false` yalnız eğitim koşusunun otomatik temizliğini kapatır; start_here kontrolleri çıkışta temizler. Bu MATLAB kaynaklı kilitlere yöneliktir, dosya sistemi izinlerini değiştirmez.
+
+### Hazır hareket/bekleme deneyi ve StaticNull
+Son kullanıcı koşusundaki ayarlar config'e işlendi: `oeWindowSearch=true`, `selectionMode='windowed'`, 10 s validation penceresi, `pulseProfile=[1 2;0 5;-1 4;0 5]`, PulseHold/HorizonFit, ddvAllSamples, fbSteadyStart ve fbUniquePoles açık. DMLP açık, NL_SS/NL_HOLD kapalı. Split, testin seçimden dışlanması ve validation seçim algoritması değişmedi. Artık uzun override yerine `start_here`, ardından `run_project()` yeterli; koşu sonu temizlik açık kalır.
+
+`dmlpBalancedLoss=true`: konum, hareket hızı, bekleme hızı ve pencere sonu konum değişimi hataları ayrı normalize edilir; ağırlıklar sırasıyla 1/1/2/1. Hız hedefi TRAIN RAM farkının 0.1 s yumuşatılmış halidir; bekleme eşiği TRAIN |hız| alt %20'sinden bulunur. Bekleme hedefi zorunlu sıfır değil, ölçülen hızdır. En fazla 96 pencere kapsama ve büyük hareketlerden seçilir; 4 gizli nöron ve 200 amaç değerlendirmesi. Search/DMLP_Selection gerçek pencere konum RMSE'sini, birleşik objective'i, hareket/bekleme hız hatalarını ve örnek sayılarını ayrı verir. `dmlpBalancedLoss=false` eski salt konum hedefini ve uniform pencere seçimini geri getirir.
+
+`staticNull=true`: Diagnostics/StaticNull ve StaticNullCurve. Seçilen RAM modeline TRAIN DDV aralığında sabit giriş ızgarası uygulanır. DriveNullDDV öğrenilmiş sürüşün sıfırı; NetRateNullDDV beta/durum etkisi dahil TRAIN medyan RAM konumundaki net hızın sıfırıdır. TrainSlowRAMMedianDDV, TRAIN |yumuşatılmış hız| alt %10 anlarının medyan DDV'si; DDVAtZeroCurrent yukarı akım modelinin sabit sıfır akıma sürekli rejim cevabıdır. Kök bulunamazsa NaN/false; birden fazla kökte TRAIN yavaş-hareket medyanına en yakın olan seçilir. Bunlar 101 noktalı ızgarada interpolasyon sonuçlarıdır.
+
+`nullCenter=false` varsayılan kalır. Açılırsa merkez yalnız TRAIN üzerinde sabit hiperparametreli statik hız pilotundan bulunur; validation ile seçilen modelin kökü geriye dönük kullanılmaz. Pilot kökü bulunamazsa merkez uydurulmaz, açık hata verilir. AppliedTrainCenter, TrainPilotNullDDV ve NullCenterTraining tablosu kaynağı gösterir. Aynı model.ddvCenter eğitim/normal rollout/PulseHold/closed çıkarımda bir kez uygulanır. Merkezleme sıfır-hız kısıtı değildir; ortalama çıkaran modellerde yalnız koordinat değişimi olabilir. PulseHold ayrıca Beta, OutputIntercept, RateBias, StaticDriveAtZeroDDV ve NetRateAtZeroDDV içerir; bunlar her iki çıktı satırında da RAM modelinin parametreleridir.

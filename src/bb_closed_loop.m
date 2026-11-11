@@ -19,7 +19,7 @@ for k=1:N
  buffer.S.CoilCurrent=[buffer.S.CoilCurrent(2:end);current(k)];
  [ddv(k),ddvBank]=localStep(plant.ddv,buffer,L,ddvBank);
  buffer.S.DDV=[buffer.S.DDV(2:end);ddv(k)];
- if k==1&&isfield(plant.rate,'dynamicMLP'),buffer.S.DDV(:)=ddv(k);end
+ if k==1&&(isfield(plant.rate,'dynamicMLP')||isfield(plant.rate,'ddvCenter')),buffer.S.DDV(:)=ddv(k);end
  for j=1:numel(aux)
   if isfield(buffer.S,aux{j}),buffer.S.(aux{j})=[buffer.S.(aux{j})(2:end);flight.S.(aux{j})(k)];end
  end
@@ -36,6 +36,7 @@ end
 info=struct('diverged',diverged,'current',current,'ddv',ddv,'threshold',threshold);
 end
 function [y,state]=localStep(model,buffer,last,state)
+if isfield(model,'ddvCenter'),buffer.S.DDV=buffer.S.DDV-model.ddvCenter;end
 if isfield(model,'filterBank')
  U=zeros(1,numel(model.inputNames));
  for j=1:numel(model.inputNames),U(j)=buffer.S.(model.inputNames{j})(last);end

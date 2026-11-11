@@ -41,7 +41,9 @@ for j=1:numel(names)
 end
 if isfield(m,'filterBank')
  u=zeros(1,numel(m.inputNames));
- for j=1:numel(m.inputNames),u(j)=null.S.(m.inputNames{j})(1);end
+ for j=1:numel(m.inputNames),u(j)=null.S.(m.inputNames{j})(1);
+  if strcmp(m.inputNames{j},'DDV')&&isfield(m,'ddvCenter'),u(j)=u(j)-m.ddvCenter;end
+ end
  sections=m.filterBank.rawLags+1+numel(m.filterBank.poles)+size(m.filterBank.a,1);
  v=bb_forward(m,repmat(u,1,sections)); % unity DC gain, exact steady-state bank features
 else,v=bb_predict_batch(m,null);end

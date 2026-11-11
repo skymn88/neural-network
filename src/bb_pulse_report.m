@@ -9,6 +9,20 @@ for j=1:numel(names)
  values={ram,angle};stages={'RAM','Angle'};
  for k=1:2
   tab=bb_pulse_metrics(fl,values{k},cfg.Fs);
+  m=plant.rate;intercept=NaN;
+  if isfield(m,'dynamicMLP'),intercept=m.dynamicMLP.bias*m.dynamicMLP.rateScale;
+  elseif isfield(m,'kind')&&strcmp(m.kind,'FIR')
+   intercept=m.yMean;if ~isfield(m,'noIntercept')||~m.noIntercept,intercept=intercept+m.weights(1)*m.yStd;end
+  end
+  tab.Beta=repmat(m.beta,height(tab),1);tab.OutputIntercept=repmat(intercept,height(tab),1);
+  bias=0;if isfield(m,'rateBias'),bias=m.rateBias;end
+  tab.RateBias=repmat(bias,height(tab),1);tab.StaticDriveAtZeroDDV=nan(height(tab),1);tab.NetRateAtZeroDDV=nan(height(tab),1);
+  aux=struct();auxNames={'ActuatorForce','SupplyPressure','ReturnPressure'};
+  for ai=1:numel(auxNames),if isfield(fl.S,auxNames{ai}),aux.(auxNames{ai})=fl.S.(auxNames{ai})(1);end;end
+  for row=1:height(tab)
+   ix=find(fl.pulseSegment==row,1);reference=ram(max(1,ix-1));
+   [tab.StaticDriveAtZeroDDV(row),tab.NetRateAtZeroDDV(row)]=bb_static_drive(m,0,reference,aux);
+  end
   tab.Model=repmat(names(j),height(tab),1);tab.Stage=repmat(stages(k),height(tab),1);
   report=[report;tab]; %#ok<AGROW>
  end
