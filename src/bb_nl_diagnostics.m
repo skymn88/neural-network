@@ -4,7 +4,7 @@ betas=unique(report.Beta);rows={};coarse=report(strcmp(report.Search,'coarse'),:
 [~,winner]=min(report.ValidationRMSE);win=report.Beta(winner);
 [~,ci]=min(coarse.ValidationRMSE);cw=coarse.Beta(ci);
 edge=win==min(betas)||win==max(betas);coarseEdge=cw==min(coarse.Beta)||cw==max(coarse.Beta);
-if edge||coarseEdge,warning('bb:BetaEdge','Validation beta is at a searched grid edge; inspect BetaCurve, not test scores.');end
+if numel(betas)>1&&(edge||coarseEdge),warning('bb:BetaEdge','Validation beta is at a searched grid edge; inspect BetaCurve, not test scores.');end
 for j=1:numel(betas)
  q=report(report.Beta==betas(j),:);[score,k]=min(q.ValidationRMSE);
  rows(end+1,:)={betas(j),score,q.Lags(k),q.Ridge(k),q.TanhScale(k),height(q),betas(j)==win,coarseEdge,edge}; %#ok<AGROW>

@@ -15,7 +15,7 @@ model.noIntercept=cfg.oeZeroRateAtNull;
 if isfield(cfg,'oeCustom')&&cfg.oeCustom
  model.featureSpec=cfg.featureSpec;model.inputNames={'DDV'};model.nInputs=1;
  model.inputBasis='linear';
- if strcmp(model.featureSpec.basis,'nonlinear'),model.inputBasis='nonlinear';end
+ if ismember(model.featureSpec.basis,{'nonlinear','hold'}),model.inputBasis='nonlinear';end
 end
 if model.noIntercept&&cfg.usePressure&&~isfield(model,'featureSpec')
  model.featureSpec=struct('basis','linear','parameter',0,'force',false,'pressure',true);

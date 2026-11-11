@@ -172,6 +172,13 @@ if cfg.nlFocus&&cfg.nlFilterBank
     rates.NL_FB=fb;labels=[labels {'NL_FB'}];reports.FB_Selection=fbReport;
     if fbScore<bestAll,bestAll=fbScore;chosenRate='NL_FB';end
 end
+if cfg.nlFocus&&cfg.nlHold
+    methodTimer=tic;
+    [holdModel,holdReport,holdScore]=bb_hold_search(ramTr,va,vDDV,cfg);
+    timings.RAM_NL_HOLD=toc(methodTimer);rates.NL_HOLD=holdModel;
+    labels=[labels {'NL_HOLD'}];reports.Hold_Selection=holdReport;
+    if holdScore<bestAll,bestAll=holdScore;chosenRate='NL_HOLD';end
+end
 if cfg.nlFocus&&cfg.nlStateSpace
     methodTimer=tic;
     [ss,ssReport,ssScore]=bb_ss_train(rates.(chosenRate),ramTr,va,vDDV,cfg);
@@ -229,6 +236,11 @@ if cfg.nlDiagnostics
         diagnosticReport=reports.FB_Selection;
         diagnosticReport.Search=repmat({'coarse'},height(diagnosticReport),1);
         diagnosticReport.Lags=repmat(cfg.fbRawLags,height(diagnosticReport),1);
+        diagnosticReport.TanhScale=ones(height(diagnosticReport),1);
+    end
+    if strcmp(chosenRate,'NL_HOLD')
+        diagnosticReport=reports.Hold_Selection;
+        diagnosticReport.Search=repmat({'coarse'},height(diagnosticReport),1);
         diagnosticReport.TanhScale=ones(height(diagnosticReport),1);
     end
     [curve,holds,equilibrium]=bb_nl_diagnostics(diagnosticReport,configs.(chosenRate),tr,va,te,cfg);

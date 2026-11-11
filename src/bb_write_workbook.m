@@ -15,7 +15,7 @@ writecell(summary,file,'UseExcel',false,'Sheet','Summary','Range','A1');
 per=reports.PerFlight;
 if isfield(reports,'RefitPerFlight'),per=[per;reports.RefitPerFlight];end
 writetable(per,file,'UseExcel',false,'Sheet','PerFlight');
-searchNames={'SS_Selection','NL_Selection','OE_Selection','FB_Selection','WH_Selection','StateLeak','StructuralSelection','BetaCurve','ValidationSelection','ClosedSelection'};
+searchNames={'Hold_Selection','SS_Selection','NL_Selection','OE_Selection','FB_Selection','WH_Selection','StateLeak','StructuralSelection','BetaCurve','ValidationSelection','ClosedSelection'};
 search=localSearch(reports,searchNames);writecell(search,file,'UseExcel',false,'Sheet','Search','Range','A1');
 skip=[searchNames {'Summary','Compact','PerFlight','RefitPerFlight','RunInfo','Split'}];diag=cell(0,0);
 for j=1:numel(names)

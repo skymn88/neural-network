@@ -19,7 +19,7 @@ spec=model.featureSpec;X=zeros(numel(idx),model.inputLags+1);u=flight.S.DDV;
 for lag=0:model.inputLags
  z=u(max(1,idx-lag));
  switch spec.basis
-  case 'deadband',z=sign(z).*max(abs(z)-spec.parameter,0);
+  case {'deadband','hold'},z=sign(z).*max(abs(z)-spec.parameter,0);
   case 'tanh',z=tanh(z/spec.parameter);
   case {'linear','nonlinear'}
   otherwise,error('Unknown static input map');
