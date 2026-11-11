@@ -27,7 +27,10 @@ end
 if isfield(cfg,'oeFilterBank')&&cfg.oeFilterBank
  model.filterBank=bb_fb_spec(cfg);model.inputLags=cfg.fbRawLags;model.inputBasis='nonlinear';
 end
-model.oeConfig=cfg;
+seconds=cfg.oeWindowSeconds;
+if ~isscalar(seconds)||~isfinite(seconds)||seconds<0,error('OE fit needs one nonnegative window length');end
+W=0;if seconds>0,W=max(2,round(seconds*cfg.Fs));end
+model.oeWindowSeconds=seconds;model.oeConfig=cfg;
 first=cfg.evalStartIndex;count=max(1,floor(cfg.oeMaxTrainRows/numel(flights)));
 nx=0;mx=[];sx=[];ny=0;my=0;sy=0;indices=cell(size(flights));
 for f=1:numel(flights)
@@ -73,10 +76,17 @@ for f=1:numel(flights)
   Z=bsxfun(@rdivide,bsxfun(@minus,X,model.xMean),model.xStd);
   if strcmp(model.inputBasis,'nonlinear'),Z=[Z tanh(Z/model.tanhScale) abs(Z)];end
   if ~model.noIntercept,Z=[ones(size(Z,1),1) Z];end
-  if b==1,Z(1,:)=0;state=zeros(1,size(Z,2));end
-  [A,state]=filter(1/cfg.Fs,[1 -a],Z,state,1);
-  keep=ismember(ii,ix);A=A(keep,:);k=ii(keep)-1;
-  Y=(fl.S.RAM(ii(keep))-fl.S.RAM(1)*a.^k)/model.yStd;
+  if W==0
+   if b==1,Z(1,:)=0;state=zeros(1,size(Z,2));end
+   [A,state]=filter(1/cfg.Fs,[1 -a],Z,state,1);
+   keep=ismember(ii,ix);A=A(keep,:);k=ii(keep)-1;
+   Y=(fl.S.RAM(ii(keep))-fl.S.RAM(1)*a.^k)/model.yStd;
+  else
+   [A,state]=bb_oe_window_filter(Z,ii,a,cfg.Fs,W,state);
+   starts=floor((ii-1)/W)*W+1;
+   keep=ismember(ii,ix)&ii~=starts;A=A(keep,:);k=ii(keep)-starts(keep);
+   Y=(fl.S.RAM(ii(keep))-fl.S.RAM(starts(keep)).*a.^k)/model.yStd;
+  end
   if isempty(G),G=zeros(size(Z,2));h=zeros(size(Z,2),1);end
   w=1+lambda*double(moving(ii(keep)));
   if lambda==0,G=G+A'*A;h=h+A'*Y;
@@ -84,6 +94,7 @@ for f=1:numel(flights)
   n=n+sum(keep);weightSum=weightSum+sum(w);
  end
 end
+if n==0||weightSum<=0,error('No eligible OE rows after window resets');end
 scale=sqrt(diag(G)'/weightSum);scale(scale<1e-12)=1;
 Q=bsxfun(@rdivide,bsxfun(@rdivide,G,scale),scale')/weightSum;
 R=eye(size(Q));if ~model.noIntercept,R(1,1)=0;end

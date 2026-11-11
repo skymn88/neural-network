@@ -2,6 +2,17 @@ function cfg = bb_config()
 % Repository configuration: compact reports, optional force, position-output-error FIR.
 % MATLAB R2019a + Deep Learning Toolbox. No Signal Processing Toolbox needed.
 cfg.version = 'plant';
+cfg.pulseHold = false;
+cfg.pulseProfile = [.1 2;0 5;-.1 4;0 5]; % TRAIN current std multiplier, seconds
+cfg.horizonFit = false;
+cfg.oeWindowSeconds = 0;
+cfg.oeWindowSearch = false;
+cfg.oeWindowCandidates = [2 5 10];
+cfg.oeWindowBetas = [0 -.03 -.3];
+cfg.selectionMode = 'fullFreeRun';
+cfg.selectionWindowSeconds = 10;
+cfg.holdDroopMax = Inf; % max abs RAM hold slope, physical units/s
+cfg.releaseAfterRun = true; % requested bdclose all + clear mex on exit
 cfg.dynamicMLP = true;
 cfg.dmlpHidden = 4;
 cfg.dmlpHorizon = 128;

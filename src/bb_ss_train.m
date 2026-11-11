@@ -17,14 +17,10 @@ options=optimset('Display','off','MaxFunEvals',cfg.ssMaxEvals,'MaxIter',cfg.ssMa
 timer=tic;initial=localLoss(zeros(1,5),model,tr,drives,cfg);
 [w,loss,exitflag,output]=fminsearch(@(w)localLoss(w,model,tr,drives,cfg),zeros(1,5),options);
 if loss>initial||~isfinite(loss),w=zeros(1,5);loss=initial;end
-model.stateSpace.weights=w;seconds=toc(timer);sse=0;n=0;
-for f=1:numel(va)
- p=bb_rollout_rate(model,va(f),va(f).S.RAM(1),struct('DDV',vDDV{f}));ix=cfg.evalStartIndex:numel(p);
- sse=sse+sum((p(ix)-va(f).S.RAM(ix)).^2);n=n+numel(ix);
-end
-score=sqrt(sse/n);if ~isfinite(score),score=Inf;end
+model.stateSpace.weights=w;seconds=toc(timer);[score,metric]=bb_ram_score(model,va,vDDV,cfg);
 report=table(sqrt(initial),sqrt(loss),score,seconds,exitflag,output.funcCount,...
  'VariableNames',{'InitialTrainRMSE','TrainRMSE','ValidationRMSE','TrainSeconds','ExitFlag','Evaluations'});
+report.FullFreeRunRMSE=metric.FullFreeRunRMSE;report.ResetWindowRMSE=metric.ResetWindowRMSE;report.HoldDroop=metric.HoldDroop;report.Eligible=metric.Eligible;
 end
 function loss=localLoss(w,m,tr,drives,cfg)
 m.stateSpace.weights=w;sse=0;n=0;

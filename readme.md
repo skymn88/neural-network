@@ -196,3 +196,15 @@ Ek seçenekler **varsayılan false**; eski DDV/FB davranışı korunur:
 - `fbUniquePoles=true`: ham lag-0 ile aynı olan sıfır kutbu çıkarılır. Varsayılan sonuçları korumak için bu da opt-in'dir.
 
 Önce `start_here`, sonra `run_project()`. Bağımsız çizim script'i `src/plot_saved_flights.m` değişmedi. DDV gürültüsü için Diagnostics/BandGain yüksek frekans genlik oranlarını da inceleyin; yeni seçeneklerin gürültüyü azaltacağı garanti edilmez.
+
+### Opt-in PulseHold / HorizonFit ve pencereli OE
+Model varsayılanları değişmedi: `pulseHold=false`, `horizonFit=false`, `oeWindowSeconds=0`, `oeWindowSearch=false`, `selectionMode='fullFreeRun'`, `holdDroopMax=Inf`. `src/bb_config.m` içinde yalnız istenenleri açıp kısa `run_project()` komutunu kullanın:
+- `pulseHold=true`: TRAIN akım std'siyle ölçeklenen `pulseProfile=[.1 2;0 5;-.1 4;0 5]` (genlik çarpanı, saniye) bütün raporlanan RAM adaylarının akım→DDV→RAM→açı zincirine verilir. Diagnostics/PulseHold ve makePlots açıkken tek `pulse_hold.png`. Bu sinyal eğitim verisine eklenmez; fiziksel doğruluk referansı değildir.
+- `horizonFit=true`: Diagnostics/HorizonFit; validation/test RAM ve açı için 2/5/10/30 s resetli değerlendirme ve tam serbest koşu. RESET satırlarında her pencerenin başlangıç RAM'i ölçümden alınır, skorlar normal serbest-koşu fidelity olarak yorumlanmamalıdır. Bu teşhis seçim yapmaz.
+- `oeWindowSeconds=5`: OE eğitimi 5 s çakışmayan pencereler kullanır. Yalnız integratör resetlenir, giriş hafızası/filtreler kesilmez. `oeWindowSearch=true` ise [2 5 10] s ve beta [0 -.03 -.3] taranır. NL_OE için `nlReference=true`, NL_HOLD için `nlHold=true` ayrıca açılmalıdır; varsayılan NL_FB etkin kalır. NL_HOLD bu deneyde negatif beta da denediğinden bütün varyantları tam tutma garantisine sahip değildir.
+- `selectionMode='windowed'`: seçim validation'da `selectionWindowSeconds=10` resetli RAM RMSE ile yapılır. Search içinde FullFreeRunRMSE/ResetWindowRMSE, WindowSeconds, SelectionMode ve adayların Eligibility bilgisi birlikte raporlanır. Test hiçbir seçim hesabına girmez. Tam koşu Summary metrikleri değişmez.
+- `holdDroopMax`: sonlu yapılırsa TRAIN ölçekli darbe profilinin beklemelerinde en büyük mutlak **RAM eğimi (fiziksel birim/s)** eşiği aşan aday elenir. Bütün adaylar elenirse eşik sessizce gevşetilmez; reddedilme bilgisi comparison.xlsx/Search içinde yazılıp açık hata verilir. Eşik bir yüzde değildir.
+
+Yeni seçim/eğitim deneyleri NL_OE/NL_FB/NL_HOLD/DMLP/NL_SS yoluyla sınırlıdır; eski çok-aileli arama, FIR referansı, HAM, WH, stateLeak, refit/LOFO ve force/pressure etkileşim deneyiyle birlikte kullanılırsa açık hata verilir. Yeni pencere aramaları ek eğitim/değerlendirme süresi getirir.
+
+Koşu ve kontroller bittiğinde veya hata verdiğinde kullanıcı isteğiyle `bdclose('all')` ve `clear mex` çağrılır; Simulink yoksa ilk adım atlanır, normal grafikler açık kalır. `releaseAfterRun=false` yalnız eğitim koşusunun otomatik temizliğini kapatır; start_here kontrolleri çıkışta temizler. Bu MATLAB kaynaklı kilitlere yöneliktir, dosya sistemi izinlerini değiştirmez.

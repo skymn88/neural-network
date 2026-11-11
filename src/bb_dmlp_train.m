@@ -40,14 +40,10 @@ options=optimset('Display','off','MaxFunEvals',cfg.dmlpMaxEvals,'MaxIter',cfg.dm
 timer=tic;[best,loss,flag,output]=fminsearch(@(p)localLoss(p,m,U,target,x0),p,options);
 if ~isfinite(loss)||loss>initial,best=p;loss=initial;end
 m=localUnpack(best,m);seconds=toc(timer);m=bb_ram_bounds(m,tr,cfg);
-sse=0;n=0;
-for f=1:numel(va)
- p=bb_rollout_rate(m,va(f),va(f).S.RAM(1),struct('DDV',vDDV{f}));ix=cfg.evalStartIndex:numel(p);
- sse=sse+sum((p(ix)-va(f).S.RAM(ix)).^2);n=n+numel(ix);
-end
-score=sqrt(sse/n);if ~isfinite(score),score=Inf;end
+[score,metric]=bb_ram_score(m,va,vDDV,cfg);
 report=table(H,T,size(target,2),sqrt(initial)*q.xScale,sqrt(loss)*q.xScale,score,seconds,flag,output.funcCount,...
  'VariableNames',{'Hidden','Horizon','Windows','InitialWindowRMSE','TrainWindowRMSE','ValidationRMSE','TrainSeconds','ExitFlag','Evaluations'});
+report.FullFreeRunRMSE=metric.FullFreeRunRMSE;report.ResetWindowRMSE=metric.ResetWindowRMSE;report.HoldDroop=metric.HoldDroop;report.Eligible=metric.Eligible;
 end
 function m=localUnpack(p,m)
 H=numel(m.dynamicMLP.b);q=m.dynamicMLP;q.W=reshape(p(1:4*H),H,4);q.b=p(4*H+(1:H));q.v=p(5*H+(1:H));q.bias=p(end);m.dynamicMLP=q;

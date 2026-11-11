@@ -12,6 +12,14 @@ for j=1:numel(names)
     if ~isfield(cfg,names{j}),error('Unknown cfg field: %s',names{j});end
     cfg.(names{j})=overrides.(names{j});
 end
+if cfg.releaseAfterRun,runtimeCleanup=onCleanup(@bb_release_runtime);end %#ok<NASGU>
+if ~ismember(cfg.selectionMode,{'fullFreeRun','windowed'}),error('Unknown selectionMode');end
+if cfg.selectionWindowSeconds<=0||~isfinite(cfg.selectionWindowSeconds)||cfg.holdDroopMax<0||isnan(cfg.holdDroopMax),error('Invalid window or droop threshold');end
+if cfg.oeWindowSearch,cfg.oeWindowSeconds=cfg.oeWindowCandidates;end
+experimental=cfg.oeWindowSearch||any(cfg.oeWindowSeconds>0)||strcmp(cfg.selectionMode,'windowed')||isfinite(cfg.holdDroopMax);
+if experimental&&(~cfg.nlFocus||cfg.nlFIRReference||cfg.hamEnabled||cfg.nlWiener||cfg.nlStateLeak||cfg.nlRefitTrainVal||cfg.reportLoo||cfg.useForce||(cfg.usePressure&&cfg.pressureInteractions))
+ error('Window/hold selection currently supports NL_OE, NL_FB, NL_HOLD, DMLP and NL_SS; disable other experiments');
+end
 if cfg.dynamicMLP&&(cfg.nlRefitTrainVal||cfg.nlStateLeak||cfg.reportLoo),error('Disable dynamicMLP for refit/stateLeak/reportLoo experiments');end
 if cfg.nlStateSpace&&(cfg.nlRefitTrainVal||cfg.nlStateLeak||cfg.reportLoo),error('Disable refit/stateLeak/reportLoo for the isolated state-space comparison');end
 if cfg.nlWiener&&cfg.clampRAM,error('NL_WH vectorized experiment requires clampRAM=false');end
@@ -75,6 +83,10 @@ if strcmp(cfg.ramTrainInput,'oof')||cfg.reportLoo
     if strcmp(cfg.ramTrainInput,'oof'),ramTr=oofTr;end
 end
 timings.OOF=toc(stageTimer);stageTimer=tic;
+if isfinite(cfg.holdDroopMax)
+ cfg.selectionPulse=bb_pulse_flight(tr,cfg);
+ cfg.selectionPulse.S.DDV=bb_predict_batch(ddvModels.(chosenDDV),cfg.selectionPulse);
+end
 % Retain DDV search, prune RAM candidates after upstream selection.
 labels={'FIR_rich'};
 if cfg.nlFocus,labels={};end
@@ -100,6 +112,7 @@ for j=1:numel(labels)
 end
 % Output-error FIR alternative: fit complete position trajectories directly.
 oeChoices={};bestOE=Inf;oeBetas=cfg.betaCandidates;oeRidge=cfg.oeRidge;
+if cfg.oeWindowSearch,oeBetas=cfg.oeWindowBetas;end
 if quick
     oeBetas=[0 -.025];oeRidge=1e-3;
     if ~isinf(cfg.oeMaxTrainRows),cfg.oeMaxTrainRows=700;end
@@ -185,6 +198,7 @@ if cfg.nlFocus&&cfg.nlHold
     if holdScore<bestAll,bestAll=holdScore;chosenRate='NL_HOLD';end
 end
 if cfg.nlFocus&&cfg.nlStateSpace
+    if ~exist('chosenRate','var'),chosenRate=labels{1};end
     methodTimer=tic;
     [ss,ssReport,ssScore]=bb_ss_train(rates.(chosenRate),ramTr,va,vDDV,cfg);
     timings.RAM_NL_SS=toc(methodTimer);rates.NL_SS=ss;labels=[labels {'NL_SS'}];
@@ -224,10 +238,32 @@ end
 timings.WH=toc(stageTimer);stageTimer=tic;
 seedRows={cfg.seed,bestAll};
 
-if ~isfinite(bestAll),error('All validation models failed');end
+if experimental
+ bestAll=Inf;selectionRows={};
+ for j=1:numel(labels)
+  label=labels{j};[candidateScore,metric]=bb_ram_score(rates.(label),va,vDDV,cfg);
+  selectionRows(end+1,:)={label,metric.FullFreeRunRMSE,metric.ResetWindowRMSE,metric.HoldDroop,metric.Eligible,candidateScore}; %#ok<AGROW>
+  if candidateScore<bestAll,bestAll=candidateScore;chosenRate=label;end
+ end
+ reports.WindowSelection=cell2table(selectionRows,'VariableNames',{'Model','FullFreeRunRMSE','ResetWindowRMSE','HoldDroop','Eligible','SelectionScore'});
+end
+if ~isfinite(bestAll)
+ reports.Summary=table(cell(0,1),cell(0,1),cell(0,1),zeros(0,1),zeros(0,1),...
+  'VariableNames',{'Model','Stage','Split','FitPct','RMSE'});
+ reports.PerFlight=table({'No eligible validation candidate'},'VariableNames',{'Status'});
+ reports.RunInfo=table({source},'VariableNames',{'Source'});reports.Split=manifest;
+ if ~isempty(nlReport),reports.NL_Selection=nlReport;end
+ selection=struct('RAM','NONE','DDV',chosenDDV,'Status','No eligible validation candidate');
+ bb_write_workbook(fullfile(outDir,'comparison.xlsx'),reports,selection,cfg,timings);
+ error('No eligible finite validation model. Inspect Search in %s and holdDroopMax.',outDir);
+end
 angle=bb_angle_select(tr,va,start);
 selection=struct('DDV',chosenDDV,'RAM',chosenRate,'criterion','validation cascade RAM RMSE','seed',cfg.seed,'smokeMode',logical(quick),'source',source);
-selectedRate=rates.(chosenRate);selection.RAMBeta=selectedRate.beta;
+selection.criterion=['validation cascade RAM RMSE: ' cfg.selectionMode];
+selection.SelectionMode=cfg.selectionMode;selection.SelectionWindowSeconds=cfg.selectionWindowSeconds;
+selectedRate=rates.(chosenRate);
+if isfield(selectedRate,'oeWindowSeconds'),selection.OEWindowSeconds=selectedRate.oeWindowSeconds;end
+selection.RAMBeta=selectedRate.beta;
 selection.RAMLags=selectedRate.inputLags;
 if isfield(selectedRate,'ridge'),selection.RAMRidge=selectedRate.ridge;end
 if isfield(selectedRate,'transitionWeight'),selection.TransitionWeight=selectedRate.transitionWeight;end
@@ -267,6 +303,8 @@ if cfg.nlDiagnostics
     reports.RateMap=rateMap;
     reports.StepSmoothing=steps;
 end
+if cfg.pulseHold,reports.PulseHold=bb_pulse_report(configs,tr,cfg,outDir);end
+if cfg.horizonFit,reports.HorizonFit=bb_horizon_report(configs,va,te,cfg);end
 timings.Diagnostics=timings.Diagnostics+toc(stageTimer);
 refitModels=struct();
 if cfg.nlFocus&&cfg.nlRefitTrainVal

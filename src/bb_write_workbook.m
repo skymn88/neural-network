@@ -7,7 +7,7 @@ if cfg.legacySheets
 end
 selected=localKV(selection);flags=localKV(cfg);time=localTime(timings);
 summary=cell(0,0);summary=localBlock(summary,'Selected configuration',selected);
-keep={'dynamicMLP','ddvAllSamples','fbSteadyStart','fbUniquePoles','fbTanhSearch','nlFocus','ramTrainInput','oeMaxTrainRows','nlFilterBank','ddvFilterBank','nlWiener','oeTransitionWeight','holdBaselines','nlDiagnostics','nlRefitTrainVal','legacySheets'};
+keep={'selectionMode','selectionWindowSeconds','oeWindowSeconds','holdDroopMax','pulseHold','horizonFit','dynamicMLP','ddvAllSamples','fbSteadyStart','fbUniquePoles','fbTanhSearch','nlFocus','ramTrainInput','oeMaxTrainRows','nlFilterBank','ddvFilterBank','nlWiener','oeTransitionWeight','holdBaselines','nlDiagnostics','nlRefitTrainVal','legacySheets'};
 summary=localBlock(summary,'Settings',flags(ismember(flags.Setting,keep),:));
 layout.summaryTimeRow=size(summary,1)+3;summary=localBlock(summary,'Stage times (seconds)',time);
 summary=localBlock(summary,'Fit / RMSE by model and stage',bb_wide_summary(reports.Summary,selection,cfg));
@@ -15,7 +15,7 @@ writecell(summary,file,'UseExcel',false,'Sheet','Summary','Range','A1');
 per=reports.PerFlight;
 if isfield(reports,'RefitPerFlight'),per=[per;reports.RefitPerFlight];end
 writetable(per,file,'UseExcel',false,'Sheet','PerFlight');
-searchNames={'DMLP_Selection','Hold_Selection','SS_Selection','NL_Selection','OE_Selection','FB_Selection','WH_Selection','StateLeak','StructuralSelection','BetaCurve','ValidationSelection','ClosedSelection'};
+searchNames={'WindowSelection','DMLP_Selection','Hold_Selection','SS_Selection','NL_Selection','OE_Selection','FB_Selection','WH_Selection','StateLeak','StructuralSelection','BetaCurve','ValidationSelection','ClosedSelection'};
 search=localSearch(reports,searchNames);writecell(search,file,'UseExcel',false,'Sheet','Search','Range','A1');
 skip=[searchNames {'Summary','Compact','PerFlight','RefitPerFlight','RunInfo','Split'}];diag=cell(0,0);
 for j=1:numel(names)
