@@ -88,3 +88,11 @@ Durum: RAM, null, sakinlik bayrağı, 32 DDV örnek tamponu; envelope için tepe
 ## Sınırlı RAM araması (Py-0.6)
 
 `fit_null_rate(..., quiet_seconds=.5, quiet_quantile=.95)` varsayılanları korur. `quiet_window=round(Fs*quiet_seconds)` observer'ın nedensel DDV tampon uzunluğudur; eşik TRAIN hold anlarındaki pencere aralığının belirtilen quantile'ından öğrenilir. Modelde mevcut `quiet_window` ve `quiet_range` alanlarıyla saklanır; yeni inference denklemi yoktur. Daha uzun history bu veride iyileştirmedi. Seçilen adayın mevcut `window_refinement` alanı 2 s/ridge=.01'dir; eğitimde pencere reset'i, çıkarımda ise kesintisiz integrasyon vardır. Web varsayılanları değişmez.
+
+## Sequence-rate (Py-0.7)
+
+`ram.kind='sequence_rate'`: `reference` eski null-rate struct'ı; `sequence` içinde TRAIN `mean,scale,rate_scale,rate_limit`, `family,residual,gate`, head/bias ve açık ağ ağırlıkları. GRU/Elman/ESN `wi,wh,bi,bh,hidden`; GRU gate sırası PyTorch r,z,n. LSTM i,f,g,o ve ek cell durumu. TDNN `offsets,w,b`; TCN nedensel iki katman `layers(w,b,dilation)`; RBF `centers,width2,offsets`. ESN `leak` ve sabit reservoir. Çıkarım yalnız NumPy; Torch yalnız eğitim/testte. C/MEX üretilmedi.
+
+Referans null observer ve hız integraline ek GRU hidden=12 durumları kullanılır. GRU hız düzeltmesi, öğrenilmiş hız sınırları ve null gate ile uygulanır; RAM TRAIN bounds'a clamp edilir. İlk RAM ölçümle başlatılır; ara ölçülen RAM geri beslemesi yok. TRAIN 256 örnek pencerelerde ilk 64 örnek warmup, hız kaybı + tamamen interior pencerelerde .2 konum-cumsum kaybı; validation tüm uçuş boyunca sıfır hidden başlangıcıyla kesintisiz. Pencere reset'i değerlendirmeye taşınmaz. 400 Adam adımı; tek son checkpoint, test seçimi yok.
+
+Arayüz `gru_rate` hem önceki referansı hem GRU'yu validation ile karşılaştırır. Preset hidden=12,horizon=256,steps=400,seed=42. Diğer family uygulamaları küçük deterministik parity/smoke testinden geçti; bu turda sadece TDNN/ESN/GRU tam performans deneyi yapıldı. Yöntem kapsamı: [methods.md](methods.md).

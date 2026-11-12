@@ -172,8 +172,14 @@ def run(
             nullTau=nullTau,
             nullObserver=nullObserver,
         )
-    if not methods or set(methods) - {"oe", "neural", "stable", "null_rate"}:
-        raise ValueError("Choose oe, neural, stable and/or null_rate")
+    if not methods or set(methods) - {
+        "oe",
+        "neural",
+        "stable",
+        "null_rate",
+        "gru_rate",
+    }:
+        raise ValueError("Choose oe, neural, stable, null_rate and/or gru_rate")
     start = time.perf_counter()
     search = []
     timings = {}
@@ -238,6 +244,37 @@ def run(
             observer=nullObserver,
         )
         timings["Rate_null"] = time.perf_counter() - t
+    if "gru_rate" in methods:
+        from .null_rate import fit_null_rate, refine_window_rate
+        from .sequence_train import prepare_sequences, fit_sequence
+
+        t = time.perf_counter()
+        ref = fit_null_rate(
+            groups["train"],
+            ddv,
+            angle,
+            adaptive=True,
+            tau=2,
+            knots=81,
+            ridge=0.001,
+            observer="stationary",
+            gate_source="predicted",
+        )
+        ref = refine_window_rate(ref, groups["train"], seconds=2, ridge=0.01)
+        models["Rate_reference"] = ref
+        timings["Rate_reference"] = time.perf_counter() - t
+        t = time.perf_counter()
+        prepared = prepare_sequences(groups["train"], ref)
+        models["GRU_rate"] = fit_sequence(
+            prepared,
+            ref,
+            family="gru",
+            hidden=hidden,
+            steps=steps,
+            horizon=horizon,
+            seed=seed,
+        )
+        timings["GRU_rate"] = time.perf_counter() - t
     scores = {name: val_rmse(m, groups["validation"]) for name, m in models.items()}
     selected = min(scores, key=scores.get)
     if not np.isfinite(scores[selected]):

@@ -57,6 +57,16 @@ def rollout(model, current, x0, ddv_override=None):
         lo, hi = m["bounds"]
         for k in range(1, n):
             x[k] = min(hi, max(lo, x[k - 1] + rate[k] / FS))
+    elif m["kind"] == "sequence_rate":
+        from .sequence_inference import sequence_features, sequence_rate
+
+        features, base_rate = sequence_features(ddv, m["reference"])
+        rate = sequence_rate(m["sequence"], features, base_rate)
+        x = np.empty(n)
+        x[0] = x0
+        lo, hi = m["bounds"]
+        for k in range(1, n):
+            x[k] = min(hi, max(lo, x[k - 1] + rate[k] / FS))
     elif m["kind"] == "oe":
         drive = ram_features(ddv, m["scale"], m["lags"]) @ np.asarray(m["weights"])
         drive[0] = 0

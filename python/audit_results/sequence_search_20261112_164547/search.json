@@ -1,0 +1,39 @@
+[
+  {
+    "iteration": 1,
+    "model": "01_tdnn",
+    "family": "tdnn",
+    "settings": {
+      "hidden": 24
+    },
+    "validation_fit": 85.53214953537729,
+    "validation_rmse": 11.916410033831921,
+    "seconds": 4.846687800993095,
+    "status": "ok"
+  },
+  {
+    "iteration": 2,
+    "model": "02_esn",
+    "family": "esn",
+    "settings": {
+      "hidden": 24,
+      "leak": 0.2
+    },
+    "validation_fit": 76.3351903943423,
+    "validation_rmse": 19.491463180597318,
+    "seconds": 6.727450997997948,
+    "status": "ok"
+  },
+  {
+    "iteration": 3,
+    "model": "03_gru",
+    "family": "gru",
+    "settings": {
+      "hidden": 12
+    },
+    "validation_fit": 91.42710077600204,
+    "validation_rmse": 7.0610477058551275,
+    "seconds": 20.918847522996657,
+    "status": "ok"
+  }
+]

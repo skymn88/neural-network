@@ -105,13 +105,15 @@ def import_data(body: Import):
 
 
 class RunRequest(BaseModel):
-    source: Literal["bundled", "pulse", "flightLike", "user"] = "bundled"
+    source: Literal["bundled", "pulse", "flightLike", "flightLikeMixed", "user"] = (
+        "bundled"
+    )
     dataset: Optional[str] = None
     steps: int = Field(default=400, ge=20, le=2000)
     horizon: int = Field(default=192, ge=16, le=512)
     hidden: int = Field(default=16, ge=4, le=64)
     seed: int = Field(default=42, ge=0, le=2**31 - 1)
-    methods: list[Literal["oe", "neural", "stable", "null_rate"]] = Field(
+    methods: list[Literal["oe", "neural", "stable", "null_rate", "gru_rate"]] = Field(
         default=["oe", "neural"], min_length=1, max_length=3
     )
     syntheticTrainFlights: int = Field(default=0, ge=0, le=20)
@@ -153,9 +155,16 @@ def start(body: RunRequest):
                     if body.source == "bundled"
                     else pulse_flights(
                         profile="flightLike"
-                        if body.source == "flightLike"
+                        if body.source in ("flightLike", "flightLikeMixed")
                         else "pulse",
-                        seed=621 if body.source == "flightLike" else 123,
+                        seed=621
+                        if body.source in ("flightLike", "flightLikeMixed")
+                        else 123,
+                        valve_variation=dict(
+                            gain_sd=0.03, bias_sd=0.025, drift_amp=0.02
+                        )
+                        if body.source == "flightLikeMixed"
+                        else None,
                     )
                 )
             )
@@ -174,7 +183,7 @@ def start(body: RunRequest):
                 warm_steps=body.warm_steps,
                 syntheticTrainFlights=body.syntheticTrainFlights,
                 syntheticProfile="flightLike"
-                if body.source == "flightLike"
+                if body.source in ("flightLike", "flightLikeMixed")
                 else "pulse",
                 nullAdaptive=body.nullAdaptive,
                 nullObserver=body.nullObserver,
@@ -292,14 +301,19 @@ _reference_cache = {}
 def reference_flights(result):
     """Shipped public synthetic reports share raw data rather than duplicate it."""
     source = result["config"]["source"]
-    if source not in ("bundled", "pulse", "flightLike"):
+    if source not in ("bundled", "pulse", "flightLike", "flightLikeMixed"):
         raise HTTPException(404, "Local raw data missing")
-    if source not in _reference_cache:
+    cache_key = (source, result["config"].get("seed"))
+    if cache_key not in _reference_cache:
         if source == "bundled":
             flights, _ = bundled()
-        elif source == "flightLike":
+        elif source in ("flightLike", "flightLikeMixed"):
             flights, _ = pulse_flights(
-                profile="flightLike", seed=result["config"]["seed"]
+                profile="flightLike",
+                seed=result["config"]["seed"],
+                valve_variation=dict(gain_sd=0.03, bias_sd=0.025, drift_amp=0.02)
+                if source == "flightLikeMixed"
+                else None,
             )
         else:
             meta = json.loads((ROOT / "data/synthetic/pulse_hold_v1.json").read_text())
@@ -310,8 +324,8 @@ def reference_flights(result):
                     Flight(name, raw[f"f{i}"][:, 0], raw[f"f{i}"][:, 1:])
                     for i, name in enumerate(meta["names"])
                 ]
-        _reference_cache[source] = flights
-    flights = _reference_cache[source]
+        _reference_cache[cache_key] = flights
+    flights = _reference_cache[cache_key]
     if fingerprint(flights) != result["dataset_sha256"]:
         raise HTTPException(409, "Reference raw-data fingerprint mismatch")
     return flights

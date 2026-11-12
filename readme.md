@@ -112,3 +112,14 @@ python python\run_valve_improvement.py
 İlk komut üç sabit yöntemi üç sentetik senaryoda karşılaştırır. İkinci komut mixed senaryoda mevcut referans + en fazla üç yeni adayı çalıştırır. İnternet gerekmez; XLSX/JSON `python/results/audits/` altına yazılır. Önceden çalıştırılmış sonuçlar [python/audit_results](python/audit_results) içinde; bunlar yerel web sonuç seçicisinden ayrı stres raporlarıdır. Yeni gate seçeneği bu sınırlı deney komutunda denenir; mevcut web eğitimi otomatik değiştirilmedi.
 
 On adaylık devam deneyi: `python python\run_valve_search.py`. Aynı zor sentetik veride >=%90 validation Fit veya 10 yeni adayda durur; TEST açılmaz. Bu turda 10 aday sonunda en iyi **%73.90** bulundu (önceki %73.56); %90 hedefi sağlanmadı. Kayıtlı XLSX/JSON: `python/audit_results/valve_search_20261112_162852/`. Bu deney web varsayılanlarını değiştirmez.
+
+## Yeni: GRU hız düzeltmesi (Py-0.7)
+
+Zor mixed-valve sentetik validation RAM Cascade: referans %73.90 → TDNN %85.53, ESN %76.34, **GRU %91.43**. %90 hedefinde üçüncü adaydan sonra duruldu; 20 adayın tümü çalıştırılmadı. RAM Component validation %40.16; gerçek veri/bağımsız test başarısı değildir. Eski varsayılanlar korunur.
+
+`start.bat` ile açtıktan sonra:
+1. Yeniden eğitim yapmadan **Kaydedilmiş koşu** listesinden `20261112_164547_000000` seç: GRU/ref sonuçları ve DDV/RAM/açı grafikleri.
+2. Tekrar denemek için veri kaynağı **Zor sentetik · valf kazancı/ofseti/sürüklenmesi**, yöntem **Yeni: GRU hız düzeltmesi + referans** seç. Ayarlar 12 durum / 256 örnek / 400 adım / seed 42 olur. Test kutusunu kapalı bırak.
+3. Kendi verin için aynı yöntemi **Kendi CSV uçuşlarım** kaynağıyla kullan. Yeni paket gerekmez; mevcut PyTorch yeterli. Gerçek veride aynı Fit bekleme garantisi yok.
+
+Sınırlı karşılaştırma komutu: `python python\run_sequence_search.py`. Kayıtlı sonuç: `python/audit_results/sequence_search_20261112_164547/`. [Yöntemlerin tamamı: denendi mi, uygun mu?](docs/methods.md)

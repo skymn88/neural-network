@@ -2,6 +2,16 @@
 
 Her geliştirme commitinde bu dosya güncellenir: değişiklik, deney/protokol, gerçekten çalıştırılan kontrol ve bilinen sınır kaydedilir. Başarısız denemeler silinmez. Aşağıdaki Git geçmişi eksiksizdir; Git öncesi bilgiler kullanıcı konuşmasından alınmıştır, bağımsız doğrulanmış deney kaydı değildir.
 
+## Py-0.7 — 2026-11-12 — Sequence aileleri, GRU ile validation hedefi
+
+- Kullanıcının yöntem listesi `docs/methods.md` içinde denenen/uygun/önceliksiz olarak değerlendirildi. 20 sabit adaylık plan; aynı mixed-valve seed-621 ve 7/2/2 split, validation RAM Cascade Fit >=90 erken durma. TEST açılmadı. TDNN **85.53**, ESN **76.34**, GRU **91.43**; üçüncü adayda duruldu. Kalan 17 tam deney çalıştırılmadı.
+- Seçilen GRU: 12 hidden, 400 Adam adımı, 256 örnek TRAIN penceresi, seed 42. Öğrenilmiş referans hızı + GRU düzeltmesi; TRAIN null gate/sınırlar korunur. DDV ve açı donuk. TRAIN RAM yalnız hedef/başlangıç; çıkarımda ara ölçülen geri besleme/Truth yok. Yeni davranış opt-in; eski varsayılanlar değişmedi.
+- RAM Cascade Train/Val 69.06/91.43; RMSE 23.14/7.06. RAM Component 56.60/40.16; Angle Cascade 68.79/91.76. Component zayıflığı çözülemedi; güçlü validation sonucu bağımsız genelleme/gerçek uçuş başarısı değildir. Aynı validation birçok tur kullanıldı; yeni blind audit bu turda yok.
+- `sequence_inference.py`: NumPy-only GRU/LSTM/Elman/TDNN/TCN/ESN/RBF çıkarımı; açık ağırlıklar ve sabit boyutlu durum, C/MEX yok. `sequence_train.py`: TRAIN ölçekleme, hız + interior konum-pencere kaybı; ESN/RBF ridge readout. LSTM/Elman/TCN/RBF için yalnız küçük deterministik eğitim/parity kontrolleri; performans iddiası yok.
+- `run_sequence_search.py`: her aday sonrası sonuç/model checkpoint, 20 üst sınır, >=90 erken durma. İlk üç adayın eğitim+validation süreleri sırasıyla 4.8/6.7/20.9 s (veri hazırlığı/son rapor hariç). Kayıtlı audit XLSX/JSON ve yerel UI için `20261112_164547_000000` sonucu eklendi.
+- Yerel UI: mixed-valve sentetik kaynak ve GRU+referans seçimi; preset 12/256/400/42. Kendi CSV verileri aynı opt-in yoluyla eğitilebilir. Referans ham veri cache anahtarı source+seed olarak ayrıldı; varyasyon kaynağı doğru fingerprint ile üretilir. Eski launcher/bağımlılıklar değişmedi; site yeniden yayımlanmadı.
+- Python 3.9'da 40 regresyon testi geçti; Torch–NumPy GRU/LSTM/Elman/TCN/TDNN parity, nedensel prefix ve yedi ailenin küçük eğitim/gate testleri dahil. Ruff ve compileall geçti. Sistem Chromium ile kayıtlı GRU raporu, üç grafik ve mixed/GRU preset alanları doğrulandı; bu UI kontrolünde yeniden eğitim başlatılmadı. MATLAB/Windows çalıştırılmadı. Sunum önceki tarihsel deney sürümünde bırakıldı.
+
 ## Py-0.6 — 2026-11-12 — On adaylık sınırlı RAM araması
 
 - Kullanıcı hedefi: aynı mixed-valve verisinde validation RAM Cascade Fit >=90 veya en fazla 10 yeni aday. On aday tamamlandı; hedef sağlanmadı. Seed 621, aynı 7/2/2 split ve fingerprint, donuk DDV/açı blokları; TEST skorlanmadı. TRAIN pencereleri validation rollout'unda reset oluşturmaz.
