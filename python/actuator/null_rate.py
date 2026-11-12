@@ -18,11 +18,14 @@ def fit_null_rate(
     delay=1,
     ridge=1e-5,
     observer="legacy",
+    gate_source="measured",
 ):
     if tau <= 0 or knots < 5 or delay < 0 or int(delay) != delay:
         raise ValueError(
             "Positive tau, >=5 knots and nonnegative integer delay required"
         )
+    if gate_source not in ("measured", "predicted"):
+        raise ValueError("gate_source must be measured or predicted")
     all_x = np.concatenate([f.values[:, 2] for f in train])
     bounds = np.quantile(all_x, [0.0001, 0.9999])
     span = np.ptp(bounds)
@@ -36,7 +39,12 @@ def fit_null_rate(
             & (x > bounds[0] + 0.03 * span)
             & (x < bounds[1] - 0.03 * span)
         )
-        hold.extend(f.values[mask, 1])
+        z = (
+            predict_ddv(ddv_model, f.values[:, 0])
+            if gate_source == "predicted"
+            else f.values[:, 1]
+        )
+        hold.extend(z[mask])
     if len(hold) < 64:
         raise ValueError("Not enough interior hold data to identify neutral DDV")
     hold = np.asarray(hold)
@@ -123,6 +131,7 @@ def fit_null_rate(
             "delay": delay,
             "ridge": ridge,
             "training_rows": len(u),
+            "gate_source": gate_source,
         },
     }
 

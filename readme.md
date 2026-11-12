@@ -97,3 +97,16 @@ Testler için `requirements-dev.txt` ek bağımlılıklarını da yerel kaynakta
 C/MEX/S-Function henüz üretilmedi. JSON modelleri ve sabit boyutlu durum tanımı bu sonraki aşamaya temel sağlar.
 
 [Telefonda eski sentetik sonuç sayfası](https://actuator-synthetic-lab.drawnparrot1.chatgpt.site) önceki iki veri setinin sabit görüntüsüdür. Bu tur yayımlanan sayfa güncellenmedi; yeni sonuçlar yerel uygulamada ve sunumda.
+
+## Valf ofseti dayanıklılık denemesi (Py-0.5)
+
+Eski sentetik validation %93.47 sonucu, uçuş bazlı valf kazancı/ofseti/sürüklenmesi eklenince %69.54'e düşüyor. Aynı zor veride quiet referansı %73.03; üç ek denemeden sonra en iyi %73.56. Bu yalnız sentetik validation; gerçek uçuş başarısı değildir, TEST açılmadı. Varsayılanlar değişmedi.
+
+Paketlerini yüklediğin Python 3.9 ile repo kökünde:
+
+```bat
+python python\run_valve_audit.py
+python python\run_valve_improvement.py
+```
+
+İlk komut üç sabit yöntemi üç sentetik senaryoda karşılaştırır. İkinci komut mixed senaryoda mevcut referans + en fazla üç yeni adayı çalıştırır. İnternet gerekmez; XLSX/JSON `python/results/audits/` altına yazılır. Önceden çalıştırılmış sonuçlar [python/audit_results](python/audit_results) içinde; bunlar yerel web sonuç seçicisinden ayrı stres raporlarıdır. Yeni gate seçeneği bu sınırlı deney komutunda denenir; mevcut web eğitimi otomatik değiştirilmedi.

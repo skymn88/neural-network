@@ -78,3 +78,9 @@ Durum: RAM, null, sakinlik bayrağı, 32 DDV örnek tamponu; envelope için tepe
 `refine_window_rate`: TRAIN'de uç sınırlara vurmayan 5 s pencerelerde konum çıktı hatasıyla PWL ağırlıklarını ridge LS ile düzeltir; önceki hız haritasına düzenlileştirme uygular. Sıfır hız bandı korunur. Reset yalnız eğitim hedefinin pencere başlangıcındadır; validation/test rollout'ta reset yoktur. Bu üçüncü aday envelope'ü geçmedi.
 
 `run_improvement.py`: üç önceden belirlenmiş aday; aynı TRAIN/VAL, donuk DDV/açı, %95 validation Fit veya üç adayda durma. Tarihsel test daha önce görüldüğü için ayrı etikettedir. Seed 9621 ile iki yeni uçuş yalnız seçim dondurulduktan sonra üretildi, aramada kullanılmadı. Seçilen observer opt-in yerel yöntem listesinden kullanılabilir. Runtime/package sürümleri `environment-tested-py39.json` içinde.
+
+## Valf varyasyonu / gate ölçeği (Py-0.5)
+
+`pulse_flights(profile='flightLike', valve_variation={'gain_sd':.03,'bias_sd':.025,'drift_amp':.02})`: opt-in sentetik stres profili. Ayrı RNG eski dizileri değiştirmez; None/boş/sıfır eski raw fingerprint'i korur. Uçuşa özgü gain/bias ve yavaş sinüzoidal bias current→DDV eşlemesini değiştirir; gizli trace yalnız Truth'ta. Bunlar gerçek TRAIN'den kalibre edilmiş değerler değildir. Bağımsız bilinmeyen ofsetin yalnız akımdan kesin belirlenmesi mümkün değildir.
+
+`fit_null_rate(..., gate_source='predicted')`: TRAIN hold anlarında **tahmin edilmiş DDV** dağılımından observer center/gate çıkarır. Eski varsayılan measured'dır. RAM struct `gate_source` eğitim metadatasıdır; inference denklemi ve sabit boyutlu durum değişmez. Yeni model ailesi değil, gate ölçeği + PWL düzenlileştirme denemesidir. Üç aday sınırı `run_valve_improvement.py` içinde açıkça tanımlı; test ne seçime ne rapora girer.

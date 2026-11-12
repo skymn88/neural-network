@@ -2,6 +2,16 @@
 
 Her geliştirme commitinde bu dosya güncellenir: değişiklik, deney/protokol, gerçekten çalıştırılan kontrol ve bilinen sınır kaydedilir. Başarısız denemeler silinmez. Aşağıdaki Git geçmişi eksiksizdir; Git öncesi bilgiler kullanıcı konuşmasından alınmıştır, bağımsız doğrulanmış deney kaydı değildir.
 
+## Py-0.5 — 2026-11-12 — Valf varyasyonu ve sınırlı dayanıklılık araması
+
+- Claude `177c677` değişikliği bütünüyle merge edilmedi: üreteçteki opt-in `valve_variation` fikri uyarlanıp parametre doğrulaması, pozitif gain kontrolü ve tam bias Truth izi eklendi. Varsayılan raw fingerprint ve ortak MAT SHA değişmedi. Kazanç, akım gürültüsünün DDV üzerindeki etkisini de az miktarda değiştirir; downstream dizilerin birebir aynı olduğu iddia edilmez.
+- Sabit seed 621, aynı 7/2/2 split. Üç veri koşulunda eski slow-null, quiet ve envelope değerlendirildi; TEST skorlanmadı. Validation RAM Cascade: baseline 68.13/91.01/93.47; mixed gain=.03,bias=.025,drift=.02 için 57.88/73.03/69.54; bias-only=.04 için 54.67/65.89/73.86. Önceki %93.47'nin bu stres koşuluna genellenmediği açıkça görülüyor.
+- Kullanıcı isteğiyle mixed koşulda tam **üç ek aday**: TRAIN tahmin-DDV ölçeğinde null gate + stationary (%73.50), aynı gate + envelope (%65.57), stationary + 81 düğüm/ridge=.001 (%73.56). Mevcut quiet referansı %73.03. Son aday validation RMSE ile seçildi; varsayılan model değiştirilmedi. Artış yalnız 0.52 puan; %95 hedefi sağlanmadı.
+- Seçilen aday RAM Cascade Train/Val 52.20/73.56, RAM Component 50.21/50.90; Angle Cascade 52.50/74.41. Gerçek veri yok; uçuş ofseti yalnız akımdan her koşulda tanımlanamaz. Sentetik train/validation farkı ve Component zayıflığı sürüyor. Bu turda yeni test/fresh-audit değerlendirilmedi.
+- `fit_null_rate(..., gate_source='predicted')` opt-in; eski `'measured'` varsayılanı korundu. Hold maskesi TRAIN RAM'den, gate TRAIN DDV tahmininden; Truth kullanılmaz. TRAIN upstream tahminleri in-sample olmaya devam ediyor (OOF değil).
+- Tekrarlanabilir komutlar: `python python/run_valve_audit.py`, `python python/run_valve_improvement.py`. Çıktı `python/results/audits/` altında XLSX/JSON; kayıtlı kopyalar `python/audit_results/`. Yerel web sonuç listesiyle farklı şemalar karıştırılmıyor; web varsayılanları ve çevrimdışı launcher değişmedi.
+- Python 3.9'da deneyler gerçekten çalıştı. Deterministik opt-in/zero/fingerprint, varyasyon tekrarlanabilirliği, fizik integrali, geçersiz parametre ve predicted-gate testi eklendi. Tam regresyon: 36 test geçti; Ruff ve compileall geçti. MATLAB/Windows çalıştırması yapılmadı. Sunum bu turda yeniden üretilmedi; önceki deneyin tarihsel çıktısıdır.
+
 ## Py-0.4 — 2026-11-12 — Python 3.9, çevrimdışı kurulum ve sunum
 
 - Kullanıcı isteğiyle `matlab/` bu daldan kaldırıldı. Önceki MATLAB kaynakları `dev_Codex` dalında/Git geçmişinde; ortak sentetik MAT veri dosyası korundu.
