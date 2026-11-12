@@ -49,9 +49,12 @@ class OfflineAndObserverTests(unittest.TestCase):
                 source="fixture",
                 methods=["null_rate"],
                 nullObserver="envelope",
+                nullGateExpansion=1.5,
                 log=lambda _: None,
             )
         self.assertEqual(fit.call_args.kwargs["observer"], "envelope")
+        self.assertEqual(fit.call_args.kwargs["gate_expansion"], 1.5)
+        self.assertEqual(r["config"]["nullGateExpansion"], 1.5)
         self.assertEqual(r["config"]["nullObserver"], "envelope")
 
 

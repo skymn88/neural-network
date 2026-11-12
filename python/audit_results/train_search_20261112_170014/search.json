@@ -1,0 +1,92 @@
+[
+  {
+    "iteration": 1,
+    "model": "01_gru_gate1.5",
+    "family": "gru",
+    "gate_expansion": 1.5,
+    "settings": {
+      "hidden": 12,
+      "steps": 400
+    },
+    "train_fit": 87.79800214722209,
+    "train_rmse": 9.126504750749849,
+    "validation_fit": 81.13200991673354,
+    "validation_rmse": 15.540574385687846,
+    "seconds": 43.936356212994724
+  },
+  {
+    "iteration": 2,
+    "model": "02_gru_gate2",
+    "family": "gru",
+    "gate_expansion": 2.0,
+    "settings": {
+      "hidden": 12,
+      "steps": 400
+    },
+    "train_fit": 87.79800214722209,
+    "train_rmse": 9.126504750749849,
+    "validation_fit": 81.13200991673354,
+    "validation_rmse": 15.540574385687846,
+    "seconds": 43.097835966000275
+  },
+  {
+    "iteration": 3,
+    "model": "03_gru_gate3",
+    "family": "gru",
+    "gate_expansion": 3.0,
+    "settings": {
+      "hidden": 12,
+      "steps": 400
+    },
+    "train_fit": 74.32520128841254,
+    "train_rmse": 19.203508740374293,
+    "validation_fit": 38.2654845695687,
+    "validation_rmse": 50.84748428301699,
+    "seconds": 43.02265052700386
+  },
+  {
+    "iteration": 4,
+    "model": "04_gru_gate1.5",
+    "family": "gru",
+    "gate_expansion": 1.5,
+    "settings": {
+      "hidden": 24,
+      "steps": 800
+    },
+    "train_fit": 79.97825036640643,
+    "train_rmse": 14.975301205098623,
+    "validation_fit": 68.09796726265225,
+    "validation_rmse": 26.276032085107598,
+    "seconds": 48.43977192299644
+  },
+  {
+    "iteration": 5,
+    "model": "05_gru_gate2",
+    "family": "gru",
+    "gate_expansion": 2.0,
+    "settings": {
+      "hidden": 24,
+      "steps": 800
+    },
+    "train_fit": 79.97825036640643,
+    "train_rmse": 14.975301205098623,
+    "validation_fit": 68.09796726265225,
+    "validation_rmse": 26.276032085107598,
+    "seconds": 50.195081820005726
+  },
+  {
+    "iteration": 6,
+    "model": "06_lstm_gate1.5",
+    "family": "lstm",
+    "gate_expansion": 1.5,
+    "settings": {
+      "hidden": 24,
+      "steps": 800
+    },
+    "train_fit": 90.44865590966037,
+    "train_rmse": 7.143943825288075,
+    "validation_fit": 76.26861235661397,
+    "validation_rmse": 19.546300020303313,
+    "seconds": 24.710639389995777
+  }
+]

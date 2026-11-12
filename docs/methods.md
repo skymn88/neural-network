@@ -6,7 +6,7 @@ Bu liste tüm yöntemlerin denenmiş olduğu anlamına gelmez. Gerçek uçuşlar
 |---|---|---|
 | NARX | MATLAB geçmişinde denendi; kullanıcı serbest-koşu sapması bildirdi | Uygun SysID ailesi; tekrar denenecekse teacher-forcing yerine serbest-koşu eğitimi/kararlılık gerekir |
 | GRU | Py-0.7 tam-uçuş validation deneyi yapıldı | Küçük durum vektörü ve uzun geçmiş; bu turda en iyi yeni aday |
-| LSTM | NumPy çıkarımı ve küçük eğitim/parity testi var; tam deney sırası gelmedi | Uygun; GRU'dan daha fazla durum/ağırlık, kazanımı henüz ölçülmedi |
+| LSTM | Py-0.8 TRAIN odaklı tam deney yapıldı: Train/Val RAM Cascade 90.45/76.27 | Uygun; bu turda TRAIN kapasitesi daha iyi, validation önceki GRU'dan düşük |
 | Elman RNN | Yeni küçük eğitim/parity testi var; tam deney yapılmadı | Uygun temel çizgi; uzun hafıza ve gradient sorunları mümkün |
 | Jordan RNN | Özel Jordan mimarisi denenmedi; eski dinamik MLP'de çıktı geri beslemesi var | Benzerliği eşdeğer deney saymıyoruz; free-run hata birikimi önemli |
 | ESN / Reservoir Computing | Py-0.7 tam validation deneyi yapıldı | Ucuz ridge readout; sabit reservoir durumu, NN kadar esnek olmayabilir |

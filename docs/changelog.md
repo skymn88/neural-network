@@ -2,6 +2,16 @@
 
 Her geliştirme commitinde bu dosya güncellenir: değişiklik, deney/protokol, gerçekten çalıştırılan kontrol ve bilinen sınır kaydedilir. Başarısız denemeler silinmez. Aşağıdaki Git geçmişi eksiksizdir; Git öncesi bilgiler kullanıcı konuşmasından alınmıştır, bağımsız doğrulanmış deney kaydı değildir.
 
+## Py-0.8 — 2026-11-12 — TRAIN kapasite hedefi ve LSTM
+
+- Kullanıcı hedefi validation yerine TRAIN RAM Cascade Fit >90, üst sınır 20 yeni aday olarak değişti. Aynı mixed-valve seed-621/split/fingerprint; TRAIN RMSE ile sıralama ve durma, validation report-only, TEST kapalı. Altıncı adayda **TRAIN 90.4487** elde edildi; kalan 14 çalıştırılmadı. Bu TRAIN-seçilmiş tanı modeli, eski validation kazananının otomatik üretim yerine geçmesi değildir.
+- TRAIN teşhisi: FLIKE_06'da düşük hızla sürüklenen DDV tahmini öğrenilmiş null gate dışına çıkıyor; RAM sabitken yanlış hız üretilip uzun hold boyunca hata büyüyor. `fit_null_rate(gate_expansion=1.0)` opt-in genişletme; midpoint korunur, yarı genişlik çarpılır. Varsayılan 1 eski davranışı korur; 1.5/2/3 karşılaştırıldı. Truth/TEST kullanılmadı.
+- Yeni adaylar Train/Val Fit: GRU12 gate1.5 87.80/81.13; gate2 87.80/81.13; gate3 74.33/38.27; GRU24/800 gate1.5 79.98/68.10; gate2 79.98/68.10; **LSTM24/800 gate1.5 90.45/76.27**. Pencere256, seed42; null-rate+2s OE referansı üzerine hız düzeltmesi. 1.5 ve 2 aynı örneklerde aynı observer kararlarını verdi; aynı sonuçlar ayrı yürütülmüş adaylardır.
+- Seçilen LSTM RAM Component Train/Val **57.68/43.11**, RAM Cascade **90.45/76.27**, Angle Cascade **90.74/76.06**. Önceki GRU RAM Cascade 69.06/91.43. FLIKE_06 Train Fit 34.23→92.81. Kapasite hedefi sağlandı; genelleme iyileşmesi iddia edilmiyor, Component hâlâ zayıf.
+- `run_train_search.py`: 20 üst sınır ve TRAIN >90 erken durma; her aday sonrası JSON kayıt. `sequence_evaluate.py` Torch double/chunk-state ile hızlandırılmış tam-uçuş skor; GRU/LSTM/Elman için 8192 örnek chunk sınırında NumPy eşleşmesi test edildi. Kazananın tüm Train/Val/Component sonuçları taşınabilir NumPy rollout ile yeniden hesaplandı; TRAIN skor farkı <1e-5 kontrolü geçti.
+- API `selectionBasis='validation'|'train'` (varsayılan validation), `nullGateExpansion=1` ve `lstm_rate` opt-in. TRAIN modu rapor/notice içinde açık; test seçimde yok. Yerel UI LSTM preset hidden24/horizon256/steps800/seed42/gate1.5/TRAIN seçim gönderir. Yeni rapor `20261112_170014_000000`, önceki GRU yan yana korunur; başlık doğru TRAIN metriğini gösterir.
+- Python3.9: **43 test geçti**, Ruff/compileall geçti; gerçek TRAIN/VAL hedefleri zıt fixture'da seçim ayrımı ve gate/option forwarding testleri dahil. Sistem Chromium ile kayıtlı TRAIN raporu/3 grafik ve LSTM preset isteği (selectionBasis=train, gate1.5) doğrulandı; istek engellenerek ek eğitim başlatılmadı. Dataset SHA korunur. MATLAB/Windows/gerçek uçuş test edilmedi; bu turda yeni bağımsız audit yapılmadı.
+
 ## Py-0.7 — 2026-11-12 — Sequence aileleri, GRU ile validation hedefi
 
 - Kullanıcının yöntem listesi `docs/methods.md` içinde denenen/uygun/önceliksiz olarak değerlendirildi. 20 sabit adaylık plan; aynı mixed-valve seed-621 ve 7/2/2 split, validation RAM Cascade Fit >=90 erken durma. TEST açılmadı. TDNN **85.53**, ESN **76.34**, GRU **91.43**; üçüncü adayda duruldu. Kalan 17 tam deney çalıştırılmadı.

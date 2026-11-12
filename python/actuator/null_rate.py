@@ -21,6 +21,7 @@ def fit_null_rate(
     gate_source="measured",
     quiet_seconds=0.5,
     quiet_quantile=0.95,
+    gate_expansion=1.0,
 ):
     if tau <= 0 or knots < 5 or delay < 0 or int(delay) != delay:
         raise ValueError(
@@ -35,6 +36,8 @@ def fit_null_rate(
     ):
         raise ValueError("Positive quiet_seconds and 0 < quiet_quantile < 1 required")
     quiet_window = max(2, int(round(quiet_seconds * FS)))
+    if not np.isfinite(gate_expansion) or gate_expansion < 1:
+        raise ValueError("gate_expansion must be finite and >=1")
     all_x = np.concatenate([f.values[:, 2] for f in train])
     bounds = np.quantile(all_x, [0.0001, 0.9999])
     span = np.ptp(bounds)
@@ -66,6 +69,10 @@ def fit_null_rate(
         "max_step": float(max(np.ptp(q) * 0.1, 0.004)),
         "adaptive": adaptive,
     }
+    if gate_expansion != 1:
+        midpoint = 0.5 * (spec["gate"][0] + spec["gate"][1])
+        radius = 0.5 * (spec["gate"][1] - spec["gate"][0]) * gate_expansion
+        spec["gate"] = [midpoint - radius, midpoint + radius]
     if observer not in ("legacy", "stationary", "envelope"):
         raise ValueError("Unknown neutral observer")
     if observer != "legacy":
@@ -141,6 +148,7 @@ def fit_null_rate(
             "ridge": ridge,
             "training_rows": len(u),
             "gate_source": gate_source,
+            "gate_expansion": gate_expansion,
         },
     }
 

@@ -123,3 +123,14 @@ Zor mixed-valve sentetik validation RAM Cascade: referans %73.90 → TDNN %85.53
 3. Kendi verin için aynı yöntemi **Kendi CSV uçuşlarım** kaynağıyla kullan. Yeni paket gerekmez; mevcut PyTorch yeterli. Gerçek veride aynı Fit bekleme garantisi yok.
 
 Sınırlı karşılaştırma komutu: `python python\run_sequence_search.py`. Kayıtlı sonuç: `python/audit_results/sequence_search_20261112_164547/`. [Yöntemlerin tamamı: denendi mi, uygun mu?](docs/methods.md)
+
+## TRAIN hedefi: LSTM (Py-0.8)
+
+TRAIN >%90 hedefi **6. adayda** sağlandı: RAM Cascade Train/Val **90.45/76.27**. Önceki GRU **69.06/91.43**; yani LSTM trainingde daha iyi, GRU bu validation'da daha iyi. Test açılmadı; gerçek uçuş sonucu değil. İki model de korunur.
+
+`start.bat` sonrası:
+1. Sonuçları yeniden eğitim olmadan görmek için **20261112_170014_000000** kaydını seç. LSTM/önceki GRU tabloları ve grafikleri aynı kayıtta.
+2. Yeni eğitim için yöntem **TRAIN hedefi: LSTM + geniş null aralığı** seç; preset 24/256/800/42 ve gate1.5, TRAIN seçim uygular. Sentetik tekrar için **Zor sentetik**; kendi uçuşların için **Kendi CSV uçuşlarım** kullan. Ek paket yok.
+3. Önceki GRU seçeneği validation seçimini korur. Ana tabloda TRAIN ve validation'ı birlikte değerlendir; başlık seçili hedefi gösterir.
+
+Sınırlı kapasite araması: `python python\run_train_search.py` — en fazla20 aday, TRAIN >90'da durur. Çıktı `python/results/audits/`, kayıtlı sürüm `python/audit_results/train_search_20261112_170014/`.

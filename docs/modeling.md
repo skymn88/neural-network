@@ -96,3 +96,11 @@ Durum: RAM, null, sakinlik bayrağı, 32 DDV örnek tamponu; envelope için tepe
 Referans null observer ve hız integraline ek GRU hidden=12 durumları kullanılır. GRU hız düzeltmesi, öğrenilmiş hız sınırları ve null gate ile uygulanır; RAM TRAIN bounds'a clamp edilir. İlk RAM ölçümle başlatılır; ara ölçülen RAM geri beslemesi yok. TRAIN 256 örnek pencerelerde ilk 64 örnek warmup, hız kaybı + tamamen interior pencerelerde .2 konum-cumsum kaybı; validation tüm uçuş boyunca sıfır hidden başlangıcıyla kesintisiz. Pencere reset'i değerlendirmeye taşınmaz. 400 Adam adımı; tek son checkpoint, test seçimi yok.
 
 Arayüz `gru_rate` hem önceki referansı hem GRU'yu validation ile karşılaştırır. Preset hidden=12,horizon=256,steps=400,seed=42. Diğer family uygulamaları küçük deterministik parity/smoke testinden geçti; bu turda sadece TDNN/ESN/GRU tam performans deneyi yapıldı. Yöntem kapsamı: [methods.md](methods.md).
+
+## TRAIN odaklı kapasite deneyi (Py-0.8)
+
+`selectionBasis='train'` yalnız opt-in seçim hedefini TRAIN tam-uçuş RAM Cascade RMSE yapar; validation metrikleri ayrı kalır, test seçime girmez. Normal varsayılan `validation`. TRAIN-seçilmiş sonucun validation başarısı gibi sunulmaması için config/notice/selection_policy ve UI metrik başlığı bunu belirtir. `nullGateExpansion=1` API/experiment bayrağı, `fit_null_rate(gate_expansion=1)` parametresine gider. Gate midpoint sabit, yarı genişlik çarpılır; yeni inference state yoktur. Tüm aralıklar yalnız TRAIN'den gelir. Mevcut null_rate ve sequence referansları aynı flag'i kullanır.
+
+`lstm_rate` seçeneği aynı residual hız modelinde LSTM kullanır; hidden24 + cell24, öğrenilmiş null observer ve RAM durumu; numPy-only export gate sırası i,f,g,o. TRAIN preset: gate1.5, 800 adım, horizon256, seed42. Kısa eğitim pencereleri sıfır recurrent başlangıçla, tam-uçuş değerlendirme kesintisiz state ile çalışır. TRAIN başlangıç ölçümleri değerlendirmede sürekli reset yapılması anlamına gelmez.
+
+`sequence_evaluate.py` yalnız eğitim/arama hızlandırıcısıdır; dağıtım NumPy çıkarımını değiştirmez. Torch double ağırlıklar ve chunklar arasında taşınan hidden/cell state; kazanan raporu tekrar NumPy ile hesaplanır. Raporların gerçek pipeline sonucu olduğu ayrıca doğrulanır.

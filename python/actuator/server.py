@@ -113,11 +113,13 @@ class RunRequest(BaseModel):
     horizon: int = Field(default=192, ge=16, le=512)
     hidden: int = Field(default=16, ge=4, le=64)
     seed: int = Field(default=42, ge=0, le=2**31 - 1)
-    methods: list[Literal["oe", "neural", "stable", "null_rate", "gru_rate"]] = Field(
-        default=["oe", "neural"], min_length=1, max_length=3
-    )
+    methods: list[
+        Literal["oe", "neural", "stable", "null_rate", "gru_rate", "lstm_rate"]
+    ] = Field(default=["oe", "neural"], min_length=1, max_length=3)
     syntheticTrainFlights: int = Field(default=0, ge=0, le=20)
     nullObserver: Literal["legacy", "stationary", "envelope"] = "legacy"
+    selectionBasis: Literal["train", "validation"] = "validation"
+    nullGateExpansion: float = Field(default=1.0, ge=1, le=4)
     nullAdaptive: bool = True
     nullTau: float = Field(default=2.0, gt=0, le=60)
     include_test: bool = False
@@ -187,6 +189,8 @@ def start(body: RunRequest):
                 else "pulse",
                 nullAdaptive=body.nullAdaptive,
                 nullObserver=body.nullObserver,
+                nullGateExpansion=body.nullGateExpansion,
+                selectionBasis=body.selectionBasis,
                 nullTau=body.nullTau,
             )
             jobs[id].update(status="done", result=result)

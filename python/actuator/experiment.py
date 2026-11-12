@@ -149,6 +149,8 @@ def run(
     nullAdaptive=True,
     nullTau=2.0,
     nullObserver="legacy",
+    nullGateExpansion=1.0,
+    selectionBasis="validation",
 ):
     if syntheticTrainFlights:
         from .augmentation import compare_augmentation
@@ -171,15 +173,22 @@ def run(
             nullAdaptive=nullAdaptive,
             nullTau=nullTau,
             nullObserver=nullObserver,
+            nullGateExpansion=nullGateExpansion,
+            selectionBasis=selectionBasis,
         )
+    if selectionBasis not in ("train", "validation"):
+        raise ValueError("selectionBasis must be train or validation")
     if not methods or set(methods) - {
         "oe",
         "neural",
         "stable",
         "null_rate",
         "gru_rate",
+        "lstm_rate",
     }:
-        raise ValueError("Choose oe, neural, stable, null_rate and/or gru_rate")
+        raise ValueError(
+            "Choose oe, neural, stable, null_rate, gru_rate and/or lstm_rate"
+        )
     start = time.perf_counter()
     search = []
     timings = {}
@@ -242,9 +251,10 @@ def run(
             tau=nullTau,
             knots=161,
             observer=nullObserver,
+            gate_expansion=nullGateExpansion,
         )
         timings["Rate_null"] = time.perf_counter() - t
-    if "gru_rate" in methods:
+    if set(methods) & {"gru_rate", "lstm_rate"}:
         from .null_rate import fit_null_rate, refine_window_rate
         from .sequence_train import prepare_sequences, fit_sequence
 
@@ -259,27 +269,42 @@ def run(
             ridge=0.001,
             observer="stationary",
             gate_source="predicted",
+            gate_expansion=nullGateExpansion,
         )
         ref = refine_window_rate(ref, groups["train"], seconds=2, ridge=0.01)
         models["Rate_reference"] = ref
         timings["Rate_reference"] = time.perf_counter() - t
         t = time.perf_counter()
         prepared = prepare_sequences(groups["train"], ref)
-        models["GRU_rate"] = fit_sequence(
-            prepared,
-            ref,
-            family="gru",
-            hidden=hidden,
-            steps=steps,
-            horizon=horizon,
-            seed=seed,
-        )
-        timings["GRU_rate"] = time.perf_counter() - t
+        for method, family, name in [
+            ("gru_rate", "gru", "GRU_rate"),
+            ("lstm_rate", "lstm", "LSTM_rate"),
+        ]:
+            if method not in methods:
+                continue
+            t = time.perf_counter()
+            models[name] = fit_sequence(
+                prepared,
+                ref,
+                family=family,
+                hidden=hidden,
+                steps=steps,
+                horizon=horizon,
+                seed=seed,
+            )
+            timings[name] = time.perf_counter() - t
     scores = {name: val_rmse(m, groups["validation"]) for name, m in models.items()}
-    selected = min(scores, key=scores.get)
-    if not np.isfinite(scores[selected]):
-        raise ValueError("No finite validation candidate")
-    log(f"Frozen selection: {selected}; test used for selection: NO")
+    selection_scores = (
+        scores
+        if selectionBasis == "validation"
+        else {name: val_rmse(m, groups["train"]) for name, m in models.items()}
+    )
+    selected = min(selection_scores, key=selection_scores.get)
+    if not np.isfinite(selection_scores[selected]):
+        raise ValueError("No finite selection candidate")
+    log(
+        f"Frozen selection: {selected}; basis={selectionBasis}; test used for selection: NO"
+    )
     t = time.perf_counter()
     per, summary = evaluate(models, groups, include_test)
     diag = diagnostics(models, groups["train"])
@@ -298,6 +323,8 @@ def run(
         syntheticProfile=syntheticProfile,
         syntheticTrainFlights=0,
         nullObserver=nullObserver,
+        nullGateExpansion=nullGateExpansion,
+        selectionBasis=selectionBasis,
         nullAdaptive=nullAdaptive,
         nullTau=nullTau,
     )
@@ -317,6 +344,7 @@ def run(
         "dataset_sha256": fingerprint(flights),
         "timings": timings,
         "validation_scores": scores,
+        "selection_scores": selection_scores,
         "notice": "Synthetic software experiment, not real-flight validation"
         if source != "user"
         else "User data; selection uses validation only",
@@ -328,8 +356,12 @@ def run(
             },
         },
         "algorithm_revision": "py-0.1",
-        "selection_policy": "minimum full-flight validation RAM_Cascade RMSE; test excluded",
+        "selection_policy": f"minimum full-flight {selectionBasis} RAM_Cascade RMSE; test excluded",
     }
+    if selectionBasis == "train":
+        result["notice"] += (
+            "; TRAIN-selected capacity diagnostic, validation is report-only"
+        )
     t = time.perf_counter()
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
     out = ROOT / "python/results" / stamp
