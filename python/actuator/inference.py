@@ -44,7 +44,18 @@ def rollout(model, current, x0, ddv_override=None):
     )
     m = model["ram"]
     n = len(current)
-    if m["kind"] == "oe":
+    if m["kind"] == "null_rate":
+        u, _ = neutral_features(ddv, m["observer"])
+        delay = m["delay"]
+        if delay:
+            u = np.r_[np.repeat(u[0], delay), u[: len(u) - delay]]
+        rate = np.interp(u, m["knots"], m["values"])
+        x = np.empty(n)
+        x[0] = x0
+        lo, hi = m["bounds"]
+        for k in range(1, n):
+            x[k] = min(hi, max(lo, x[k - 1] + rate[k] / FS))
+    elif m["kind"] == "oe":
         drive = ram_features(ddv, m["scale"], m["lags"]) @ np.asarray(m["weights"])
         drive[0] = 0
         a = 1 + m["beta"] / FS
@@ -98,3 +109,25 @@ def mono_numpy(g, z):
     return g["linear"] * z + float(
         np.asarray(g["w2"]) @ np.tanh(np.asarray(g["w1"]) * z + np.asarray(g["b"]))
     )
+
+
+def neutral_features(ddv, spec):
+    center = np.empty(len(ddv))
+    estimate = spec["center"]
+    ready = False
+    alpha = 1 - np.exp(-1 / (FS * spec["tau"]))
+    previous = ddv[0]
+    for k, z in enumerate(ddv):
+        if (
+            spec["adaptive"]
+            and spec["gate"][0] <= z <= spec["gate"][1]
+            and abs(z - previous) < spec["max_step"]
+        ):
+            if not ready:
+                estimate = z
+                ready = True
+            else:
+                estimate += alpha * (z - estimate)
+        center[k] = estimate
+        previous = z
+    return ddv - center, center

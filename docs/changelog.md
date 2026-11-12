@@ -2,6 +2,16 @@
 
 Her geliştirme commitinde bu dosya güncellenir: değişiklik, deney/protokol, gerçekten çalıştırılan kontrol ve bilinen sınır kaydedilir. Başarısız denemeler silinmez. Aşağıdaki Git geçmişi eksiksizdir; Git öncesi bilgiler kullanıcı konuşmasından alınmıştır, bağımsız doğrulanmış deney kaydı değildir.
 
+## Py-0.3 — 2026-11-12 — FlightLike ve öğrenilmiş null/hız modeli
+
+- Mevcut üretece opt-in `flightLike`: değişken null/band, drift, park/uzun-kısa hold, iki yönlü darbeler, gürültü; RAM integral tutarlılığı ve azalan statik açı. `Truth` veriyle saklanır, öğreniciye verilmez. Eski MAT ve pulse profili korundu.
+- Yeni opt-in `null_rate`: TRAIN'den öğrenilen hız haritası, TRAIN sınırları ve causal null observer. Beta sızıntısı yok. NN referansı korunur; yeni ailenin NN olduğu iddia edilmez.
+- 10 önceden belirlenmiş aday tamamlandı; %95 validation RAM Cascade eşiğine ulaşılamadı, arama durdu. NN Val %18.87 → kazanan Rate_slow_null %68.13. Kazanan Train/Val/Test 71.18/68.13/83.34. Veri değiştiği için önceki %87 ile doğrudan başarı kıyası yapılmaz. [Tüm 10 deney ve sınırlamalar](experiments.md#py-03--flightlike-10-deney--2026-11-12).
+- Gerçek veri için `syntheticTrainFlights=0` varsayılan, >0 TRAIN-only sentetik ekleme A/B'si; kalibrasyon TRAIN-only, gerçek holdout'lar korunur; aynı XLSX'e fark satırı. Gerçek veri A/B performans deneyi yapılmadı.
+- Yerel arayüze yeni veri/model seçenekleri, null süresi ve ekleme adedi. Kayıtlı sonuçlar tekrar eğitim olmadan açılır. Canlı mobil sayfa kullanıcı isteğiyle değiştirilmedi, otomatik güncellenmediği README'de belirtildi.
+- 28-test regresyon + son eklenen testle 9 yeni-alan kontrolü geçti (29 farklı test); Ruff/compileall/JS sözdizimi ve yerel Chromium okuma akışı. Son üreteç eğitim verisi fingerprint'ini aynen üretiyor. MATLAB değiştirilmedi/çalıştırılmadı.
+- Büyük yeni ham/Truth NPZ'ler çalışma alanında korundu; son kullanıcı isteğiyle ZIP hazırlanmadı; Git'te küçük model/rapor/üreteç kayıtları. MATLAB klasörü korunur; repoda bulunması tek başına token tüketmez. Önceki mobil commit: `2413915`.
+
 ## Py-0.2 — 2026-11-12 — Mobil sentetik sonuç sayfası
 
 - Sites üzerinde özel erişimli, salt sonuç gösteren mobil HTML sayfası eklendi. Eğitim sunucusu gerektirmez; 2 veri seti × 11 uçuş × 4 model için 88 grafik kaydı, kompakt Fit/RMSE tablosu, zaman aralığı ve XLSX indirme.

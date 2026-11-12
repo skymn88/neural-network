@@ -52,3 +52,16 @@ PYTHONPATH=python .venv/bin/python -m unittest discover -s python/tests -v
 ```
 
 Tarayıcı testi için dev bağımlılıklarını kur, `python -m playwright install chromium`, sunucuyu `python/app.py --no-browser` ile aç, sonra `python/tests/browser_smoke.py` çalıştır. Yerel fixture CSV'leriyle gerçek kısa eğitim yapar. Windows launcher ve MATLAB runtime bu ortamda test edilmedi; bu sınır changelog'da korunur.
+
+
+## Opt-in flightLike ve null_rate (Py-0.3)
+
+`pulse_flights(profile='flightLike')` aynı üretecin ek profilidir; eski çağrı ve MAT değişmez. `Flight.truth` yalnız audit için. Bu profil drift'in holding current'ta gözlenebildiğini varsayar; akımdan bağımsız bilinmeyen bir DDV ofsetini kesin öğrenme vaadi yoktur. Fotoğraf birimlerini doğrulayamadığımız için RAM ±100 kullanıcı-benzeri birimdir. Park→work kısa ters darbe gerektirir. Üretimde gizli hız katsayısı olsa da modele aktarılmaz.
+
+`null_rate` model alanları: `observer(center,gate,tau,max_step,adaptive)`, `knots,values,bounds,delay,ridge,training_rows`. TRAIN'deki iç bölgede düşük RAM hızı gözlenen örneklerden null gate çıkarılır; uç pozisyonda parked DDV null kabul edilmez. Girdi gate içinde ve adım yeterince küçükse null tahmini nedensel güncellenir. Eğitim ve rollout aynı observer'ı kullanır. Hız haritası, tahmin edilmiş DDV−null ile ölçülen TRAIN hızından ridge PWL regresyonuyla öğrenilir; seyrek hareketler için occupancy ağırlığı kullanılır. Bu yeni ailede upstream DDV TRAIN tahmini in-sample'dır; flight-OOF olduğu iddia edilmez.
+
+`x[k]=clip(x[k−1]+g(DDVhat[k−delay]−chat[k−delay])/64, TRAIN_bounds)`. Beta/ortalama konuma çekme yok; gövde öğrenilmiş nonlinear rate modelidir, NN değildir. Sabit boyutlu durum: RAM, null tahmini, hazır bayrağı, önceki DDV ve delay tamponu; DDV bloğunun akım geçmişi ayrıca. Çıkarım NumPy-only, Truth/future/ölçülen RAM geri beslemesi yoktur. Sıfır hız platosu öğrenilen haritadadır; tüm null hatalarını garantiyle düzeltmez. Küçük hareketi drift sanmak veya yanlış hareket seviyesini tutmak mümkündür.
+
+Yeni aile `methods=['null_rate']` ile opt-in; `nullAdaptive=True`, `nullTau=2` yalnız bu aday seçilince etkilidir. `run_flightlike.py --limit 10` en fazla 10 aday dener; %95 validation RAM Cascade'te erken durur; test yalnız final seçimden sonra açılır. `score` nonfinite çıktıyı başarısız sayar. Eski varsayılan modeller/ayarlar korunur.
+
+`syntheticTrainFlights=N` yalnız `source='user'` için A/B çalıştırır; 0 eski tek koşu. `calibrate_train` sadece TRAIN ölçümlerini görür. Basit akım/DDV eşlemesi, yön, RAM aralığı, hız, null dağılımı ve açı haritası çıkarır; gerçek fizik kalibrasyonu iddiası yoktur. Geçerli iç hold/hareket bulunamazsa sessizce sahte veri üretmek yerine hata verir. Sentetik yeni uçuşlar yalnız TRAIN'e eklenir; iki varyantın seçimi aynı gerçek validation'dadır. Test her iki eğitim bittikten sonra, kullanıcı isterse raporlanır. Summary'deki TRAIN metriği gerçek TRAIN üzerindedir; augmented modelin sentetik eğitim örnekleri buna dahil değildir. Diagnostics `SyntheticTrainAB` satırı val/test Fit farklarını ve validation RMSE farkını verir. Raw/Truth yerel kayıtları Git dışında kalır.

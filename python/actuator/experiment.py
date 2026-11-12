@@ -144,9 +144,34 @@ def run(
     log=print,
     ddv_basis="rich",
     warm_steps=100,
+    syntheticTrainFlights=0,
+    syntheticProfile="pulse",
+    nullAdaptive=True,
+    nullTau=2.0,
 ):
-    if not methods or set(methods) - {"oe", "neural", "stable"}:
-        raise ValueError("Choose oe, neural and/or stable")
+    if syntheticTrainFlights:
+        from .augmentation import compare_augmentation
+
+        return compare_augmentation(
+            flights,
+            groups,
+            syntheticTrainFlights,
+            source=source,
+            steps=steps,
+            horizon=horizon,
+            hidden=hidden,
+            seed=seed,
+            methods=methods,
+            include_test=include_test,
+            log=log,
+            ddv_basis=ddv_basis,
+            warm_steps=warm_steps,
+            syntheticProfile=syntheticProfile,
+            nullAdaptive=nullAdaptive,
+            nullTau=nullTau,
+        )
+    if not methods or set(methods) - {"oe", "neural", "stable", "null_rate"}:
+        raise ValueError("Choose oe, neural, stable and/or null_rate")
     start = time.perf_counter()
     search = []
     timings = {}
@@ -197,6 +222,14 @@ def run(
         )
         search += rows
         timings["NN_stable"] = time.perf_counter() - t
+    if "null_rate" in methods:
+        from .null_rate import fit_null_rate
+
+        t = time.perf_counter()
+        models["Rate_null"] = fit_null_rate(
+            groups["train"], ddv, angle, adaptive=nullAdaptive, tau=nullTau, knots=161
+        )
+        timings["Rate_null"] = time.perf_counter() - t
     scores = {name: val_rmse(m, groups["validation"]) for name, m in models.items()}
     selected = min(scores, key=scores.get)
     if not np.isfinite(scores[selected]):
@@ -217,6 +250,10 @@ def run(
         include_test=include_test,
         ddv_basis=ddv_basis,
         warm_steps=warm_steps,
+        syntheticProfile=syntheticProfile,
+        syntheticTrainFlights=0,
+        nullAdaptive=nullAdaptive,
+        nullTau=nullTau,
     )
     manifest = [
         {"flight": f.name, "split": s, "samples": len(f.time)}

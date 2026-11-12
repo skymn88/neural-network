@@ -16,6 +16,9 @@ def export(destination):
     catalog = []
     for folder in sorted(REFERENCES.iterdir()):
         result = json.loads((folder / "result.json").read_text())
+        # Published mobile snapshot remains the original two datasets by request.
+        if result["config"]["source"] == "flightLike":
+            continue
         if result["config"]["source"] not in ("bundled", "pulse"):
             raise ValueError("Public synthetic data only")
         target = destination / result["id"]

@@ -1,0 +1,19 @@
+{
+  "flights.npz": {
+    "sha256": "5f8d8491dbd9667e5f8b4e70309298b9552de7a5b7342ee0da33523de2c90680",
+    "bytes": 53039691
+  },
+  "truth.npz": {
+    "sha256": "ea5981edc7ce3671a1633d18ea5613d571150552a37622771fc02c14a6b69404",
+    "bytes": 29738214
+  },
+  "models.json": {
+    "sha256": "cfe34a5672a9743871c44be643070bc8aceb701ff600c362a5fa13abbb40aeae",
+    "bytes": 87760
+  },
+  "comparison.xlsx": {
+    "sha256": "cef75672da3f7fa10f668e566fef3f1a9b04cebeeb8c5467c18e933af36f331a",
+    "bytes": 51253
+  },
+  "note": "Large raw/Truth NPZ files are ZIP-only cache. Source generator seed=621/profile=flightLike reproduces flights exactly; dataset fingerprint in result.json."
+}

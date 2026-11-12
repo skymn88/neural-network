@@ -16,6 +16,16 @@ Uçuş verisinden **Current → DDV → RAM → Deflection** dinamiğini öğren
 
 Sayfa kaynağı `python/viewer/` altındadır. Yeniden üretim: `.venv/bin/python python/viewer/export_results.py /tmp/actuator-viewer/dist`. Yalnız kayıtlı sentetik reference sonuçları dışa aktarılır. Eğitim uygulaması aşağıda ayrı olarak korunur.
 
+## Son çalışma: flightLike
+
+**10 aday sınırında duruldu; %95 elde edilmedi.** Yeni ve daha zor sentetik sette seçili `Rate_slow_null` RAM Cascade Fit **%71,18 / %68,13 / %83,34** (Train/Val/Test). Önceki veri setiyle doğrudan kıyaslama. [Deney ayrıntıları](docs/experiments.md).
+
+Canlı telefon sayfası önceki sonuçların sabit görüntüsüdür; bu tur güncellenmedi. Yeni sonuçları görmek için yerel uygulamada kaydedilmiş **`20261112_062616_313440`** koşusunu seç; yeniden eğitim gerekmez. Ham veri ve Truth dosyaları çalışma alanında saklı; bu tur son isteğinle ZIP hazırlanmadı. Git clone'da grafik için aynı ham veri seed=621 ile yeniden üretilebilir; eğitim yapılmaz.
+
+Yeni eğitim istersen veri kaynağı **Uçuş benzeri** ve yöntem **Öğrenilmiş hız + uyarlanan null** seç. Eski varsayılan karşılaştırma değişmedi. Kendi CSV'lerinde bu yöntem de seçilebilir; gerçek veri için henüz doğrulanmadı.
+
+**Gelişmiş ayarlar → Sentetik TRAIN ekleme:** varsayılan 0. Kendi verinle N>0 seçersen aynı ayarlarla iki eğitim yapılır; sentetik yalnız TRAIN'e eklenir, kalibrasyon yalnız gerçek TRAIN'den çıkarılır. Validation/test gerçek uçuşların olarak kalır; karşılaştırma aynı XLSX'tedir. Gerçek veri olmadan bu ekleme seçeneğini açma.
+
 ## Python: arayüzü aç
 
 **Windows:** Python **3.12** kurulu olsun. ZIP'i çıkar, **`python/start.bat`** dosyasına çift tıkla. İlk açılış CPU bağımlılıklarını indirir; sonraki açılışlar mevcut ortamı kullanır. Tarayıcıda `http://127.0.0.1:8765` açılır. Konsol açık kalmalı; durdurmak için Ctrl+C. Başlatıcı Linux'ta çalıştırılmadı; Python sunucusu ve tarayıcı akışı Linux'ta test edildi.
@@ -42,7 +52,7 @@ Aynı split bütün adaylarda korunur. 10 uçuş 7/2/1, **11 uçuş 7/2/2**, 20 
 
 Seçim yalnız **tam uçuş validation RAM Cascade RMSE** ile yapılır. **Test skorlarını hesapla** varsayılan kapalıdır; geliştirmeyi bitirdikten sonra aç. Test sonucuna bakıp ayar aramaya devam edersen artık bağımsız test değildir. Kullanıcı CSV verileri yerel süreçte/`python/results/` altında kalır; dış servise yüklenmez ve Git'e eklenmez.
 
-## Mevcut sonuç ve sınır
+## Önceki iki veri setindeki sonuç
 
 İki sentetik sette validation kazananı **NN_joint**, yani DDV yardımcı hedefiyle ortak eğitilen dinamik ağ oldu. RAM Cascade Fit Train/Val/Test:
 

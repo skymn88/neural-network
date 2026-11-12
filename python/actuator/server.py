@@ -105,15 +105,18 @@ def import_data(body: Import):
 
 
 class RunRequest(BaseModel):
-    source: Literal["bundled", "pulse", "user"] = "bundled"
+    source: Literal["bundled", "pulse", "flightLike", "user"] = "bundled"
     dataset: str | None = None
     steps: int = Field(default=400, ge=20, le=2000)
     horizon: int = Field(default=192, ge=16, le=512)
     hidden: int = Field(default=16, ge=4, le=64)
     seed: int = Field(default=42, ge=0, le=2**31 - 1)
-    methods: list[Literal["oe", "neural", "stable"]] = Field(
+    methods: list[Literal["oe", "neural", "stable", "null_rate"]] = Field(
         default=["oe", "neural"], min_length=1, max_length=3
     )
+    syntheticTrainFlights: int = Field(default=0, ge=0, le=20)
+    nullAdaptive: bool = True
+    nullTau: float = Field(default=2.0, gt=0, le=60)
     include_test: bool = False
     ddv_basis: Literal["rich", "legacy"] = "rich"
     warm_steps: int = Field(default=100, ge=20, le=1000)
@@ -121,6 +124,11 @@ class RunRequest(BaseModel):
 
 @app.post("/api/run")
 def start(body: RunRequest):
+    if body.syntheticTrainFlights and body.source != "user":
+        raise HTTPException(
+            400,
+            "Synthetic TRAIN augmentation requires user data; choose 0 for synthetic-only experiments",
+        )
     if body.source == "user" and body.dataset not in datasets:
         raise HTTPException(400, "Import your CSV flights first")
     with lock:
@@ -139,7 +147,16 @@ def start(body: RunRequest):
             flights, groups = (
                 datasets[body.dataset]
                 if body.source == "user"
-                else (bundled() if body.source == "bundled" else pulse_flights())
+                else (
+                    bundled()
+                    if body.source == "bundled"
+                    else pulse_flights(
+                        profile="flightLike"
+                        if body.source == "flightLike"
+                        else "pulse",
+                        seed=621 if body.source == "flightLike" else 123,
+                    )
+                )
             )
             result, _, _ = run(
                 flights,
@@ -154,6 +171,12 @@ def start(body: RunRequest):
                 log=log,
                 ddv_basis=body.ddv_basis,
                 warm_steps=body.warm_steps,
+                syntheticTrainFlights=body.syntheticTrainFlights,
+                syntheticProfile="flightLike"
+                if body.source == "flightLike"
+                else "pulse",
+                nullAdaptive=body.nullAdaptive,
+                nullTau=body.nullTau,
             )
             jobs[id].update(status="done", result=result)
         except Exception as e:
@@ -267,11 +290,15 @@ _reference_cache = {}
 def reference_flights(result):
     """Shipped public synthetic reports share raw data rather than duplicate it."""
     source = result["config"]["source"]
-    if source not in ("bundled", "pulse"):
+    if source not in ("bundled", "pulse", "flightLike"):
         raise HTTPException(404, "Local raw data missing")
     if source not in _reference_cache:
         if source == "bundled":
             flights, _ = bundled()
+        elif source == "flightLike":
+            flights, _ = pulse_flights(
+                profile="flightLike", seed=result["config"]["seed"]
+            )
         else:
             meta = json.loads((ROOT / "data/synthetic/pulse_hold_v1.json").read_text())
             with np.load(

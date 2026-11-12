@@ -1,0 +1,97 @@
+[
+  {
+    "iteration": 1,
+    "model": "NN_joint",
+    "validation_fit": 18.867408095003015,
+    "validation_rmse": 66.82470445388738,
+    "seconds": 22.282875986000363
+  },
+  {
+    "iteration": 2,
+    "model": "Rate_static",
+    "validation_fit": 31.97222840466526,
+    "validation_rmse": 56.03094422076282,
+    "seconds": 2.1394677790003698,
+    "adaptive": false
+  },
+  {
+    "iteration": 3,
+    "model": "Rate_adaptive",
+    "validation_fit": 60.031516343472966,
+    "validation_rmse": 32.919965270491325,
+    "seconds": 2.300141060999522,
+    "adaptive": true
+  },
+  {
+    "iteration": 4,
+    "model": "Rate_fast_null",
+    "validation_fit": 13.41224082738618,
+    "validation_rmse": 71.31784256085032,
+    "seconds": 2.4159573980005007,
+    "adaptive": true,
+    "tau": 0.15
+  },
+  {
+    "iteration": 5,
+    "model": "Rate_dense",
+    "validation_fit": 48.79040350872443,
+    "validation_rmse": 42.178686399411724,
+    "seconds": 2.3118450260008103,
+    "adaptive": true,
+    "tau": 0.15,
+    "knots": 161
+  },
+  {
+    "iteration": 6,
+    "model": "Rate_delayed",
+    "validation_fit": 46.31069899584666,
+    "validation_rmse": 44.221090288098814,
+    "seconds": 2.376335050000307,
+    "adaptive": true,
+    "tau": 0.15,
+    "knots": 161,
+    "delay": 2
+  },
+  {
+    "iteration": 7,
+    "model": "Rate_smooth",
+    "validation_fit": 48.783790917520975,
+    "validation_rmse": 42.184132847534116,
+    "seconds": 2.353204146999815,
+    "adaptive": true,
+    "tau": 0.15,
+    "knots": 161,
+    "ridge": 0.001
+  },
+  {
+    "iteration": 8,
+    "model": "Rate_slow_null",
+    "validation_fit": 68.12975468084734,
+    "validation_rmse": 26.249866722106947,
+    "seconds": 2.252693535000617,
+    "adaptive": true,
+    "tau": 2,
+    "knots": 161
+  },
+  {
+    "iteration": 9,
+    "model": "Rate_no_delay",
+    "validation_fit": 48.79558629391093,
+    "validation_rmse": 42.17441760828594,
+    "seconds": 2.369639685999573,
+    "adaptive": true,
+    "tau": 0.15,
+    "knots": 161,
+    "delay": 0
+  },
+  {
+    "iteration": 10,
+    "model": "Rate_coarse",
+    "validation_fit": 26.01734776329424,
+    "validation_rmse": 60.935670294148444,
+    "seconds": 2.2873856699998214,
+    "adaptive": true,
+    "tau": 0.15,
+    "knots": 41
+  }
+]

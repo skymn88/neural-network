@@ -16,6 +16,7 @@ class Flight:
     name: str
     time: np.ndarray
     values: np.ndarray  # current, DDV, RAM, angle, physical units
+    truth: dict | None = None  # simulator-only audit; learners must never read this
 
     def slice(self, start, stop, suffix=""):
         return Flight(
@@ -136,13 +137,21 @@ def fingerprint(flights):
     return h.hexdigest()
 
 
-def pulse_flights(
-    seed=123, durations=(500, 550, 600, 650, 700, 750, 800, 900, 1000, 1100, 850)
-):
+def pulse_flights(seed=123, durations=None, profile="pulse", calibration=None):
     """Separate hidden simulator. Learners never receive its parameters/state.
     Irregular signed pulses + long holds, noisy current, lowpass DDV, asymmetric
     bounded velocity and exact position retention at neutral. No vibration yet.
     """
+    if durations is None:
+        durations = (
+            FLIGHT_LIKE_DURATIONS
+            if profile == "flightLike"
+            else (500, 550, 600, 650, 700, 750, 800, 900, 1000, 1100, 850)
+        )
+    if profile == "flightLike":
+        return _flight_like(seed, durations, calibration)
+    if profile != "pulse":
+        raise ValueError("Unknown synthetic profile")
     flights = []
     for j, duration in enumerate(durations):
         rng = np.random.default_rng(seed + 101 * j)
@@ -172,4 +181,199 @@ def pulse_flights(
                 v = 0.0
             rows[k] = [measured[k], z, x, 0.35 * x + 0.000002 * x**3]
         flights.append(Flight(f"PULSE_{j + 1:02}", np.arange(n) / FS, rows))
+    return flights, split(flights, seed=42)
+
+
+FLIGHT_LIKE_DURATIONS = (
+    2200,
+    2400,
+    2100,
+    2800,
+    2300,
+    2600,
+    2500,
+    2700,
+    2250,
+    2450,
+    2350,
+)
+
+
+def _flight_like(seed, durations, calibration=None):
+    """Opt-in extension of pulse_flights; Truth is excluded from all learners.
+    A neutral valve cannot lift RAM from its stop: explicit opposite pulses are
+    used for release. Slow start uses a near-neutral command before parking,
+    rather than inventing slow motion under a large fully-open spool command.
+    """
+    from scipy.signal import lfilter
+
+    c = calibration or {}
+    flights = []
+    for j, duration in enumerate(durations):
+        rng = np.random.default_rng(seed + 101 * j)
+        n = int(duration * FS)
+        if duration < 900:
+            raise ValueError("flightLike needs >=900 seconds for park and long holds")
+        t = np.arange(n) / FS
+        base = rng.uniform(*c.get("null_range", [-0.05, 0.03]))
+        drift_amp = (
+            rng.uniform(0.025, 0.05) if not calibration else c["drift_amplitude"]
+        )
+        null = base + drift_amp * np.sin(
+            2 * np.pi * t / rng.uniform(1100, 2400) + rng.uniform(-3, 3)
+        )
+        band = rng.uniform(0.012, 0.024) if not calibration else c["deadband"]
+        vmax = c.get("max_rate", 55.0) * rng.uniform(0.995, 1.005)
+        lo, hi = c.get("ram_bounds", [-100.0, 100.0])
+        park = c.get("park_ddv", 0.4)
+        excitation = c.get("excitation", 0.4)
+        relative = np.zeros(n)
+        phase = np.full(n, "hold", dtype="<U12")
+        events = []
+
+        def segment(start, end, value, label):
+            a = max(0, int(start * FS))
+            b = min(n, int(end * FS))
+            relative[a:b] = value
+            phase[a:b] = label
+            events.append({"start": a / FS, "end": b / FS, "kind": label})
+
+        park_end = min(rng.uniform(350, 600), duration * 0.25)
+        # Positive spool closes towards the lower stop (negative RAM direction).
+        segment(0, park_end, 0, "park")
+        relative[: int(park_end * FS)] = park - null[: int(park_end * FS)]
+        initial = lo
+        if j % 3 == 0:
+            initial = lo + rng.uniform(0.05, 0.2) * (hi - lo)
+            slow_end = rng.uniform(50, 100)
+            segment(0, slow_end, band + 0.00045, "slow_start")
+        release = ((lo + hi) / 2 - lo) / vmax
+        segment(
+            park_end,
+            park_end + release,
+            c.get("rate_direction", -1) * excitation,
+            "release",
+        )
+        k = park_end + release + min(rng.uniform(120, 220), duration * 0.1)
+        cutoff = duration - rng.uniform(70, 110)
+        # Mix long level changes, symmetric/asymmetric pulse pairs and bursts.
+        group = 0
+        while k < cutoff - 60:
+            if group == 0 and cutoff - k > 650:
+                segment(k, k + 12, excitation, "rectangular")
+                k += 12
+                hold = min(rng.uniform(500, 620), cutoff - k - 35)
+                segment(k, k + hold, 0, "long_hold")
+                k += hold
+                segment(
+                    k, k + release, c.get("rate_direction", -1) * excitation, "release"
+                )
+                k += release
+            else:
+                kind = group % 3
+                sign = float(rng.choice([-1, 1]))
+                if kind == 0:
+                    width = rng.uniform(5, 20)
+                    segment(
+                        k,
+                        k + width,
+                        sign * excitation * rng.uniform(0.65, 1.15),
+                        "rectangular",
+                    )
+                    k += width
+                    segment(
+                        k,
+                        k + width,
+                        -sign * excitation * rng.uniform(0.65, 1.15),
+                        "rectangular",
+                    )
+                    k += width
+                elif kind == 1:
+                    width = rng.uniform(8, 22)
+                    a = int(k * FS)
+                    b = min(n, int((k + width) * FS))
+                    q = np.linspace(0, 1, b - a)
+                    relative[a:b] = (
+                        sign
+                        * excitation
+                        * np.minimum(4 * q, np.minimum(1, 4 * (1 - q)))
+                    )
+                    phase[a:b] = "trapezoid"
+                    events.append({"start": k, "end": k + width, "kind": "trapezoid"})
+                    k += width
+                    segment(k, k + width, -sign * excitation * 0.65, "return")
+                    k += width
+                else:
+                    width = rng.uniform(8, 90)
+                    a = int(k * FS)
+                    b = min(n, int((k + width) * FS))
+                    q = np.arange(b - a) / FS
+                    freq = rng.uniform(0.15, 1.5)
+                    relative[a:b] = (
+                        excitation
+                        * rng.uniform(0.5, 1)
+                        * np.sin(2 * np.pi * freq * q)
+                        * np.minimum(q, 1)
+                        * np.minimum(width - q, 1)
+                    )
+                    phase[a:b] = "burst"
+                    events.append({"start": k, "end": k + width, "kind": "burst"})
+                    k += width
+            hold = rng.uniform(20, 60)
+            segment(k, k + hold, 0, "hold")
+            k += hold
+            group += 1
+        segment(cutoff, duration, 0, "park")
+        relative[int(cutoff * FS) :] = park - null[int(cutoff * FS) :]
+        command = null + relative
+        gain = c.get("valve_gain", 1.0)
+        bias = c.get("valve_bias", 0.0)
+        current = (command - bias) / gain + rng.normal(0, 0.0015, n)
+        # Common physical dynamics, small flight-to-flight variation only.
+        a = np.exp(-1 / (FS * 0.055))
+        valve_input = gain * current + bias
+        z = lfilter([1 - a], [1, -a], valve_input, zi=[a * valve_input[0]])[0]
+        deviation = np.roll(z, 2) - null
+        deviation[:2] = z[0] - null[:2]
+        rate = (
+            c.get("rate_direction", -1)
+            * vmax
+            * np.tanh(np.sign(deviation) * np.maximum(abs(deviation) - band, 0) / 0.055)
+        )
+        # Exact retention in the true neutral band; no leakage term.
+        x = np.empty(n)
+        x[0] = initial
+        for k in range(1, n):
+            x[k] = min(hi, max(lo, x[k - 1] + rate[k] / FS))
+        measured_ddv = np.r_[z[0], z[:-1]] + rng.normal(0, 0.0008, n)
+        measured_ram = x + rng.normal(0, 0.002, n)
+        if calibration:
+            angle = np.polynomial.polynomial.polyval(x, c["angle_weights"])
+        else:
+            angle = 2 - 0.29 * x + 0.0002 * x * x
+        angle += rng.normal(0, 0.015, n)
+        truth = {
+            "null": null,
+            "deadband": band,
+            "base_null": base,
+            "drift_amplitude": drift_amp,
+            "ram_clean": x,
+            "ddv_clean": z,
+            "rate_requested": rate,
+            "max_rate": vmax,
+            "phase": phase,
+            "events": events,
+            "seed": seed + 101 * j,
+            "synthetic": True,
+            "profile": "flightLike",
+            "ram_unit": "user-like arbitrary unit; not verified mm",
+        }
+        flights.append(
+            Flight(
+                f"FLIKE_{j + 1:02}",
+                t,
+                np.c_[current, measured_ddv, measured_ram, angle],
+                truth,
+            )
+        )
     return flights, split(flights, seed=42)

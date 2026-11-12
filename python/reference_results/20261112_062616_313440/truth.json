@@ -1,0 +1,2664 @@
+[
+  {
+    "deadband": 0.013141115709345898,
+    "base_null": -0.008405333286376486,
+    "drift_amplitude": 0.03747225104395495,
+    "max_rate": 54.91280797287553,
+    "events": [
+      {
+        "start": 0.0,
+        "end": 550.0,
+        "kind": "park"
+      },
+      {
+        "start": 0.0,
+        "end": 78.34375,
+        "kind": "slow_start"
+      },
+      {
+        "start": 550.0,
+        "end": 551.8125,
+        "kind": "release"
+      },
+      {
+        "start": 736.21875,
+        "end": 748.21875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 748.21875,
+        "end": 1271.34375,
+        "kind": "long_hold"
+      },
+      {
+        "start": 1271.34375,
+        "end": 1273.171875,
+        "kind": "release"
+      },
+      {
+        "start": 1273.171875,
+        "end": 1300.78125,
+        "kind": "hold"
+      },
+      {
+        "start": 1300.7878637474437,
+        "end": 1320.487403285285,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1320.484375,
+        "end": 1340.171875,
+        "kind": "return"
+      },
+      {
+        "start": 1340.171875,
+        "end": 1362.25,
+        "kind": "hold"
+      },
+      {
+        "start": 1362.2509878527612,
+        "end": 1380.3570022097883,
+        "kind": "burst"
+      },
+      {
+        "start": 1380.34375,
+        "end": 1437.3125,
+        "kind": "hold"
+      },
+      {
+        "start": 1437.3125,
+        "end": 1453.59375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1453.59375,
+        "end": 1469.890625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1469.890625,
+        "end": 1489.90625,
+        "kind": "hold"
+      },
+      {
+        "start": 1489.9107539630875,
+        "end": 1507.8656799400767,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1507.859375,
+        "end": 1525.8125,
+        "kind": "return"
+      },
+      {
+        "start": 1525.8125,
+        "end": 1561.8125,
+        "kind": "hold"
+      },
+      {
+        "start": 1561.8208905700901,
+        "end": 1591.0451999189477,
+        "kind": "burst"
+      },
+      {
+        "start": 1591.03125,
+        "end": 1619.109375,
+        "kind": "hold"
+      },
+      {
+        "start": 1619.109375,
+        "end": 1631.546875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1631.546875,
+        "end": 1644.0,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1644.0,
+        "end": 1668.84375,
+        "kind": "hold"
+      },
+      {
+        "start": 1668.8501223487008,
+        "end": 1682.9573251161107,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1682.953125,
+        "end": 1697.0625,
+        "kind": "return"
+      },
+      {
+        "start": 1697.0625,
+        "end": 1747.546875,
+        "kind": "hold"
+      },
+      {
+        "start": 1747.547017712589,
+        "end": 1774.9773286142163,
+        "kind": "burst"
+      },
+      {
+        "start": 1774.96875,
+        "end": 1823.421875,
+        "kind": "hold"
+      },
+      {
+        "start": 1823.421875,
+        "end": 1828.84375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1828.84375,
+        "end": 1834.25,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1834.25,
+        "end": 1888.484375,
+        "kind": "hold"
+      },
+      {
+        "start": 1888.4851149265469,
+        "end": 1910.3327177795722,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1910.328125,
+        "end": 1932.171875,
+        "kind": "return"
+      },
+      {
+        "start": 1932.171875,
+        "end": 1986.0,
+        "kind": "hold"
+      },
+      {
+        "start": 1986.0086881614766,
+        "end": 2058.3596159492336,
+        "kind": "burst"
+      },
+      {
+        "start": 2058.359375,
+        "end": 2117.515625,
+        "kind": "hold"
+      },
+      {
+        "start": 2104.71875,
+        "end": 2200.0,
+        "kind": "park"
+      }
+    ],
+    "seed": 621,
+    "synthetic": true,
+    "profile": "flightLike",
+    "ram_unit": "user-like arbitrary unit; not verified mm"
+  },
+  {
+    "deadband": 0.02005736966206089,
+    "base_null": -0.01234509767219813,
+    "drift_amplitude": 0.04741108802948015,
+    "max_rate": 54.9624333967611,
+    "events": [
+      {
+        "start": 0.0,
+        "end": 392.890625,
+        "kind": "park"
+      },
+      {
+        "start": 392.890625,
+        "end": 394.71875,
+        "kind": "release"
+      },
+      {
+        "start": 559.859375,
+        "end": 571.859375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 571.859375,
+        "end": 1185.515625,
+        "kind": "long_hold"
+      },
+      {
+        "start": 1185.515625,
+        "end": 1187.328125,
+        "kind": "release"
+      },
+      {
+        "start": 1187.328125,
+        "end": 1213.765625,
+        "kind": "hold"
+      },
+      {
+        "start": 1213.7794330303677,
+        "end": 1222.7705543028283,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1222.765625,
+        "end": 1231.75,
+        "kind": "return"
+      },
+      {
+        "start": 1231.75,
+        "end": 1251.953125,
+        "kind": "hold"
+      },
+      {
+        "start": 1251.9583307709675,
+        "end": 1279.00235807719,
+        "kind": "burst"
+      },
+      {
+        "start": 1279.0,
+        "end": 1326.125,
+        "kind": "hold"
+      },
+      {
+        "start": 1326.125,
+        "end": 1341.8125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1341.8125,
+        "end": 1357.515625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1357.515625,
+        "end": 1380.796875,
+        "kind": "hold"
+      },
+      {
+        "start": 1380.807554336884,
+        "end": 1399.6823205587314,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1399.671875,
+        "end": 1418.546875,
+        "kind": "return"
+      },
+      {
+        "start": 1418.546875,
+        "end": 1471.96875,
+        "kind": "hold"
+      },
+      {
+        "start": 1471.9740143397412,
+        "end": 1532.790902413002,
+        "kind": "burst"
+      },
+      {
+        "start": 1532.78125,
+        "end": 1565.171875,
+        "kind": "hold"
+      },
+      {
+        "start": 1565.171875,
+        "end": 1582.03125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1582.03125,
+        "end": 1598.890625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1598.890625,
+        "end": 1633.34375,
+        "kind": "hold"
+      },
+      {
+        "start": 1633.3458179475765,
+        "end": 1642.348062189071,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1642.34375,
+        "end": 1651.34375,
+        "kind": "return"
+      },
+      {
+        "start": 1651.34375,
+        "end": 1673.875,
+        "kind": "hold"
+      },
+      {
+        "start": 1673.8794968292402,
+        "end": 1696.9860121995594,
+        "kind": "burst"
+      },
+      {
+        "start": 1696.984375,
+        "end": 1729.46875,
+        "kind": "hold"
+      },
+      {
+        "start": 1729.46875,
+        "end": 1737.859375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1737.859375,
+        "end": 1746.25,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1746.25,
+        "end": 1768.953125,
+        "kind": "hold"
+      },
+      {
+        "start": 1768.9673917894063,
+        "end": 1783.6224569359226,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1783.609375,
+        "end": 1798.265625,
+        "kind": "return"
+      },
+      {
+        "start": 1798.265625,
+        "end": 1843.6875,
+        "kind": "hold"
+      },
+      {
+        "start": 1843.6937699035896,
+        "end": 1908.8401064752402,
+        "kind": "burst"
+      },
+      {
+        "start": 1908.828125,
+        "end": 1930.421875,
+        "kind": "hold"
+      },
+      {
+        "start": 1930.421875,
+        "end": 1944.453125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1944.453125,
+        "end": 1958.5,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1958.5,
+        "end": 2011.859375,
+        "kind": "hold"
+      },
+      {
+        "start": 2011.8727488734278,
+        "end": 2027.8638663866268,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 2027.859375,
+        "end": 2043.84375,
+        "kind": "return"
+      },
+      {
+        "start": 2043.84375,
+        "end": 2074.734375,
+        "kind": "hold"
+      },
+      {
+        "start": 2074.74916282979,
+        "end": 2100.1249577004987,
+        "kind": "burst"
+      },
+      {
+        "start": 2100.109375,
+        "end": 2123.203125,
+        "kind": "hold"
+      },
+      {
+        "start": 2123.203125,
+        "end": 2131.09375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2131.09375,
+        "end": 2138.984375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2138.984375,
+        "end": 2162.703125,
+        "kind": "hold"
+      },
+      {
+        "start": 2162.7124380295627,
+        "end": 2173.6362240219914,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 2173.625,
+        "end": 2184.546875,
+        "kind": "return"
+      },
+      {
+        "start": 2184.546875,
+        "end": 2232.21875,
+        "kind": "hold"
+      },
+      {
+        "start": 2232.2314933442535,
+        "end": 2293.985173864713,
+        "kind": "burst"
+      },
+      {
+        "start": 2293.984375,
+        "end": 2320.15625,
+        "kind": "hold"
+      },
+      {
+        "start": 2315.859375,
+        "end": 2400.0,
+        "kind": "park"
+      }
+    ],
+    "seed": 722,
+    "synthetic": true,
+    "profile": "flightLike",
+    "ram_unit": "user-like arbitrary unit; not verified mm"
+  },
+  {
+    "deadband": 0.02144033807106728,
+    "base_null": -0.00766993731237893,
+    "drift_amplitude": 0.04738319967863555,
+    "max_rate": 55.1608759826578,
+    "events": [
+      {
+        "start": 0.0,
+        "end": 456.34375,
+        "kind": "park"
+      },
+      {
+        "start": 456.34375,
+        "end": 458.15625,
+        "kind": "release"
+      },
+      {
+        "start": 626.71875,
+        "end": 638.71875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 638.71875,
+        "end": 1140.78125,
+        "kind": "long_hold"
+      },
+      {
+        "start": 1140.78125,
+        "end": 1142.59375,
+        "kind": "release"
+      },
+      {
+        "start": 1142.59375,
+        "end": 1165.484375,
+        "kind": "hold"
+      },
+      {
+        "start": 1165.4965774560499,
+        "end": 1173.6493698625864,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1173.640625,
+        "end": 1181.796875,
+        "kind": "return"
+      },
+      {
+        "start": 1181.796875,
+        "end": 1223.609375,
+        "kind": "hold"
+      },
+      {
+        "start": 1223.620477275544,
+        "end": 1278.3818477570653,
+        "kind": "burst"
+      },
+      {
+        "start": 1278.375,
+        "end": 1322.09375,
+        "kind": "hold"
+      },
+      {
+        "start": 1322.09375,
+        "end": 1340.796875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1340.796875,
+        "end": 1359.515625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1359.515625,
+        "end": 1393.484375,
+        "kind": "hold"
+      },
+      {
+        "start": 1393.4955037279292,
+        "end": 1410.424581408549,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1410.421875,
+        "end": 1427.34375,
+        "kind": "return"
+      },
+      {
+        "start": 1427.34375,
+        "end": 1474.625,
+        "kind": "hold"
+      },
+      {
+        "start": 1474.6336731304955,
+        "end": 1521.0662880417647,
+        "kind": "burst"
+      },
+      {
+        "start": 1521.0625,
+        "end": 1572.65625,
+        "kind": "hold"
+      },
+      {
+        "start": 1572.65625,
+        "end": 1588.375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1588.375,
+        "end": 1604.09375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1604.09375,
+        "end": 1626.40625,
+        "kind": "hold"
+      },
+      {
+        "start": 1626.4132853111878,
+        "end": 1640.1443583295247,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1640.140625,
+        "end": 1653.875,
+        "kind": "return"
+      },
+      {
+        "start": 1653.875,
+        "end": 1711.296875,
+        "kind": "hold"
+      },
+      {
+        "start": 1711.3087237504542,
+        "end": 1735.4958438191088,
+        "kind": "burst"
+      },
+      {
+        "start": 1735.484375,
+        "end": 1772.96875,
+        "kind": "hold"
+      },
+      {
+        "start": 1772.96875,
+        "end": 1787.96875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1787.96875,
+        "end": 1802.96875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1802.96875,
+        "end": 1825.96875,
+        "kind": "hold"
+      },
+      {
+        "start": 1825.9770404982623,
+        "end": 1846.7733879932628,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1846.765625,
+        "end": 1867.5625,
+        "kind": "return"
+      },
+      {
+        "start": 1867.5625,
+        "end": 1905.5,
+        "kind": "hold"
+      },
+      {
+        "start": 1905.5129803691098,
+        "end": 1941.7114848757378,
+        "kind": "burst"
+      },
+      {
+        "start": 1941.703125,
+        "end": 1984.359375,
+        "kind": "hold"
+      },
+      {
+        "start": 2014.5625,
+        "end": 2100.0,
+        "kind": "park"
+      }
+    ],
+    "seed": 823,
+    "synthetic": true,
+    "profile": "flightLike",
+    "ram_unit": "user-like arbitrary unit; not verified mm"
+  },
+  {
+    "deadband": 0.016639931401316102,
+    "base_null": 0.02071461254199901,
+    "drift_amplitude": 0.03736926355376351,
+    "max_rate": 54.746133148368905,
+    "events": [
+      {
+        "start": 0.0,
+        "end": 522.015625,
+        "kind": "park"
+      },
+      {
+        "start": 0.0,
+        "end": 88.25,
+        "kind": "slow_start"
+      },
+      {
+        "start": 522.015625,
+        "end": 523.84375,
+        "kind": "release"
+      },
+      {
+        "start": 665.625,
+        "end": 677.625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 677.625,
+        "end": 1183.75,
+        "kind": "long_hold"
+      },
+      {
+        "start": 1183.75,
+        "end": 1185.578125,
+        "kind": "release"
+      },
+      {
+        "start": 1185.578125,
+        "end": 1240.265625,
+        "kind": "hold"
+      },
+      {
+        "start": 1240.276726969789,
+        "end": 1259.6719267366143,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1259.671875,
+        "end": 1279.0625,
+        "kind": "return"
+      },
+      {
+        "start": 1279.0625,
+        "end": 1301.40625,
+        "kind": "hold"
+      },
+      {
+        "start": 1301.4211376718413,
+        "end": 1362.5072279018234,
+        "kind": "burst"
+      },
+      {
+        "start": 1362.5,
+        "end": 1415.25,
+        "kind": "hold"
+      },
+      {
+        "start": 1415.25,
+        "end": 1423.625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1423.625,
+        "end": 1432.0,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1432.0,
+        "end": 1457.046875,
+        "kind": "hold"
+      },
+      {
+        "start": 1457.0531343508533,
+        "end": 1473.4335141288643,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1473.421875,
+        "end": 1489.8125,
+        "kind": "return"
+      },
+      {
+        "start": 1489.8125,
+        "end": 1546.09375,
+        "kind": "hold"
+      },
+      {
+        "start": 1546.1016489192716,
+        "end": 1568.5997721958277,
+        "kind": "burst"
+      },
+      {
+        "start": 1568.59375,
+        "end": 1613.625,
+        "kind": "hold"
+      },
+      {
+        "start": 1613.625,
+        "end": 1626.421875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1626.421875,
+        "end": 1639.234375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1639.234375,
+        "end": 1687.5625,
+        "kind": "hold"
+      },
+      {
+        "start": 1687.563273215291,
+        "end": 1701.0376680573056,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1701.03125,
+        "end": 1714.5,
+        "kind": "return"
+      },
+      {
+        "start": 1714.5,
+        "end": 1752.109375,
+        "kind": "hold"
+      },
+      {
+        "start": 1752.1158076705838,
+        "end": 1811.58379720242,
+        "kind": "burst"
+      },
+      {
+        "start": 1811.578125,
+        "end": 1866.375,
+        "kind": "hold"
+      },
+      {
+        "start": 1866.375,
+        "end": 1886.0,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1886.0,
+        "end": 1905.609375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1905.609375,
+        "end": 1939.53125,
+        "kind": "hold"
+      },
+      {
+        "start": 1939.5412015310799,
+        "end": 1960.128530604491,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1960.125,
+        "end": 1980.703125,
+        "kind": "return"
+      },
+      {
+        "start": 1980.703125,
+        "end": 2011.90625,
+        "kind": "hold"
+      },
+      {
+        "start": 2011.9125220717972,
+        "end": 2082.541102053928,
+        "kind": "burst"
+      },
+      {
+        "start": 2082.53125,
+        "end": 2127.765625,
+        "kind": "hold"
+      },
+      {
+        "start": 2127.765625,
+        "end": 2135.296875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2135.296875,
+        "end": 2142.8125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2142.8125,
+        "end": 2200.671875,
+        "kind": "hold"
+      },
+      {
+        "start": 2200.686266822552,
+        "end": 2219.5091927649287,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 2219.5,
+        "end": 2238.328125,
+        "kind": "return"
+      },
+      {
+        "start": 2238.328125,
+        "end": 2261.46875,
+        "kind": "hold"
+      },
+      {
+        "start": 2261.4712387545615,
+        "end": 2270.775795499536,
+        "kind": "burst"
+      },
+      {
+        "start": 2270.765625,
+        "end": 2317.984375,
+        "kind": "hold"
+      },
+      {
+        "start": 2317.984375,
+        "end": 2328.90625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2328.90625,
+        "end": 2339.84375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2339.84375,
+        "end": 2399.21875,
+        "kind": "hold"
+      },
+      {
+        "start": 2399.2291104682968,
+        "end": 2417.9948839337294,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 2417.984375,
+        "end": 2436.75,
+        "kind": "return"
+      },
+      {
+        "start": 2436.75,
+        "end": 2467.59375,
+        "kind": "hold"
+      },
+      {
+        "start": 2467.6021035862477,
+        "end": 2486.3970741208022,
+        "kind": "burst"
+      },
+      {
+        "start": 2486.390625,
+        "end": 2540.359375,
+        "kind": "hold"
+      },
+      {
+        "start": 2540.359375,
+        "end": 2546.84375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2546.84375,
+        "end": 2553.3125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2553.3125,
+        "end": 2584.390625,
+        "kind": "hold"
+      },
+      {
+        "start": 2584.397321585421,
+        "end": 2596.123448029332,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 2596.109375,
+        "end": 2607.84375,
+        "kind": "return"
+      },
+      {
+        "start": 2607.84375,
+        "end": 2634.171875,
+        "kind": "hold"
+      },
+      {
+        "start": 2634.181346661109,
+        "end": 2672.439312931313,
+        "kind": "burst"
+      },
+      {
+        "start": 2672.4375,
+        "end": 2723.171875,
+        "kind": "hold"
+      },
+      {
+        "start": 2714.34375,
+        "end": 2800.0,
+        "kind": "park"
+      }
+    ],
+    "seed": 924,
+    "synthetic": true,
+    "profile": "flightLike",
+    "ram_unit": "user-like arbitrary unit; not verified mm"
+  },
+  {
+    "deadband": 0.015223593499013265,
+    "base_null": 0.01568938932821723,
+    "drift_amplitude": 0.040725187373130516,
+    "max_rate": 55.078916672291676,
+    "events": [
+      {
+        "start": 0.0,
+        "end": 512.84375,
+        "kind": "park"
+      },
+      {
+        "start": 512.84375,
+        "end": 514.65625,
+        "kind": "release"
+      },
+      {
+        "start": 635.234375,
+        "end": 647.234375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 647.234375,
+        "end": 1252.296875,
+        "kind": "long_hold"
+      },
+      {
+        "start": 1252.296875,
+        "end": 1254.125,
+        "kind": "release"
+      },
+      {
+        "start": 1254.125,
+        "end": 1283.21875,
+        "kind": "hold"
+      },
+      {
+        "start": 1283.2307392051666,
+        "end": 1298.1472307271529,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1298.140625,
+        "end": 1313.0625,
+        "kind": "return"
+      },
+      {
+        "start": 1313.0625,
+        "end": 1372.8125,
+        "kind": "hold"
+      },
+      {
+        "start": 1372.8209280745093,
+        "end": 1440.0392022671228,
+        "kind": "burst"
+      },
+      {
+        "start": 1440.03125,
+        "end": 1491.71875,
+        "kind": "hold"
+      },
+      {
+        "start": 1491.71875,
+        "end": 1497.796875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1497.796875,
+        "end": 1503.859375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1503.859375,
+        "end": 1528.78125,
+        "kind": "hold"
+      },
+      {
+        "start": 1528.7817725597586,
+        "end": 1541.1988521110377,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1541.1875,
+        "end": 1553.609375,
+        "kind": "return"
+      },
+      {
+        "start": 1553.609375,
+        "end": 1576.9375,
+        "kind": "hold"
+      },
+      {
+        "start": 1576.9384914313855,
+        "end": 1602.20187393235,
+        "kind": "burst"
+      },
+      {
+        "start": 1602.1875,
+        "end": 1654.09375,
+        "kind": "hold"
+      },
+      {
+        "start": 1654.09375,
+        "end": 1664.15625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1664.15625,
+        "end": 1674.21875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1674.21875,
+        "end": 1726.09375,
+        "kind": "hold"
+      },
+      {
+        "start": 1726.1070862498814,
+        "end": 1745.6407642565716,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1745.640625,
+        "end": 1765.171875,
+        "kind": "return"
+      },
+      {
+        "start": 1765.171875,
+        "end": 1811.640625,
+        "kind": "hold"
+      },
+      {
+        "start": 1811.6428296976803,
+        "end": 1851.3559013254207,
+        "kind": "burst"
+      },
+      {
+        "start": 1851.34375,
+        "end": 1896.859375,
+        "kind": "hold"
+      },
+      {
+        "start": 1896.859375,
+        "end": 1916.78125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1916.78125,
+        "end": 1936.703125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1936.703125,
+        "end": 1966.625,
+        "kind": "hold"
+      },
+      {
+        "start": 1966.6283454493685,
+        "end": 1983.4396081679763,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1983.4375,
+        "end": 2000.25,
+        "kind": "return"
+      },
+      {
+        "start": 2000.25,
+        "end": 2030.015625,
+        "kind": "hold"
+      },
+      {
+        "start": 2030.022311418979,
+        "end": 2109.951610856522,
+        "kind": "burst"
+      },
+      {
+        "start": 2109.9375,
+        "end": 2142.359375,
+        "kind": "hold"
+      },
+      {
+        "start": 2142.359375,
+        "end": 2148.96875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2148.96875,
+        "end": 2155.578125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2155.578125,
+        "end": 2189.03125,
+        "kind": "hold"
+      },
+      {
+        "start": 2205.78125,
+        "end": 2300.0,
+        "kind": "park"
+      }
+    ],
+    "seed": 1025,
+    "synthetic": true,
+    "profile": "flightLike",
+    "ram_unit": "user-like arbitrary unit; not verified mm"
+  },
+  {
+    "deadband": 0.017069607413440397,
+    "base_null": -0.03234458265376272,
+    "drift_amplitude": 0.04388882494964649,
+    "max_rate": 54.791029910048714,
+    "events": [
+      {
+        "start": 0.0,
+        "end": 427.4375,
+        "kind": "park"
+      },
+      {
+        "start": 427.4375,
+        "end": 429.265625,
+        "kind": "release"
+      },
+      {
+        "start": 594.0625,
+        "end": 606.0625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 606.0625,
+        "end": 1195.421875,
+        "kind": "long_hold"
+      },
+      {
+        "start": 1195.421875,
+        "end": 1197.25,
+        "kind": "release"
+      },
+      {
+        "start": 1197.25,
+        "end": 1253.484375,
+        "kind": "hold"
+      },
+      {
+        "start": 1253.4992046736288,
+        "end": 1264.546225261789,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1264.53125,
+        "end": 1275.578125,
+        "kind": "return"
+      },
+      {
+        "start": 1275.578125,
+        "end": 1323.296875,
+        "kind": "hold"
+      },
+      {
+        "start": 1323.3027490821103,
+        "end": 1357.3636001034426,
+        "kind": "burst"
+      },
+      {
+        "start": 1357.359375,
+        "end": 1389.546875,
+        "kind": "hold"
+      },
+      {
+        "start": 1389.546875,
+        "end": 1406.8125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1406.8125,
+        "end": 1424.09375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1424.09375,
+        "end": 1447.109375,
+        "kind": "hold"
+      },
+      {
+        "start": 1447.1151601623658,
+        "end": 1467.8572652607174,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1467.84375,
+        "end": 1488.59375,
+        "kind": "return"
+      },
+      {
+        "start": 1488.59375,
+        "end": 1529.15625,
+        "kind": "hold"
+      },
+      {
+        "start": 1529.159956088384,
+        "end": 1590.7468137112596,
+        "kind": "burst"
+      },
+      {
+        "start": 1590.734375,
+        "end": 1630.109375,
+        "kind": "hold"
+      },
+      {
+        "start": 1630.109375,
+        "end": 1646.859375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1646.859375,
+        "end": 1663.625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1663.625,
+        "end": 1716.921875,
+        "kind": "hold"
+      },
+      {
+        "start": 1716.9276739420557,
+        "end": 1737.3195349070409,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1737.3125,
+        "end": 1757.703125,
+        "kind": "return"
+      },
+      {
+        "start": 1757.703125,
+        "end": 1791.765625,
+        "kind": "hold"
+      },
+      {
+        "start": 1791.7727875504538,
+        "end": 1880.5760747085817,
+        "kind": "burst"
+      },
+      {
+        "start": 1880.5625,
+        "end": 1926.734375,
+        "kind": "hold"
+      },
+      {
+        "start": 1926.734375,
+        "end": 1932.96875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1932.96875,
+        "end": 1939.203125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1939.203125,
+        "end": 1963.046875,
+        "kind": "hold"
+      },
+      {
+        "start": 1963.0515073314211,
+        "end": 1971.2729146754416,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1971.265625,
+        "end": 1979.484375,
+        "kind": "return"
+      },
+      {
+        "start": 1979.484375,
+        "end": 2026.71875,
+        "kind": "hold"
+      },
+      {
+        "start": 2026.7331783410239,
+        "end": 2054.8650030531676,
+        "kind": "burst"
+      },
+      {
+        "start": 2054.859375,
+        "end": 2112.1875,
+        "kind": "hold"
+      },
+      {
+        "start": 2112.1875,
+        "end": 2127.609375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2127.609375,
+        "end": 2143.03125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2143.03125,
+        "end": 2189.34375,
+        "kind": "hold"
+      },
+      {
+        "start": 2189.345807638756,
+        "end": 2197.982843334789,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 2197.96875,
+        "end": 2206.609375,
+        "kind": "return"
+      },
+      {
+        "start": 2206.609375,
+        "end": 2230.578125,
+        "kind": "hold"
+      },
+      {
+        "start": 2230.5895226799125,
+        "end": 2292.2277799110925,
+        "kind": "burst"
+      },
+      {
+        "start": 2292.21875,
+        "end": 2323.640625,
+        "kind": "hold"
+      },
+      {
+        "start": 2323.640625,
+        "end": 2331.140625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2331.140625,
+        "end": 2338.640625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2338.640625,
+        "end": 2365.078125,
+        "kind": "hold"
+      },
+      {
+        "start": 2365.0892110255263,
+        "end": 2384.546951528812,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 2384.546875,
+        "end": 2404.0,
+        "kind": "return"
+      },
+      {
+        "start": 2404.0,
+        "end": 2458.359375,
+        "kind": "hold"
+      },
+      {
+        "start": 2500.328125,
+        "end": 2600.0,
+        "kind": "park"
+      }
+    ],
+    "seed": 1126,
+    "synthetic": true,
+    "profile": "flightLike",
+    "ram_unit": "user-like arbitrary unit; not verified mm"
+  },
+  {
+    "deadband": 0.013846446508117298,
+    "base_null": -0.014162874893295707,
+    "drift_amplitude": 0.03836448681354619,
+    "max_rate": 54.90574579135559,
+    "events": [
+      {
+        "start": 0.0,
+        "end": 372.015625,
+        "kind": "park"
+      },
+      {
+        "start": 0.0,
+        "end": 66.421875,
+        "kind": "slow_start"
+      },
+      {
+        "start": 372.015625,
+        "end": 373.84375,
+        "kind": "release"
+      },
+      {
+        "start": 515.765625,
+        "end": 527.765625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 527.765625,
+        "end": 1095.375,
+        "kind": "long_hold"
+      },
+      {
+        "start": 1095.375,
+        "end": 1097.1875,
+        "kind": "release"
+      },
+      {
+        "start": 1097.1875,
+        "end": 1132.546875,
+        "kind": "hold"
+      },
+      {
+        "start": 1132.5561802776822,
+        "end": 1150.2078515492244,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1150.203125,
+        "end": 1167.859375,
+        "kind": "return"
+      },
+      {
+        "start": 1167.859375,
+        "end": 1203.84375,
+        "kind": "hold"
+      },
+      {
+        "start": 1203.8455577488446,
+        "end": 1259.4796809035552,
+        "kind": "burst"
+      },
+      {
+        "start": 1259.46875,
+        "end": 1297.140625,
+        "kind": "hold"
+      },
+      {
+        "start": 1297.140625,
+        "end": 1308.265625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1308.265625,
+        "end": 1319.390625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1319.390625,
+        "end": 1366.53125,
+        "kind": "hold"
+      },
+      {
+        "start": 1366.539353946428,
+        "end": 1382.2506625383,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1382.25,
+        "end": 1397.953125,
+        "kind": "return"
+      },
+      {
+        "start": 1397.953125,
+        "end": 1442.671875,
+        "kind": "hold"
+      },
+      {
+        "start": 1442.6770675593348,
+        "end": 1471.3403205853178,
+        "kind": "burst"
+      },
+      {
+        "start": 1471.328125,
+        "end": 1508.0625,
+        "kind": "hold"
+      },
+      {
+        "start": 1508.0625,
+        "end": 1519.109375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1519.109375,
+        "end": 1530.171875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1530.171875,
+        "end": 1558.015625,
+        "kind": "hold"
+      },
+      {
+        "start": 1558.0301829340974,
+        "end": 1578.7761933470754,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1578.765625,
+        "end": 1599.515625,
+        "kind": "return"
+      },
+      {
+        "start": 1599.515625,
+        "end": 1657.015625,
+        "kind": "hold"
+      },
+      {
+        "start": 1657.021250634771,
+        "end": 1688.4214651921532,
+        "kind": "burst"
+      },
+      {
+        "start": 1688.40625,
+        "end": 1723.09375,
+        "kind": "hold"
+      },
+      {
+        "start": 1723.09375,
+        "end": 1737.296875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1737.296875,
+        "end": 1751.484375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1751.484375,
+        "end": 1772.734375,
+        "kind": "hold"
+      },
+      {
+        "start": 1772.7489983476994,
+        "end": 1789.789089689088,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1789.78125,
+        "end": 1806.828125,
+        "kind": "return"
+      },
+      {
+        "start": 1806.828125,
+        "end": 1831.953125,
+        "kind": "hold"
+      },
+      {
+        "start": 1831.959335244901,
+        "end": 1894.5420060655522,
+        "kind": "burst"
+      },
+      {
+        "start": 1894.53125,
+        "end": 1932.984375,
+        "kind": "hold"
+      },
+      {
+        "start": 1932.984375,
+        "end": 1941.84375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1941.84375,
+        "end": 1950.703125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1950.703125,
+        "end": 1972.96875,
+        "kind": "hold"
+      },
+      {
+        "start": 1972.9815229553408,
+        "end": 1988.7098045881887,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1988.703125,
+        "end": 2004.4375,
+        "kind": "return"
+      },
+      {
+        "start": 2004.4375,
+        "end": 2051.625,
+        "kind": "hold"
+      },
+      {
+        "start": 2051.629626920069,
+        "end": 2122.1272677304005,
+        "kind": "burst"
+      },
+      {
+        "start": 2122.125,
+        "end": 2174.046875,
+        "kind": "hold"
+      },
+      {
+        "start": 2174.046875,
+        "end": 2180.328125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2180.328125,
+        "end": 2186.59375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2186.59375,
+        "end": 2240.34375,
+        "kind": "hold"
+      },
+      {
+        "start": 2240.3455980779854,
+        "end": 2256.38737684493,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 2256.375,
+        "end": 2272.421875,
+        "kind": "return"
+      },
+      {
+        "start": 2272.421875,
+        "end": 2327.8125,
+        "kind": "hold"
+      },
+      {
+        "start": 2327.8263246555284,
+        "end": 2359.3361831002667,
+        "kind": "burst"
+      },
+      {
+        "start": 2359.328125,
+        "end": 2411.75,
+        "kind": "hold"
+      },
+      {
+        "start": 2413.84375,
+        "end": 2500.0,
+        "kind": "park"
+      }
+    ],
+    "seed": 1227,
+    "synthetic": true,
+    "profile": "flightLike",
+    "ram_unit": "user-like arbitrary unit; not verified mm"
+  },
+  {
+    "deadband": 0.01411361966143871,
+    "base_null": -0.017625089198015656,
+    "drift_amplitude": 0.03828834901122738,
+    "max_rate": 54.944607052336885,
+    "events": [
+      {
+        "start": 0.0,
+        "end": 359.828125,
+        "kind": "park"
+      },
+      {
+        "start": 359.828125,
+        "end": 361.640625,
+        "kind": "release"
+      },
+      {
+        "start": 564.78125,
+        "end": 576.78125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 576.78125,
+        "end": 1128.578125,
+        "kind": "long_hold"
+      },
+      {
+        "start": 1128.578125,
+        "end": 1130.40625,
+        "kind": "release"
+      },
+      {
+        "start": 1130.40625,
+        "end": 1170.5625,
+        "kind": "hold"
+      },
+      {
+        "start": 1170.5701967309153,
+        "end": 1182.8554899924811,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1182.84375,
+        "end": 1195.140625,
+        "kind": "return"
+      },
+      {
+        "start": 1195.140625,
+        "end": 1254.46875,
+        "kind": "hold"
+      },
+      {
+        "start": 1254.4701419708297,
+        "end": 1269.2754138027199,
+        "kind": "burst"
+      },
+      {
+        "start": 1269.265625,
+        "end": 1327.09375,
+        "kind": "hold"
+      },
+      {
+        "start": 1327.09375,
+        "end": 1333.875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1333.875,
+        "end": 1340.65625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1340.65625,
+        "end": 1392.859375,
+        "kind": "hold"
+      },
+      {
+        "start": 1392.8736173262253,
+        "end": 1409.1882018773347,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1409.1875,
+        "end": 1425.5,
+        "kind": "return"
+      },
+      {
+        "start": 1425.5,
+        "end": 1446.859375,
+        "kind": "hold"
+      },
+      {
+        "start": 1446.8684277683867,
+        "end": 1457.2441632427863,
+        "kind": "burst"
+      },
+      {
+        "start": 1457.234375,
+        "end": 1516.3125,
+        "kind": "hold"
+      },
+      {
+        "start": 1516.3125,
+        "end": 1536.296875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1536.296875,
+        "end": 1556.28125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1556.28125,
+        "end": 1592.40625,
+        "kind": "hold"
+      },
+      {
+        "start": 1592.4140120038958,
+        "end": 1614.3292490296658,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1614.328125,
+        "end": 1636.234375,
+        "kind": "return"
+      },
+      {
+        "start": 1636.234375,
+        "end": 1689.5,
+        "kind": "hold"
+      },
+      {
+        "start": 1689.5029983270206,
+        "end": 1740.8545514173798,
+        "kind": "burst"
+      },
+      {
+        "start": 1740.84375,
+        "end": 1793.671875,
+        "kind": "hold"
+      },
+      {
+        "start": 1793.671875,
+        "end": 1799.359375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1799.359375,
+        "end": 1805.0625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1805.0625,
+        "end": 1835.59375,
+        "kind": "hold"
+      },
+      {
+        "start": 1835.594786544087,
+        "end": 1850.6387066863538,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1850.625,
+        "end": 1865.671875,
+        "kind": "return"
+      },
+      {
+        "start": 1865.671875,
+        "end": 1923.703125,
+        "kind": "hold"
+      },
+      {
+        "start": 1923.7120694800735,
+        "end": 1945.805135995543,
+        "kind": "burst"
+      },
+      {
+        "start": 1945.796875,
+        "end": 1967.28125,
+        "kind": "hold"
+      },
+      {
+        "start": 1967.28125,
+        "end": 1977.40625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1977.40625,
+        "end": 1987.53125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1987.53125,
+        "end": 2023.609375,
+        "kind": "hold"
+      },
+      {
+        "start": 2023.6146211680457,
+        "end": 2045.1347693530588,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 2045.125,
+        "end": 2066.640625,
+        "kind": "return"
+      },
+      {
+        "start": 2066.640625,
+        "end": 2116.328125,
+        "kind": "hold"
+      },
+      {
+        "start": 2116.3384812365734,
+        "end": 2204.517729940247,
+        "kind": "burst"
+      },
+      {
+        "start": 2204.515625,
+        "end": 2238.828125,
+        "kind": "hold"
+      },
+      {
+        "start": 2238.828125,
+        "end": 2244.28125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2244.28125,
+        "end": 2249.734375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2249.734375,
+        "end": 2292.8125,
+        "kind": "hold"
+      },
+      {
+        "start": 2292.814658165195,
+        "end": 2304.7456002078507,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 2304.734375,
+        "end": 2316.671875,
+        "kind": "return"
+      },
+      {
+        "start": 2316.671875,
+        "end": 2363.15625,
+        "kind": "hold"
+      },
+      {
+        "start": 2363.163973230016,
+        "end": 2398.2333600633797,
+        "kind": "burst"
+      },
+      {
+        "start": 2398.21875,
+        "end": 2443.046875,
+        "kind": "hold"
+      },
+      {
+        "start": 2443.046875,
+        "end": 2450.15625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2450.15625,
+        "end": 2457.28125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2457.28125,
+        "end": 2484.515625,
+        "kind": "hold"
+      },
+      {
+        "start": 2484.5285617051804,
+        "end": 2505.768356564106,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 2505.765625,
+        "end": 2527.0,
+        "kind": "return"
+      },
+      {
+        "start": 2527.0,
+        "end": 2549.03125,
+        "kind": "hold"
+      },
+      {
+        "start": 2549.0447272989127,
+        "end": 2610.1902732964127,
+        "kind": "burst"
+      },
+      {
+        "start": 2610.1875,
+        "end": 2644.609375,
+        "kind": "hold"
+      },
+      {
+        "start": 2615.40625,
+        "end": 2700.0,
+        "kind": "park"
+      }
+    ],
+    "seed": 1328,
+    "synthetic": true,
+    "profile": "flightLike",
+    "ram_unit": "user-like arbitrary unit; not verified mm"
+  },
+  {
+    "deadband": 0.01974738775903875,
+    "base_null": 0.008720636603510516,
+    "drift_amplitude": 0.03819378696058917,
+    "max_rate": 54.95465415584165,
+    "events": [
+      {
+        "start": 0.0,
+        "end": 554.984375,
+        "kind": "park"
+      },
+      {
+        "start": 554.984375,
+        "end": 556.8125,
+        "kind": "release"
+      },
+      {
+        "start": 761.328125,
+        "end": 773.328125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 773.328125,
+        "end": 1314.53125,
+        "kind": "long_hold"
+      },
+      {
+        "start": 1314.53125,
+        "end": 1316.359375,
+        "kind": "release"
+      },
+      {
+        "start": 1316.359375,
+        "end": 1346.75,
+        "kind": "hold"
+      },
+      {
+        "start": 1346.7577118883169,
+        "end": 1362.5840951701725,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1362.578125,
+        "end": 1378.40625,
+        "kind": "return"
+      },
+      {
+        "start": 1378.40625,
+        "end": 1432.390625,
+        "kind": "hold"
+      },
+      {
+        "start": 1432.4053097243577,
+        "end": 1449.336020356192,
+        "kind": "burst"
+      },
+      {
+        "start": 1449.328125,
+        "end": 1476.109375,
+        "kind": "hold"
+      },
+      {
+        "start": 1476.109375,
+        "end": 1489.125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1489.125,
+        "end": 1502.15625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1502.15625,
+        "end": 1526.15625,
+        "kind": "hold"
+      },
+      {
+        "start": 1526.1702025971574,
+        "end": 1542.8696523774545,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1542.859375,
+        "end": 1559.5625,
+        "kind": "return"
+      },
+      {
+        "start": 1559.5625,
+        "end": 1586.734375,
+        "kind": "hold"
+      },
+      {
+        "start": 1586.7353718347022,
+        "end": 1640.1336111042647,
+        "kind": "burst"
+      },
+      {
+        "start": 1640.125,
+        "end": 1668.78125,
+        "kind": "hold"
+      },
+      {
+        "start": 1668.78125,
+        "end": 1674.625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1674.625,
+        "end": 1680.453125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1680.453125,
+        "end": 1711.6875,
+        "kind": "hold"
+      },
+      {
+        "start": 1711.6891155943845,
+        "end": 1730.1557124701335,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1730.140625,
+        "end": 1748.609375,
+        "kind": "return"
+      },
+      {
+        "start": 1748.609375,
+        "end": 1777.671875,
+        "kind": "hold"
+      },
+      {
+        "start": 1777.6738501191292,
+        "end": 1856.936806635207,
+        "kind": "burst"
+      },
+      {
+        "start": 1856.921875,
+        "end": 1899.46875,
+        "kind": "hold"
+      },
+      {
+        "start": 1899.46875,
+        "end": 1917.71875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1917.71875,
+        "end": 1935.984375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1935.984375,
+        "end": 1976.203125,
+        "kind": "hold"
+      },
+      {
+        "start": 1976.2112526259998,
+        "end": 1996.3979587949266,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1996.390625,
+        "end": 2016.578125,
+        "kind": "return"
+      },
+      {
+        "start": 2016.578125,
+        "end": 2071.015625,
+        "kind": "hold"
+      },
+      {
+        "start": 2071.0230994545354,
+        "end": 2132.1591618806183,
+        "kind": "burst"
+      },
+      {
+        "start": 2132.15625,
+        "end": 2153.859375,
+        "kind": "hold"
+      },
+      {
+        "start": 2173.265625,
+        "end": 2250.0,
+        "kind": "park"
+      }
+    ],
+    "seed": 1429,
+    "synthetic": true,
+    "profile": "flightLike",
+    "ram_unit": "user-like arbitrary unit; not verified mm"
+  },
+  {
+    "deadband": 0.013371276710660556,
+    "base_null": 0.02786440171307332,
+    "drift_amplitude": 0.04136051811682376,
+    "max_rate": 55.17338447735581,
+    "events": [
+      {
+        "start": 0.0,
+        "end": 570.640625,
+        "kind": "park"
+      },
+      {
+        "start": 0.0,
+        "end": 72.796875,
+        "kind": "slow_start"
+      },
+      {
+        "start": 570.640625,
+        "end": 572.453125,
+        "kind": "release"
+      },
+      {
+        "start": 742.46875,
+        "end": 754.46875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 754.46875,
+        "end": 1312.875,
+        "kind": "long_hold"
+      },
+      {
+        "start": 1312.875,
+        "end": 1314.6875,
+        "kind": "release"
+      },
+      {
+        "start": 1314.6875,
+        "end": 1358.109375,
+        "kind": "hold"
+      },
+      {
+        "start": 1358.1188745495617,
+        "end": 1369.6587690304555,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1369.65625,
+        "end": 1381.1875,
+        "kind": "return"
+      },
+      {
+        "start": 1381.1875,
+        "end": 1417.34375,
+        "kind": "hold"
+      },
+      {
+        "start": 1417.3499259386622,
+        "end": 1473.9470300608282,
+        "kind": "burst"
+      },
+      {
+        "start": 1473.9375,
+        "end": 1510.453125,
+        "kind": "hold"
+      },
+      {
+        "start": 1510.453125,
+        "end": 1525.5,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1525.5,
+        "end": 1540.53125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1540.53125,
+        "end": 1578.640625,
+        "kind": "hold"
+      },
+      {
+        "start": 1578.6436997663102,
+        "end": 1593.9404800207672,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1593.9375,
+        "end": 1609.234375,
+        "kind": "return"
+      },
+      {
+        "start": 1609.234375,
+        "end": 1650.734375,
+        "kind": "hold"
+      },
+      {
+        "start": 1650.7454955120745,
+        "end": 1696.4808604601947,
+        "kind": "burst"
+      },
+      {
+        "start": 1696.46875,
+        "end": 1735.140625,
+        "kind": "hold"
+      },
+      {
+        "start": 1735.140625,
+        "end": 1749.65625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1749.65625,
+        "end": 1764.171875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1764.171875,
+        "end": 1787.671875,
+        "kind": "hold"
+      },
+      {
+        "start": 1787.6745495169785,
+        "end": 1807.0647076041357,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1807.0625,
+        "end": 1826.453125,
+        "kind": "return"
+      },
+      {
+        "start": 1826.453125,
+        "end": 1861.578125,
+        "kind": "hold"
+      },
+      {
+        "start": 1861.5897884330373,
+        "end": 1917.4569832691172,
+        "kind": "burst"
+      },
+      {
+        "start": 1917.453125,
+        "end": 1943.34375,
+        "kind": "hold"
+      },
+      {
+        "start": 1943.34375,
+        "end": 1958.125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1958.125,
+        "end": 1972.90625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1972.90625,
+        "end": 2014.03125,
+        "kind": "hold"
+      },
+      {
+        "start": 2014.043156272418,
+        "end": 2035.1087687412241,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 2035.09375,
+        "end": 2056.171875,
+        "kind": "return"
+      },
+      {
+        "start": 2056.171875,
+        "end": 2114.78125,
+        "kind": "hold"
+      },
+      {
+        "start": 2114.794127140471,
+        "end": 2145.325840955744,
+        "kind": "burst"
+      },
+      {
+        "start": 2145.3125,
+        "end": 2199.734375,
+        "kind": "hold"
+      },
+      {
+        "start": 2199.734375,
+        "end": 2209.0625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2209.0625,
+        "end": 2218.390625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2218.390625,
+        "end": 2250.890625,
+        "kind": "hold"
+      },
+      {
+        "start": 2250.9047346425223,
+        "end": 2268.3738517204824,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 2268.359375,
+        "end": 2285.828125,
+        "kind": "return"
+      },
+      {
+        "start": 2285.828125,
+        "end": 2326.96875,
+        "kind": "hold"
+      },
+      {
+        "start": 2360.5625,
+        "end": 2450.0,
+        "kind": "park"
+      }
+    ],
+    "seed": 1530,
+    "synthetic": true,
+    "profile": "flightLike",
+    "ram_unit": "user-like arbitrary unit; not verified mm"
+  },
+  {
+    "deadband": 0.021049242104451776,
+    "base_null": -0.016214625406309073,
+    "drift_amplitude": 0.031159668944192417,
+    "max_rate": 55.24959300373029,
+    "events": [
+      {
+        "start": 0.0,
+        "end": 587.5,
+        "kind": "park"
+      },
+      {
+        "start": 587.5,
+        "end": 589.296875,
+        "kind": "release"
+      },
+      {
+        "start": 782.984375,
+        "end": 794.984375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 794.984375,
+        "end": 1384.1875,
+        "kind": "long_hold"
+      },
+      {
+        "start": 1384.1875,
+        "end": 1386.0,
+        "kind": "release"
+      },
+      {
+        "start": 1386.0,
+        "end": 1411.390625,
+        "kind": "hold"
+      },
+      {
+        "start": 1411.3933452335855,
+        "end": 1423.0949260432628,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1423.09375,
+        "end": 1434.78125,
+        "kind": "return"
+      },
+      {
+        "start": 1434.78125,
+        "end": 1457.28125,
+        "kind": "hold"
+      },
+      {
+        "start": 1457.2944336966157,
+        "end": 1491.098564604048,
+        "kind": "burst"
+      },
+      {
+        "start": 1491.09375,
+        "end": 1535.5625,
+        "kind": "hold"
+      },
+      {
+        "start": 1535.5625,
+        "end": 1552.640625,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1552.640625,
+        "end": 1569.71875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1569.71875,
+        "end": 1593.328125,
+        "kind": "hold"
+      },
+      {
+        "start": 1593.341941214792,
+        "end": 1607.117086004232,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1607.109375,
+        "end": 1620.890625,
+        "kind": "return"
+      },
+      {
+        "start": 1620.890625,
+        "end": 1662.921875,
+        "kind": "hold"
+      },
+      {
+        "start": 1662.9290759519606,
+        "end": 1709.2192324105415,
+        "kind": "burst"
+      },
+      {
+        "start": 1709.21875,
+        "end": 1737.09375,
+        "kind": "hold"
+      },
+      {
+        "start": 1737.09375,
+        "end": 1748.984375,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1748.984375,
+        "end": 1760.875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1760.875,
+        "end": 1797.0,
+        "kind": "hold"
+      },
+      {
+        "start": 1797.0125575592158,
+        "end": 1813.2082575794518,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 1813.203125,
+        "end": 1829.390625,
+        "kind": "return"
+      },
+      {
+        "start": 1829.390625,
+        "end": 1867.875,
+        "kind": "hold"
+      },
+      {
+        "start": 1867.8799747521114,
+        "end": 1899.5392965187905,
+        "kind": "burst"
+      },
+      {
+        "start": 1899.53125,
+        "end": 1950.609375,
+        "kind": "hold"
+      },
+      {
+        "start": 1950.609375,
+        "end": 1959.25,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1959.25,
+        "end": 1967.875,
+        "kind": "rectangular"
+      },
+      {
+        "start": 1967.875,
+        "end": 1999.984375,
+        "kind": "hold"
+      },
+      {
+        "start": 1999.9929613993618,
+        "end": 2012.3259509440318,
+        "kind": "trapezoid"
+      },
+      {
+        "start": 2012.3125,
+        "end": 2024.65625,
+        "kind": "return"
+      },
+      {
+        "start": 2024.65625,
+        "end": 2068.125,
+        "kind": "hold"
+      },
+      {
+        "start": 2068.1403923761045,
+        "end": 2122.5557349794453,
+        "kind": "burst"
+      },
+      {
+        "start": 2122.546875,
+        "end": 2166.859375,
+        "kind": "hold"
+      },
+      {
+        "start": 2166.859375,
+        "end": 2173.78125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2173.78125,
+        "end": 2180.703125,
+        "kind": "rectangular"
+      },
+      {
+        "start": 2180.703125,
+        "end": 2238.03125,
+        "kind": "hold"
+      },
+      {
+        "start": 2249.234375,
+        "end": 2350.0,
+        "kind": "park"
+      }
+    ],
+    "seed": 1631,
+    "synthetic": true,
+    "profile": "flightLike",
+    "ram_unit": "user-like arbitrary unit; not verified mm"
+  }
+]

@@ -23,3 +23,6 @@ Thumbs.db
 /matlab/results/*
 !/matlab/results/.gitkeep
 /matlab/load_user_flights_local.m
+# Reproducible large synthetic cache is delivered in the ZIP, not in Git history.
+/python/reference_results/*/flights.npz
+/python/reference_results/*/truth.npz
