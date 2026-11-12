@@ -60,3 +60,34 @@ class ValveVariationTests(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             fit_null_rate(flights, {}, {}, gate_source="truth")
+
+    def test_quiet_window_is_opt_in_and_causal(self):
+        from unittest.mock import patch
+        from actuator.null_rate import fit_null_rate
+        from actuator.inference import neutral_features
+
+        flights, _ = pulse_flights(seed=55, durations=(900,), profile="flightLike")
+        z = flights[0].values[:, 1]
+        with patch("actuator.null_rate.predict_ddv", return_value=z):
+            m = fit_null_rate(
+                flights,
+                {},
+                {},
+                knots=9,
+                observer="stationary",
+                adaptive=True,
+                quiet_seconds=2,
+                quiet_quantile=0.5,
+            )
+        spec = m["ram"]["observer"]
+        self.assertEqual(spec["quiet_window"], 128)
+        full, _ = neutral_features(z, spec)
+        prefix, _ = neutral_features(z[:700], spec)
+        np.testing.assert_array_equal(prefix, full[:700])
+        for kw in (
+            {"quiet_seconds": 0},
+            {"quiet_quantile": 1},
+            {"quiet_seconds": float("nan")},
+        ):
+            with self.assertRaises(ValueError):
+                fit_null_rate(flights, {}, {}, **kw)

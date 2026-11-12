@@ -2,6 +2,15 @@
 
 Her geliştirme commitinde bu dosya güncellenir: değişiklik, deney/protokol, gerçekten çalıştırılan kontrol ve bilinen sınır kaydedilir. Başarısız denemeler silinmez. Aşağıdaki Git geçmişi eksiksizdir; Git öncesi bilgiler kullanıcı konuşmasından alınmıştır, bağımsız doğrulanmış deney kaydı değildir.
 
+## Py-0.6 — 2026-11-12 — On adaylık sınırlı RAM araması
+
+- Kullanıcı hedefi: aynı mixed-valve verisinde validation RAM Cascade Fit >=90 veya en fazla 10 yeni aday. On aday tamamlandı; hedef sağlanmadı. Seed 621, aynı 7/2/2 split ve fingerprint, donuk DDV/açı blokları; TEST skorlanmadı. TRAIN pencereleri validation rollout'unda reset oluşturmaz.
+- `fit_null_rate` opt-in `quiet_seconds` ve `quiet_quantile` alır; varsayılan .5 s/.95 ile önceki davranış korunur. Observer geçmişi 1/2/4 s, eşik medyanı ve 2/10/30 s TRAIN konum-penceresi ridge düzeltmeleri karşılaştırıldı. Bu on yeni mimari değil; mevcut aile içinde on ayar/eğitim adayıdır.
+- Validation Fit: quiet_1s 73.24; quiet_2s 71.64; quiet_4s 23.84; quiet_1s_q50 72.09; quiet_2s_q50 72.16; quiet_half_q50 73.07; window_2s **73.90**; window_10s 33.15; window_30s 25.86; quiet_2s_window 44.94. Önceki referans 73.56; yeni kazanç yalnız 0.35 puan.
+- Seçilen `window_2s`: önceki 81 düğümlü/ridge=.001 stationary/predicted-gate haritasına 2 s TRAIN pencerelerinde konum hatası ridge=.01 düzeltmesi. Ölçülen RAM yalnız TRAIN hedefi ve rollout başlangıcında kullanılır. Kaynak offset/hold belirsizliği çözülmedi; uzun pencereler kötüleşti. Varsayılan web modeli değiştirilmedi.
+- `python/run_valve_search.py` aynı sınırlı deneyi tekrarlar; kısmi search/model kayıtları her adayda yazılır, >=90 durumunda erken durur. Sonuçlar `python/results/audits/`; kayıtlı kopyalar `python/audit_results/valve_search_20261112_162852/` içinde. On adayın eğitim+validation süresi bu ortamda toplam 73.77 s (veri üretimi/son toplu rapor hariç).
+- Gerçek Python 3.9: **37 test geçti**, Ruff/compileall geçti; yeni pencere/quantile doğrulama ve causal-prefix testi eklendi. Gerçek uçuş/MATLAB/Windows çalıştırması yapılmadı; bağımsız test başarısı iddiası yok. Validation tekrar tekrar kullanıldığı için yeni sonuç bağımsız genelleme kanıtı değildir.
+
 ## Py-0.5 — 2026-11-12 — Valf varyasyonu ve sınırlı dayanıklılık araması
 
 - Claude `177c677` değişikliği bütünüyle merge edilmedi: üreteçteki opt-in `valve_variation` fikri uyarlanıp parametre doğrulaması, pozitif gain kontrolü ve tam bias Truth izi eklendi. Varsayılan raw fingerprint ve ortak MAT SHA değişmedi. Kazanç, akım gürültüsünün DDV üzerindeki etkisini de az miktarda değiştirir; downstream dizilerin birebir aynı olduğu iddia edilmez.

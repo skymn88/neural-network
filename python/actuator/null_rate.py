@@ -19,6 +19,8 @@ def fit_null_rate(
     ridge=1e-5,
     observer="legacy",
     gate_source="measured",
+    quiet_seconds=0.5,
+    quiet_quantile=0.95,
 ):
     if tau <= 0 or knots < 5 or delay < 0 or int(delay) != delay:
         raise ValueError(
@@ -26,6 +28,13 @@ def fit_null_rate(
         )
     if gate_source not in ("measured", "predicted"):
         raise ValueError("gate_source must be measured or predicted")
+    if (
+        not np.isfinite(quiet_seconds)
+        or quiet_seconds <= 0
+        or not 0 < quiet_quantile < 1
+    ):
+        raise ValueError("Positive quiet_seconds and 0 < quiet_quantile < 1 required")
+    quiet_window = max(2, int(round(quiet_seconds * FS)))
     all_x = np.concatenate([f.values[:, 2] for f in train])
     bounds = np.quantile(all_x, [0.0001, 0.9999])
     span = np.ptp(bounds)
@@ -70,11 +79,11 @@ def fit_null_rate(
                 & (x > bounds[0] + 0.03 * span)
                 & (x < bounds[1] - 0.03 * span)
             )
-            ranges.extend(np.ptp(lags(z, 31), axis=1)[mask])
+            ranges.extend(np.ptp(lags(z, quiet_window - 1), axis=1)[mask])
         spec.update(
             mode=observer,
-            quiet_window=32,
-            quiet_range=float(max(np.quantile(ranges, 0.95), 1e-6)),
+            quiet_window=quiet_window,
+            quiet_range=float(max(np.quantile(ranges, quiet_quantile), 1e-6)),
             envelope_age=8 * FS,
         )
     hold_inputs = []
@@ -90,7 +99,7 @@ def fit_null_rate(
         interior = (x > bounds[0] + 0.015 * span) & (x < bounds[1] - 0.015 * span)
         valid = interior & (np.arange(len(x)) > 32)
         if observer != "legacy":
-            quiet = np.ptp(lags(z, 31), axis=1) <= spec["quiet_range"]
+            quiet = np.ptp(lags(z, quiet_window - 1), axis=1) <= spec["quiet_range"]
             hold_inputs.extend(u[valid & quiet & (abs(v) < max(span * 0.001, 0.05))])
         inputs.append(u[valid])
         targets.append(v[valid])

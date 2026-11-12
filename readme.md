@@ -110,3 +110,5 @@ python python\run_valve_improvement.py
 ```
 
 İlk komut üç sabit yöntemi üç sentetik senaryoda karşılaştırır. İkinci komut mixed senaryoda mevcut referans + en fazla üç yeni adayı çalıştırır. İnternet gerekmez; XLSX/JSON `python/results/audits/` altına yazılır. Önceden çalıştırılmış sonuçlar [python/audit_results](python/audit_results) içinde; bunlar yerel web sonuç seçicisinden ayrı stres raporlarıdır. Yeni gate seçeneği bu sınırlı deney komutunda denenir; mevcut web eğitimi otomatik değiştirilmedi.
+
+On adaylık devam deneyi: `python python\run_valve_search.py`. Aynı zor sentetik veride >=%90 validation Fit veya 10 yeni adayda durur; TEST açılmaz. Bu turda 10 aday sonunda en iyi **%73.90** bulundu (önceki %73.56); %90 hedefi sağlanmadı. Kayıtlı XLSX/JSON: `python/audit_results/valve_search_20261112_162852/`. Bu deney web varsayılanlarını değiştirmez.

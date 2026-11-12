@@ -84,3 +84,7 @@ Durum: RAM, null, sakinlik bayrağı, 32 DDV örnek tamponu; envelope için tepe
 `pulse_flights(profile='flightLike', valve_variation={'gain_sd':.03,'bias_sd':.025,'drift_amp':.02})`: opt-in sentetik stres profili. Ayrı RNG eski dizileri değiştirmez; None/boş/sıfır eski raw fingerprint'i korur. Uçuşa özgü gain/bias ve yavaş sinüzoidal bias current→DDV eşlemesini değiştirir; gizli trace yalnız Truth'ta. Bunlar gerçek TRAIN'den kalibre edilmiş değerler değildir. Bağımsız bilinmeyen ofsetin yalnız akımdan kesin belirlenmesi mümkün değildir.
 
 `fit_null_rate(..., gate_source='predicted')`: TRAIN hold anlarında **tahmin edilmiş DDV** dağılımından observer center/gate çıkarır. Eski varsayılan measured'dır. RAM struct `gate_source` eğitim metadatasıdır; inference denklemi ve sabit boyutlu durum değişmez. Yeni model ailesi değil, gate ölçeği + PWL düzenlileştirme denemesidir. Üç aday sınırı `run_valve_improvement.py` içinde açıkça tanımlı; test ne seçime ne rapora girer.
+
+## Sınırlı RAM araması (Py-0.6)
+
+`fit_null_rate(..., quiet_seconds=.5, quiet_quantile=.95)` varsayılanları korur. `quiet_window=round(Fs*quiet_seconds)` observer'ın nedensel DDV tampon uzunluğudur; eşik TRAIN hold anlarındaki pencere aralığının belirtilen quantile'ından öğrenilir. Modelde mevcut `quiet_window` ve `quiet_range` alanlarıyla saklanır; yeni inference denklemi yoktur. Daha uzun history bu veride iyileştirmedi. Seçilen adayın mevcut `window_refinement` alanı 2 s/ridge=.01'dir; eğitimde pencere reset'i, çıkarımda ise kesintisiz integrasyon vardır. Web varsayılanları değişmez.

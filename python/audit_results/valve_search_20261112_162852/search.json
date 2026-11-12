@@ -1,0 +1,109 @@
+[
+  {
+    "iteration": 1,
+    "model": "quiet_1s",
+    "validation_fit": 73.23564283911014,
+    "validation_rmse": 22.044398025882295,
+    "seconds": 6.194003106000309,
+    "settings": {
+      "quiet_seconds": 1
+    },
+    "window": null
+  },
+  {
+    "iteration": 2,
+    "model": "quiet_2s",
+    "validation_fit": 71.6433160846622,
+    "validation_rmse": 23.355914104946038,
+    "seconds": 7.018984836002346,
+    "settings": {
+      "quiet_seconds": 2
+    },
+    "window": null
+  },
+  {
+    "iteration": 3,
+    "model": "quiet_4s",
+    "validation_fit": 23.836635286471964,
+    "validation_rmse": 62.73177108803866,
+    "seconds": 7.316309633999481,
+    "settings": {
+      "quiet_seconds": 4
+    },
+    "window": null
+  },
+  {
+    "iteration": 4,
+    "model": "quiet_1s_q50",
+    "validation_fit": 72.0871782653337,
+    "validation_rmse": 22.99032809364976,
+    "seconds": 6.114432426998974,
+    "settings": {
+      "quiet_seconds": 1,
+      "quiet_quantile": 0.5
+    },
+    "window": null
+  },
+  {
+    "iteration": 5,
+    "model": "quiet_2s_q50",
+    "validation_fit": 72.161206956326,
+    "validation_rmse": 22.92935454140791,
+    "seconds": 6.29688494799484,
+    "settings": {
+      "quiet_seconds": 2,
+      "quiet_quantile": 0.5
+    },
+    "window": null
+  },
+  {
+    "iteration": 6,
+    "model": "quiet_half_q50",
+    "validation_fit": 73.0666556662124,
+    "validation_rmse": 22.18358390201722,
+    "seconds": 5.977849517003051,
+    "settings": {
+      "quiet_seconds": 0.5,
+      "quiet_quantile": 0.5
+    },
+    "window": null
+  },
+  {
+    "iteration": 7,
+    "model": "window_2s",
+    "validation_fit": 73.9021492387471,
+    "validation_rmse": 21.495431642267263,
+    "seconds": 9.136436296998,
+    "settings": {},
+    "window": 2
+  },
+  {
+    "iteration": 8,
+    "model": "window_10s",
+    "validation_fit": 33.149824396257756,
+    "validation_rmse": 55.06098540870108,
+    "seconds": 8.333007277004072,
+    "settings": {},
+    "window": 10
+  },
+  {
+    "iteration": 9,
+    "model": "window_30s",
+    "validation_fit": 25.862638340604683,
+    "validation_rmse": 61.06305857391118,
+    "seconds": 8.21103388100164,
+    "settings": {},
+    "window": 30
+  },
+  {
+    "iteration": 10,
+    "model": "quiet_2s_window",
+    "validation_fit": 44.94323046019073,
+    "validation_rmse": 45.34737503534629,
+    "seconds": 9.174841971005662,
+    "settings": {
+      "quiet_seconds": 2
+    },
+    "window": 10
+  }
+]
