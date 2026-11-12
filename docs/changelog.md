@@ -2,6 +2,14 @@
 
 Her geliştirme commitinde bu dosya güncellenir: değişiklik, deney/protokol, gerçekten çalıştırılan kontrol ve bilinen sınır kaydedilir. Başarısız denemeler silinmez. Aşağıdaki Git geçmişi eksiksizdir; Git öncesi bilgiler kullanıcı konuşmasından alınmıştır, bağımsız doğrulanmış deney kaydı değildir.
 
+## Py-0.2 — 2026-11-12 — Mobil sentetik sonuç sayfası
+
+- Sites üzerinde özel erişimli, salt sonuç gösteren mobil HTML sayfası eklendi. Eğitim sunucusu gerektirmez; 2 veri seti × 11 uçuş × 4 model için 88 grafik kaydı, kompakt Fit/RMSE tablosu, zaman aralığı ve XLSX indirme.
+- Yeni model/eğitim denemesi yapılmadı. `python/reference_results/` çıktıları aynen kullanıldı; yalnız grafik sayıları 7 anlamlı basamağa yuvarlandı ve mevcut tepe-koruyan önizleme kullanıldı.
+- `python/viewer/export_results.py` kullanıcı verisini dışa aktarmayı reddeder. İki yeni unit test geçti; 88 grafik dosyasında boyut/zaman sırası ve iki tam veri seti denetlendi; JavaScript `node --check` ve Ruff geçti.
+- Bu yeni Sites sayfası için tarayıcı QA yapılmadı: managed ortamın gerekli `cua_repl.js` aracı yoktu. Mevcut yerel Python uygulamasının önceki Chromium doğrulaması bunun yerine sunulmaz. Sites helper dosyaları ortamda bulunamadığı için kaynak push'u ve statik tar arşivi eşdeğer Git/paketleme adımlarıyla yapıldı; geçici kimlik bilgisi yalnız gizli stdin/bellekte kullanıldı.
+- MATLAB, modeller, split ve eski `synthetic_rich.mat` değişmedi. Canlı bağlantı README'de, Site kimliği `python/viewer/site.json` içinde. Önceki Python uygulaması commit'i: `1e7d07c`.
+
 ## Py-0.1 — 2026-11-12 — dev_CodexPy
 
 ### Added

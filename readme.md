@@ -10,6 +10,12 @@ Uçuş verisinden **Current → DDV → RAM → Deflection** dinamiğini öğren
 | `data/user/` | Yerel verilerin; Git dışında |
 | `docs/` | [Modelleme](docs/modeling.md), [gerçek deney sonuçları](docs/experiments.md), [tüm commit geçmişi](docs/changelog.md) |
 
+## Telefonda sentetik sonuçları incele
+
+**[Sentetik sonuç sayfasını aç](https://actuator-synthetic-lab.drawnparrot1.chatgpt.site)** — kurulum, bilgisayar veya `.bat` gerekmez. Aynı ChatGPT hesabınla giriş istenebilir. İki veri setinin 22 uçuşu, dört modelin karşılaştırması, DDV/RAM/açı grafikleri, zaman aralığı seçimi ve XLSX indirme bulunur. Bu sayfa yeni eğitim başlatmaz veya kullanıcı verisi yüklemez.
+
+Sayfa kaynağı `python/viewer/` altındadır. Yeniden üretim: `.venv/bin/python python/viewer/export_results.py /tmp/actuator-viewer/dist`. Yalnız kayıtlı sentetik reference sonuçları dışa aktarılır. Eğitim uygulaması aşağıda ayrı olarak korunur.
+
 ## Python: arayüzü aç
 
 **Windows:** Python **3.12** kurulu olsun. ZIP'i çıkar, **`python/start.bat`** dosyasına çift tıkla. İlk açılış CPU bağımlılıklarını indirir; sonraki açılışlar mevcut ortamı kullanır. Tarayıcıda `http://127.0.0.1:8765` açılır. Konsol açık kalmalı; durdurmak için Ctrl+C. Başlatıcı Linux'ta çalıştırılmadı; Python sunucusu ve tarayıcı akışı Linux'ta test edildi.
