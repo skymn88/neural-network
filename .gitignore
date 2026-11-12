@@ -16,3 +16,10 @@ __pycache__/
 .DS_Store
 Thumbs.db
 /data/synthetic/excitation_manifest.xlsx
+
+.venv/
+/python/results/
+/python/uploads/
+/matlab/results/*
+!/matlab/results/.gitkeep
+/matlab/load_user_flights_local.m

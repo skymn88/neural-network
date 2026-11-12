@@ -1,0 +1,13 @@
+{
+  "label": "E4",
+  "id": "20261112_052518_872116",
+  "ddv_basis": "rich",
+  "warm_steps": 100,
+  "steps": 400,
+  "horizon": 192,
+  "hidden": 16,
+  "seed": 42,
+  "source": "bundled",
+  "include_test": false,
+  "notes": "E3 uses 600 monotone warm-up steps; P1 includes the same fixed 600-step monotone alternative. E1/E2/E3/P1 OE OOF folds selected ridge on fold training; later folds use the selected common DDV ridge. Legacy saved models default to legacy basis when basis is absent."
+}

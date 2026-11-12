@@ -1,0 +1,98 @@
+{
+  "generator": "python/actuator/data.py:pulse_flights",
+  "seed": 123,
+  "fs": 64,
+  "durations": [
+    500,
+    550,
+    600,
+    650,
+    700,
+    750,
+    800,
+    900,
+    1000,
+    1100,
+    850
+  ],
+  "names": [
+    "PULSE_01",
+    "PULSE_02",
+    "PULSE_03",
+    "PULSE_04",
+    "PULSE_05",
+    "PULSE_06",
+    "PULSE_07",
+    "PULSE_08",
+    "PULSE_09",
+    "PULSE_10",
+    "PULSE_11"
+  ],
+  "sha256": "88a7852ff392648edea4e235c65df30c4c0536d47318c76872323a26bca751a5",
+  "dataset_sha256": "66776a57e0c8a9e9b33d7da40929e1c5809ab4dd26f521a1f8f8c988a5b43c0a",
+  "split": [
+    {
+      "flight": "PULSE_07",
+      "split": "train",
+      "samples": 51200
+    },
+    {
+      "flight": "PULSE_08",
+      "split": "train",
+      "samples": 57600
+    },
+    {
+      "flight": "PULSE_01",
+      "split": "train",
+      "samples": 32000
+    },
+    {
+      "flight": "PULSE_11",
+      "split": "train",
+      "samples": 54400
+    },
+    {
+      "flight": "PULSE_04",
+      "split": "train",
+      "samples": 41600
+    },
+    {
+      "flight": "PULSE_06",
+      "split": "train",
+      "samples": 48000
+    },
+    {
+      "flight": "PULSE_03",
+      "split": "train",
+      "samples": 38400
+    },
+    {
+      "flight": "PULSE_05",
+      "split": "validation",
+      "samples": 44800
+    },
+    {
+      "flight": "PULSE_10",
+      "split": "validation",
+      "samples": 70400
+    },
+    {
+      "flight": "PULSE_02",
+      "split": "test",
+      "samples": 35200
+    },
+    {
+      "flight": "PULSE_09",
+      "split": "test",
+      "samples": 64000
+    }
+  ],
+  "columns": [
+    "time_seconds",
+    "CoilCurrent",
+    "DDV",
+    "RAM",
+    "Deflection"
+  ],
+  "notice": "Public synthetic fixture only; not measured aircraft physics."
+}

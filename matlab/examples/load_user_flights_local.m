@@ -1,11 +1,11 @@
 function Raw=load_user_flights_local()
-% COPY this file to repository root as load_user_flights_local.m, then edit.
-% Copy to the root before use; examples is not added to the MATLAB path.
+% COPY this file to matlab folder as load_user_flights_local.m, then edit.
+% Copy to the matlab folder before use; examples is not added to the MATLAB path.
 root=fileparts(mfilename('fullpath'));
 files={'flight01.csv','flight02.csv'}; % replace with your actual list
 Raw=struct([]);
 for k=1:numel(files)
-    T=readtable(fullfile(root,'data','user',files{k}));
+    T=readtable(fullfile(fileparts(root),'data','user',files{k}));
     Raw(k).name=sprintf('flight_%02d',k);
     % Column names below are placeholders. Each signal may use its own time.
     Raw(k).CoilCurrent=bb_signal(T.time_current,T.current);
