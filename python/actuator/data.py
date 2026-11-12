@@ -137,7 +137,9 @@ def fingerprint(flights):
     return h.hexdigest()
 
 
-def pulse_flights(seed=123, durations=None, profile="pulse", calibration=None):
+def pulse_flights(
+    seed=123, durations=None, profile="pulse", calibration=None, valve_variation=None
+):
     """Separate hidden simulator. Learners never receive its parameters/state.
     Irregular signed pulses + long holds, noisy current, lowpass DDV, asymmetric
     bounded velocity and exact position retention at neutral. No vibration yet.
@@ -149,7 +151,7 @@ def pulse_flights(seed=123, durations=None, profile="pulse", calibration=None):
             else (500, 550, 600, 650, 700, 750, 800, 900, 1000, 1100, 850)
         )
     if profile == "flightLike":
-        return _flight_like(seed, durations, calibration)
+        return _flight_like(seed, durations, calibration, valve_variation)
     if profile != "pulse":
         raise ValueError("Unknown synthetic profile")
     flights = []
@@ -199,7 +201,7 @@ FLIGHT_LIKE_DURATIONS = (
 )
 
 
-def _flight_like(seed, durations, calibration=None):
+def _flight_like(seed, durations, calibration=None, valve_variation=None):
     """Opt-in extension of pulse_flights; Truth is excluded from all learners.
     A neutral valve cannot lift RAM from its stop: explicit opposite pulses are
     used for release. Slow start uses a near-neutral command before parking,
@@ -328,6 +330,17 @@ def _flight_like(seed, durations, calibration=None):
         command = null + relative
         gain = c.get("valve_gain", 1.0)
         bias = c.get("valve_bias", 0.0)
+        if valve_variation:
+            # Opt-in: current->DDV offset/gain differ per flight and drift slowly. The
+            # actual DDV (hence RAM physics) is unchanged; only the current encoding moves.
+            vr = np.random.default_rng(seed + 101 * j + 7919)
+            gain *= 1 + valve_variation.get("gain_sd", 0.0) * vr.standard_normal()
+            bias = (
+                bias
+                + valve_variation.get("bias_sd", 0.0) * vr.standard_normal()
+                + valve_variation.get("drift_amp", 0.0)
+                * np.sin(2 * np.pi * t / vr.uniform(900, 2400) + vr.uniform(-3, 3))
+            )
         current = (command - bias) / gain + rng.normal(0, 0.0015, n)
         # Common physical dynamics, small flight-to-flight variation only.
         a = np.exp(-1 / (FS * 0.055))
@@ -366,6 +379,8 @@ def _flight_like(seed, durations, calibration=None):
             "seed": seed + 101 * j,
             "synthetic": True,
             "profile": "flightLike",
+            "valve_gain": float(gain),
+            "valve_bias_mean": float(np.mean(bias)),
             "ram_unit": "user-like arbitrary unit; not verified mm",
         }
         flights.append(

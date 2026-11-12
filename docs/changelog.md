@@ -2,6 +2,13 @@
 
 Her geliştirme commitinde bu dosya güncellenir: değişiklik, deney/protokol, gerçekten çalıştırılan kontrol ve bilinen sınır kaydedilir. Başarısız denemeler silinmez. Aşağıdaki Git geçmişi eksiksizdir; Git öncesi bilgiler kullanıcı konuşmasından alınmıştır, bağımsız doğrulanmış deney kaydı değildir.
 
+## Py-0.4 — 2026-11-12 — Opt-in valf (akım→DDV) varyasyonu
+
+- `pulse_flights(profile='flightLike', valve_variation={'gain_sd','bias_sd','drift_amp'})`: akım→DDV kazanç/bias'ı uçuşa göre rastgele ve yavaş sürüklenen hale gelir. Gerçek DDV/RAM fiziği değişmez (yalnız akımın kodlaması kayar). Varsayılan `None`: fingerprint ve önceki sonuçlar aynı. Truth'a `valve_gain`, `valve_bias_mean` eklendi (öğrenici okumaz).
+- Gerekçe: gerçek figürlerde DDV tutma seviyesi akımdan tahmin edilen değerden 0.04–0.07 farklı (F9 −0.02 vs +0.02, F11). Mevcut sentetikte akım→DDV doğrusal regresyon R²≈0.9999 idi, yani bu hata sentetikte hiç üretilmiyordu.
+- Tek seferlik A/B (seed=621, aynı 7/2/2, yalnız numpy `Rate_*` ailesi, validation tam-uçuş Fit; model araması yapılmadı, test okunmadı): baseline DDV 99.6 / static 31.97 / adaptive 60.03 / slow_null 68.13 (Codex değerleri aynen yeniden üretildi). `gain .03, bias .025, drift .02`: DDV 89.33 / 39.53 / 50.67 / 57.88. `bias .04`: DDV 86.73 / 19.82 / 42.78 / 54.67. Tek örnek; kesin sıralama iddiası yok.
+- Kontrol: `tests.test_flightlike` 10 test geçti (yeni: opt-in/aynı fiziği koruma). PyTorch/Ruff bu ortamda yok: NN_joint eğitilmedi, Ruff çalışmadı, yalnız compileall.
+
 ## Py-0.3 — 2026-11-12 — FlightLike ve öğrenilmiş null/hız modeli
 
 - Mevcut üretece opt-in `flightLike`: değişken null/band, drift, park/uzun-kısa hold, iki yönlü darbeler, gürültü; RAM integral tutarlılığı ve azalan statik açı. `Truth` veriyle saklanır, öğreniciye verilmez. Eski MAT ve pulse profili korundu.

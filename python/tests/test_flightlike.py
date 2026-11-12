@@ -46,6 +46,27 @@ class FlightLikeTests(unittest.TestCase):
             )
         )
 
+    def test_valve_variation_is_opt_in_and_keeps_ddv_physics(self):
+        base, _ = pulse_flights(seed=55, durations=(900, 950), profile="flightLike")
+        same, _ = pulse_flights(
+            seed=55, durations=(900, 950), profile="flightLike", valve_variation={}
+        )
+        var, _ = pulse_flights(
+            seed=55,
+            durations=(900, 950),
+            profile="flightLike",
+            valve_variation={"gain_sd": 0.03, "bias_sd": 0.03, "drift_amp": 0.02},
+        )
+        for a, b in zip(base, same):
+            np.testing.assert_array_equal(a.values, b.values)
+        for a, b in zip(base, var):
+            np.testing.assert_allclose(
+                a.truth["ddv_clean"], b.truth["ddv_clean"], atol=5e-4
+            )
+            np.testing.assert_allclose(a.values[:, 2], b.values[:, 2], atol=1.0)
+            self.assertGreater(np.ptp(a.values[:, 0] - b.values[:, 0]), 0.02)
+        self.assertNotEqual(var[0].truth["valve_bias_mean"], var[1].truth["valve_bias_mean"])
+
     def test_decreasing_angle_and_units(self):
         f = self.flights[0]
         x = f.truth["ram_clean"]
