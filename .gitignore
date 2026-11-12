@@ -26,3 +26,5 @@ Thumbs.db
 # Reproducible large synthetic cache is delivered in the ZIP, not in Git history.
 /python/reference_results/*/flights.npz
 /python/reference_results/*/truth.npz
+.venv39/
+/wheelhouse/

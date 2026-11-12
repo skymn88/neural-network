@@ -182,5 +182,60 @@ class AugmentationReportTests(unittest.TestCase):
             self.assertEqual(r["diagnostics"][-1]["validation_rmse_delta"], -1.0)
 
 
+class StationaryObserverTests(unittest.TestCase):
+    def test_slow_ramp_does_not_become_neutral(self):
+        spec = {
+            "center": 0.0,
+            "gate": [-0.1, 0.1],
+            "tau": 2.0,
+            "max_step": 0.004,
+            "adaptive": True,
+            "mode": "stationary",
+            "quiet_window": 32,
+            "quiet_range": 0.002,
+            "envelope_age": 512,
+        }
+        u = np.r_[np.full(80, 0.02), np.linspace(0.02, 0.09, 100)]
+        _, center = neutral_features(u, spec)
+        self.assertLess(abs(center[-1] - 0.02), 0.003)
+        _, extended = neutral_features(np.r_[u, np.ones(100)], spec)
+        np.testing.assert_array_equal(center, extended[: len(u)])
+        spec["adaptive"] = False
+        _, off = neutral_features(u, spec)
+        np.testing.assert_array_equal(off, np.zeros(len(u)))
+
+    def test_window_refinement_improves_known_gain(self):
+        from actuator.null_rate import refine_window_rate
+
+        ddv = {"scale": 1.0, "lags": 0, "weights": [0, 1, 0, 0, 0]}
+        u = 0.2 * np.sin(np.arange(2048) / 60)
+        x = np.cumsum(3 * u) / 64
+        f = Flight("train_fixture", np.arange(len(u)) / 64, np.c_[u, u, x, 0.3 * x])
+        observer = {
+            "center": 0.0,
+            "gate": [-0.1, 0.1],
+            "tau": 2.0,
+            "max_step": 0.004,
+            "adaptive": False,
+        }
+        m = {
+            "ddv": ddv,
+            "angle": {"scale": 1.0, "weights": [0, 0.3]},
+            "ram": {
+                "kind": "null_rate",
+                "observer": observer,
+                "knots": [-1.0, 0.0, 1.0],
+                "values": [-2.0, 0.0, 2.0],
+                "bounds": [-100.0, 100.0],
+                "delay": 0,
+                "zero_band": [-0.001, 0.001],
+            },
+        }
+        refined = refine_window_rate(m, [f], seconds=1, ridge=1e-5)
+        before = rollout(m, u, x[0])[1]
+        after = rollout(refined, u, x[0])[1]
+        self.assertLess(np.mean((after - x) ** 2), np.mean((before - x) ** 2) * 0.1)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -50,6 +50,8 @@ def rollout(model, current, x0, ddv_override=None):
         if delay:
             u = np.r_[np.repeat(u[0], delay), u[: len(u) - delay]]
         rate = np.interp(u, m["knots"], m["values"])
+        if "zero_band" in m:
+            rate[(u >= m["zero_band"][0]) & (u <= m["zero_band"][1])] = 0.0
         x = np.empty(n)
         x[0] = x0
         lo, hi = m["bounds"]
@@ -117,7 +119,56 @@ def neutral_features(ddv, spec):
     ready = False
     alpha = 1 - np.exp(-1 / (FS * spec["tau"]))
     previous = ddv[0]
+    mode = spec.get("mode", "legacy")
+    was_quiet = False
+    quiet = np.zeros(len(ddv), dtype=bool)
+    if mode != "legacy":
+        quiet = (
+            np.ptp(lags(ddv, spec["quiet_window"] - 1), axis=1) <= spec["quiet_range"]
+        )
+    high = low = None
+    high_at = low_at = -1000000
+    previous_direction = 0
     for k, z in enumerate(ddv):
+        if mode != "legacy" and spec["adaptive"]:
+            is_quiet = bool(quiet[k] and spec["gate"][0] <= z <= spec["gate"][1])
+            if is_quiet:
+                if not was_quiet:
+                    estimate = z
+                    ready = True
+                else:
+                    estimate += alpha * (z - estimate)
+            elif mode == "envelope":
+                direction = np.sign(z - previous)
+                width = spec["gate"][1] - spec["gate"][0]
+                if (
+                    previous_direction > 0
+                    and direction < 0
+                    and previous > spec["gate"][1] + width * 0.5
+                ):
+                    high = previous
+                    high_at = k
+                if (
+                    previous_direction < 0
+                    and direction > 0
+                    and previous < spec["gate"][0] - width * 0.5
+                ):
+                    low = previous
+                    low_at = k
+                if (
+                    high is not None
+                    and low is not None
+                    and k - min(high_at, low_at) < spec["envelope_age"]
+                ):
+                    midpoint = 0.5 * (high + low)
+                    if spec["gate"][0] <= midpoint <= spec["gate"][1]:
+                        estimate += 0.05 * (midpoint - estimate)
+                if direction:
+                    previous_direction = direction
+            center[k] = estimate
+            previous = z
+            was_quiet = is_quiet
+            continue
         if (
             spec["adaptive"]
             and spec["gate"][0] <= z <= spec["gate"][1]

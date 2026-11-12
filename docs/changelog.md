@@ -2,6 +2,17 @@
 
 Her geliştirme commitinde bu dosya güncellenir: değişiklik, deney/protokol, gerçekten çalıştırılan kontrol ve bilinen sınır kaydedilir. Başarısız denemeler silinmez. Aşağıdaki Git geçmişi eksiksizdir; Git öncesi bilgiler kullanıcı konuşmasından alınmıştır, bağımsız doğrulanmış deney kaydı değildir.
 
+## Py-0.4 — 2026-11-12 — Python 3.9, çevrimdışı kurulum ve sunum
+
+- Kullanıcı isteğiyle `matlab/` bu daldan kaldırıldı. Önceki MATLAB kaynakları `dev_Codex` dalında/Git geçmişinde; ortak sentetik MAT veri dosyası korundu.
+- Python 3.9 nullable tip uyumu; uyumlu paket sürümleri sabitlendi. `start.bat` otomatik indirme yapmaz. `setup_offline.bat` yalnız yerel wheelhouse, `download_wheels.bat` yalnız ayrı online hazırlık makinesi içindir. Eksik/eski paket ve interpreter kontrolü eklendi; README komutları 3.9'a güncellendi.
+- Üç opt-in aday: sakin aralık null kestirimi, osilasyon tepe/çukur merkez izlemesi, 5 s konum-penceresi LS düzeltmesi. Aynı veri/split; Val RAM Cascade 68.13 → 93.47. Train/Val/tarihsel-Test 93.50/93.47/95.18. %95 validation hedefi elde edilmedi; üç denemede duruldu.
+- Seçimden sonra iki yeni seed-9621 uçuşunda RAM Cascade 93.67. Ham-DDV Component gürültü hassasiyeti (Val 48.40) açıkça raporlandı; gerçek veri başarı iddiası yok.
+- Yeni observer tek yöntem seçeneğiyle yerel arayüzde; eski varsayılan yol `legacy` olarak korunur. Canlı telefon sayfası güncellenmedi.
+- Düzenlenebilir 16 slaytlık PowerPoint: süreç, yöntemler, kullanıcı tarafından bildirilen gerçek uçuş sonuçları, çalıştırılan sentetik sonuçlar, grafikler, çevrimdışı kurulum ve sınırlamalar. Kaynak üretici `python/build_presentation.py`; sunum `presentations/actuator_black_box_overview.pptx`.
+- Gerçek Python 3.9.25 ortamında 31 regresyon + 2 yeni kontrol geçti; NumPy 1.26.4 / SciPy 1.13.1 / Torch 2.6.0+cpu. Chromium yerel UI kontrolü, Ruff/compileall; PPTX ZIP/XML/gömülü grafik ve slayt sınırı kontrolü. Windows .bat / PowerPoint GUI burada çalıştırılmadı.
+- Önceki commit `986124c`. Tüm yeni deney sayıları/protokol [experiments.md](experiments.md) içinde; yeni koşu `20261112_105714_655119`.
+
 ## Py-0.3 — 2026-11-12 — FlightLike ve öğrenilmiş null/hız modeli
 
 - Mevcut üretece opt-in `flightLike`: değişken null/band, drift, park/uzun-kısa hold, iki yönlü darbeler, gürültü; RAM integral tutarlılığı ve azalan statik açı. `Truth` veriyle saklanır, öğreniciye verilmez. Eski MAT ve pulse profili korundu.

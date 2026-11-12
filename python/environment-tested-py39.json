@@ -1,0 +1,17 @@
+{
+  "python": "3.9.25",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "packages": {
+    "torch": "2.6.0+cpu",
+    "numpy": "1.26.4",
+    "scipy": "1.13.1",
+    "pandas": "2.2.3",
+    "openpyxl": "3.1.5",
+    "fastapi": "0.115.12",
+    "pydantic": "2.10.6",
+    "uvicorn": "0.34.3",
+    "httpx": "0.28.1",
+    "python-pptx": "1.0.2",
+    "matplotlib": "3.9.4"
+  }
+}

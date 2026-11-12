@@ -1,0 +1,4 @@
+# Only needed to regenerate the editable PPTX, not to train or view the application.
+python-pptx==1.0.2
+matplotlib==3.9.4
+Pillow==11.3.0

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 from pathlib import Path
 from fractions import Fraction
 import hashlib
@@ -16,7 +17,7 @@ class Flight:
     name: str
     time: np.ndarray
     values: np.ndarray  # current, DDV, RAM, angle, physical units
-    truth: dict | None = None  # simulator-only audit; learners must never read this
+    truth: Optional[dict] = None  # simulator-only audit; learners must never read this
 
     def slice(self, start, stop, suffix=""):
         return Flight(

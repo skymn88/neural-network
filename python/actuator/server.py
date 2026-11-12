@@ -2,7 +2,7 @@
 
 import base64, io, json, threading, uuid
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Optional
 import numpy as np
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Request
@@ -69,7 +69,7 @@ class Import(BaseModel):
     mapping: dict[str, str]
     times: dict[str, str]
     separator: Literal[",", ";", "\t"] = ","
-    assignments: list[str] | None = None
+    assignments: Optional[list[str]] = None
 
 
 @app.post("/api/import")
@@ -106,7 +106,7 @@ def import_data(body: Import):
 
 class RunRequest(BaseModel):
     source: Literal["bundled", "pulse", "flightLike", "user"] = "bundled"
-    dataset: str | None = None
+    dataset: Optional[str] = None
     steps: int = Field(default=400, ge=20, le=2000)
     horizon: int = Field(default=192, ge=16, le=512)
     hidden: int = Field(default=16, ge=4, le=64)
@@ -115,6 +115,7 @@ class RunRequest(BaseModel):
         default=["oe", "neural"], min_length=1, max_length=3
     )
     syntheticTrainFlights: int = Field(default=0, ge=0, le=20)
+    nullObserver: Literal["legacy", "stationary", "envelope"] = "legacy"
     nullAdaptive: bool = True
     nullTau: float = Field(default=2.0, gt=0, le=60)
     include_test: bool = False
@@ -176,6 +177,7 @@ def start(body: RunRequest):
                 if body.source == "flightLike"
                 else "pulse",
                 nullAdaptive=body.nullAdaptive,
+                nullObserver=body.nullObserver,
                 nullTau=body.nullTau,
             )
             jobs[id].update(status="done", result=result)
@@ -243,7 +245,7 @@ def flight_names(id: str):
 
 
 @app.get("/api/results/{id}/plot")
-def plot(id: str, flight: int = 0, model: str | None = None):
+def plot(id: str, flight: int = 0, model: Optional[str] = None):
     p = folder(id)
     models = json.loads((p / "models.json").read_text())
     r = json.loads((p / "result.json").read_text())

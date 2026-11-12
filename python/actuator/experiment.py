@@ -148,6 +148,7 @@ def run(
     syntheticProfile="pulse",
     nullAdaptive=True,
     nullTau=2.0,
+    nullObserver="legacy",
 ):
     if syntheticTrainFlights:
         from .augmentation import compare_augmentation
@@ -169,6 +170,7 @@ def run(
             syntheticProfile=syntheticProfile,
             nullAdaptive=nullAdaptive,
             nullTau=nullTau,
+            nullObserver=nullObserver,
         )
     if not methods or set(methods) - {"oe", "neural", "stable", "null_rate"}:
         raise ValueError("Choose oe, neural, stable and/or null_rate")
@@ -227,7 +229,13 @@ def run(
 
         t = time.perf_counter()
         models["Rate_null"] = fit_null_rate(
-            groups["train"], ddv, angle, adaptive=nullAdaptive, tau=nullTau, knots=161
+            groups["train"],
+            ddv,
+            angle,
+            adaptive=nullAdaptive,
+            tau=nullTau,
+            knots=161,
+            observer=nullObserver,
         )
         timings["Rate_null"] = time.perf_counter() - t
     scores = {name: val_rmse(m, groups["validation"]) for name, m in models.items()}
@@ -252,6 +260,7 @@ def run(
         warm_steps=warm_steps,
         syntheticProfile=syntheticProfile,
         syntheticTrainFlights=0,
+        nullObserver=nullObserver,
         nullAdaptive=nullAdaptive,
         nullTau=nullTau,
     )

@@ -1,0 +1,29 @@
+[
+  {
+    "iteration": 1,
+    "model": "Rate_quiet",
+    "validation_fit": 91.00547665405597,
+    "validation_rmse": 7.408321984833338,
+    "seconds": 4.543098705002194,
+    "observer": "stationary",
+    "window_refinement": false
+  },
+  {
+    "iteration": 2,
+    "model": "Rate_envelope",
+    "validation_fit": 93.46860797328543,
+    "validation_rmse": 5.379568575459213,
+    "seconds": 5.3097148399974685,
+    "observer": "envelope",
+    "window_refinement": false
+  },
+  {
+    "iteration": 3,
+    "model": "Rate_windowOE",
+    "validation_fit": 91.50491759078817,
+    "validation_rmse": 6.996958410643781,
+    "seconds": 3.968189273000462,
+    "observer": "stationary",
+    "window_refinement": true
+  }
+]

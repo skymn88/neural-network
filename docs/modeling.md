@@ -1,6 +1,6 @@
 # Python modelleme ve veri sözleşmesi
 
-MATLAB uygulaması [matlab/docs/modeling.md](../matlab/docs/modeling.md) içinde korunur. Python yeni bir deney hattıdır; MATLAB ile sayısal eşdeğerlik iddiası yoktur. Hedef fiziksel aktüatör parametrelerini beslemek değil, ölçülen giriş/çıktılardan nedensel dinamiği öğrenmektir.
+MATLAB kaynakları bu Python dalından kaldırıldı; [dev_Codex dalında](https://github.com/skymn88/neural-network/tree/dev_Codex) korunur. Python yeni bir deney hattıdır; MATLAB ile sayısal eşdeğerlik iddiası yoktur. Hedef fiziksel aktüatör parametrelerini beslemek değil, ölçülen giriş/çıktılardan nedensel dinamiği öğrenmektir.
 
 ## Veri → eğitim → seçim
 
@@ -45,10 +45,10 @@ Eski MAT SHA ve yeni pulse metadata/ham veri SHA kaydedilir. Yeni pulse jenerat�
 ## Doğrulama komutları
 
 ```bash
-PYTHONPATH=python .venv/bin/python -m unittest discover -s python/tests -v
-.venv/bin/ruff check python --select F
-.venv/bin/ruff format --check python
-.venv/bin/python -m compileall -q python
+PYTHONPATH=python .venv39/bin/python -m unittest discover -s python/tests -v
+.venv39/bin/ruff check python --select F
+.venv39/bin/ruff format --check python
+.venv39/bin/python -m compileall -q python
 ```
 
 Tarayıcı testi için dev bağımlılıklarını kur, `python -m playwright install chromium`, sunucuyu `python/app.py --no-browser` ile aç, sonra `python/tests/browser_smoke.py` çalıştır. Yerel fixture CSV'leriyle gerçek kısa eğitim yapar. Windows launcher ve MATLAB runtime bu ortamda test edilmedi; bu sınır changelog'da korunur.
@@ -65,3 +65,16 @@ Tarayıcı testi için dev bağımlılıklarını kur, `python -m playwright ins
 Yeni aile `methods=['null_rate']` ile opt-in; `nullAdaptive=True`, `nullTau=2` yalnız bu aday seçilince etkilidir. `run_flightlike.py --limit 10` en fazla 10 aday dener; %95 validation RAM Cascade'te erken durur; test yalnız final seçimden sonra açılır. `score` nonfinite çıktıyı başarısız sayar. Eski varsayılan modeller/ayarlar korunur.
 
 `syntheticTrainFlights=N` yalnız `source='user'` için A/B çalıştırır; 0 eski tek koşu. `calibrate_train` sadece TRAIN ölçümlerini görür. Basit akım/DDV eşlemesi, yön, RAM aralığı, hız, null dağılımı ve açı haritası çıkarır; gerçek fizik kalibrasyonu iddiası yoktur. Geçerli iç hold/hareket bulunamazsa sessizce sahte veri üretmek yerine hata verir. Sentetik yeni uçuşlar yalnız TRAIN'e eklenir; iki varyantın seçimi aynı gerçek validation'dadır. Test her iki eğitim bittikten sonra, kullanıcı isterse raporlanır. Summary'deki TRAIN metriği gerçek TRAIN üzerindedir; augmented modelin sentetik eğitim örnekleri buna dahil değildir. Diagnostics `SyntheticTrainAB` satırı val/test Fit farklarını ve validation RMSE farkını verir. Raw/Truth yerel kayıtları Git dışında kalır.
+
+
+## Python 3.9 ve yeni observer (Py-0.4)
+
+Uygulama Python 3.9.25 ile gerçekten çalıştırıldı; PEP604 nullable tipleri `Optional` olarak değiştirildi. Python 3.9 uyumlu sürümler `requirements.txt` ve `requirements-cpu.txt` içinde sabitlendi. `check_environment.py` sürüm/64-bit/eksik veya eski paket kontrolüdür; kurulum yapmaz. `setup_offline.bat` yalnız yerel wheelhouse kullanır; `start.bat` hiçbir paket kaynağına erişmez. `download_wheels.bat` yalnız ayrı, internete bağlı Windows/Python3.9 makinesinde kullanılacak hazırlık aracıdır.
+
+`nullObserver='legacy'` eski davranışı korur. Opt-in `'stationary'`: 32 örneklik nedensel DDV aralığı yeterince sakin ve TRAIN'den öğrenilmiş null gate içinde olduğunda, sakin bölge girişinde null'ı yeniden kestirir. Hareket rampasını drift sanıp takip etmez. Sakinlik eşiği TRAIN'deki interior-hold örneklerinden; hızın sıfır kabul edildiği bant da TRAIN'den öğrenilir. `'envelope'`: çift yönlü ve gate dışındaki yakın tarihli tepe/çukurların orta noktasıyla, osilasyon sırasında merkez kaymasını izlemeyi ekler. Gerçek null/Truth okunmaz. `nullAdaptive=false` observer güncellemesini kapatır.
+
+Durum: RAM, null, sakinlik bayrağı, 32 DDV örnek tamponu; envelope için tepe/çukur, yaş ve yön. `quiet_window`, `quiet_range`, `envelope_age`, `mode` model spec alanları; RAM `zero_band` öğrenilmiş hız-sıfır bölgesidir. Bu sınırlı gözlemci gürültüye duyarlıdır; Component ve Cascade sonuçları birlikte raporlanır. NumPy-only batch çıkarımı korunur; C tek-adım API henüz yazılmadı.
+
+`refine_window_rate`: TRAIN'de uç sınırlara vurmayan 5 s pencerelerde konum çıktı hatasıyla PWL ağırlıklarını ridge LS ile düzeltir; önceki hız haritasına düzenlileştirme uygular. Sıfır hız bandı korunur. Reset yalnız eğitim hedefinin pencere başlangıcındadır; validation/test rollout'ta reset yoktur. Bu üçüncü aday envelope'ü geçmedi.
+
+`run_improvement.py`: üç önceden belirlenmiş aday; aynı TRAIN/VAL, donuk DDV/açı, %95 validation Fit veya üç adayda durma. Tarihsel test daha önce görüldüğü için ayrı etikettedir. Seed 9621 ile iki yeni uçuş yalnız seçim dondurulduktan sonra üretildi, aramada kullanılmadı. Seçilen observer opt-in yerel yöntem listesinden kullanılabilir. Runtime/package sürümleri `environment-tested-py39.json` içinde.

@@ -76,3 +76,26 @@ Kayıt: `python/reference_results/20261112_062616_313440/`. Tüm adayların mode
 Opt-in `syntheticTrainFlights=N` gerçek veri geldiğinde aynı ayarlarla 0 ve N için A/B çalıştırır. Kalibrasyon yalnız gerçek TRAIN, sentetik yalnız TRAIN'e; validation/test aynı gerçek uçuşlar. Son XLSX Diagnostics'te tek A/B fark satırı. **Gerçek uçuş A/B'si bu ortamda yapılmadı.**
 
 Kontroller: 28-test tam regresyon koşusu geçti; ardından ek A/B seçim-sırası testi dahil 9 yeni-alan testi geçti (toplam 29 farklı test). NumPy çıkarım, Truth izolasyonu, integral/neutral tutma, monoton açı, causal observer ve holdout izolasyonu sınandı. Yerel Chromium'da yeni kaydın 10 adayı/üçlü grafiği/uçuş seçimi kontrol edildi, yeni eğitim başlatılmadı. MATLAB ve Windows .bat çalıştırılmadı. Canlı mobil Site bu tur güncellenmedi.
+
+
+## Py-0.4 · Python 3.9, üç observer denemesi — 2026-11-12
+
+Aynı flightLike TRAIN/VAL, aynı veri fingerprint'i ve önceki donuk DDV/açı blokları. Python **3.9.25**, NumPy **1.26.4**, SciPy **1.13.1**, Torch CPU **2.6.0** ortamında çalıştırıldı. Eski MATLAB kaynakları bu daldan kaldırıldı; modeller/split değiştirilmedi. Başlangıçta üç aday ve %95 validation durma eşiği belirlendi.
+
+| Aday | Val RAM Cascade Fit | Val RMSE | Eğitim + val (s) |
+|---|---:|---:|---:|
+| Rate_quiet | 91.01 | 7.408 | 4.54 |
+| Rate_envelope | 93.47 | 5.380 | 5.31 |
+| Rate_windowOE | 91.50 | 6.997 | 3.97 |
+
+Önceki Rate_slow_null Val Fit **68.13**, yeni validation kazananı **Rate_envelope 93.47**. RAM Cascade Train/Val/tarihsel-Test **93.50 / 93.47 / 95.18**; açı Cascade **93.19 / 93.46 / 95.41**. Üç aday tamamlandı, validation %95 olmadı, arama durdu. Tarihsel test önceki turda görüldüğü için yeni kör test diye sunulmaz; bu turdaki seçime dahil edilmedi.
+
+Seçim dondurulduktan sonra seed=9621, süreler 2400/2700 s ile **iki yeni sentetik audit uçuşu** üretildi. RAM Cascade Fit **93.67**, RMSE **5.554**; açı Cascade Fit **93.80**. Audit arama veya yeniden eğitime verilmedi. İki uçuş ve aynı simülatör ailesi gerçek uçuş genellemesi kanıtı değildir.
+
+Önemli açık sorun: **RAM Component Fit 25.06 / 48.40 / 68.02**. Ham DDV ölçüm gürültüsü, tahmin edilen daha düzgün DDV ile kalibre edilmiş sakinlik/tepe izleyicisini bozabiliyor. Cascade kazancını tüm giriş koşullarında sağlamlık diye yorumlamıyoruz. Açı Component ~99.93 olması da RAM'in doğru olduğunu göstermez.
+
+Rate_quiet, null güncellemesini TRAIN'den öğrenilen sakinlik aralıklarına kısıtladı. Rate_envelope, iki yönlü osilasyonların tepe/çukur orta noktasıyla merkez drift'ini izledi. Rate_windowOE, 5 s TRAIN konum pencereleriyle hız haritasını yeniden ağırlıklandırdı; kazananı geçemedi. Simülatör Truth'u hiçbir eğitim girdisi olmadı.
+
+Toplam **47.85 s**, seçili aday **5.31 s**; DDV/açı zaten eğitilmiş olarak donuktu. Sonuç kaydı: `python/reference_results/20261112_105714_655119/` (XLSX, tüm adayların JSON modeli, arama tablosu, yeni audit metrikleri).
+
+Kontroller: Python 3.9'da 31-test regresyon koşusu + 2 çevrimdışı/observer yönlendirme kontrolü geçti. `--no-index` pip kontrolü mevcut sabitlenmiş ortamda ağ kaynağı olmadan geçti; bu Windows wheelhouse kurulumu çalıştırıldı demek değildir. Python 3.9 sunucusunda Chromium ile yeni sonuç/üçlü grafik/yöntem seçeneği doğrulandı; yeni eğitim başlatılmadı. PPTX: 16 slayt, 4 gömülü düzenlenebilir grafik çalışma kitabı, ZIP/XML ve slayt sınırları doğrulandı. Windows .bat ve Microsoft PowerPoint açılışı bu Linux ortamında çalıştırılmadı. Canlı mobil Site değiştirilmedi.

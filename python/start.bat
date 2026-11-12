@@ -1,23 +1,22 @@
 @echo off
 setlocal
 cd /d "%~dp0.."
-if not exist ".venv\Scripts\python.exe" (
-  echo First launch: creating Python 3.12 environment...
-  py -3.12 -m venv .venv
-  if errorlevel 1 goto failed
+if defined ACTUATOR_PYTHON (
+  set "ACTUATOR_RUN_PYTHON=%ACTUATOR_PYTHON%"
+) else (
+  set "ACTUATOR_RUN_PYTHON=%CD%\.venv39\Scripts\python.exe"
 )
-".venv\Scripts\python.exe" -c "import torch, numpy, scipy, pandas, openpyxl, fastapi, uvicorn" >nul 2>&1
-if errorlevel 1 (
-  echo First launch: downloading CPU dependencies. Internet is needed for installation only.
-  ".venv\Scripts\python.exe" -m pip install torch --index-url https://download.pytorch.org/whl/cpu
-  if errorlevel 1 goto failed
-  ".venv\Scripts\python.exe" -m pip install -r python\requirements.txt
-  if errorlevel 1 goto failed
+if not exist "%ACTUATOR_RUN_PYTHON%" (
+  echo Python 3.9 environment not found. No download will be attempted.
+  echo First run: python\setup_offline.bat D:\path\to\wheelhouse
+  echo Or set ACTUATOR_PYTHON to your existing Python 3.9 python.exe.
+  goto failed
 )
-".venv\Scripts\python.exe" python\app.py
+"%ACTUATOR_RUN_PYTHON%" python\check_environment.py
+if errorlevel 1 goto failed
+"%ACTUATOR_RUN_PYTHON%" python\app.py
 if errorlevel 1 goto failed
 exit /b 0
 :failed
-echo Setup or startup failed. Python 3.12 must be installed. Read the error above.
 pause
 exit /b 1
