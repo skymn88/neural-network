@@ -104,3 +104,11 @@ Arayüz `gru_rate` hem önceki referansı hem GRU'yu validation ile karşılaşt
 `lstm_rate` seçeneği aynı residual hız modelinde LSTM kullanır; hidden24 + cell24, öğrenilmiş null observer ve RAM durumu; numPy-only export gate sırası i,f,g,o. TRAIN preset: gate1.5, 800 adım, horizon256, seed42. Kısa eğitim pencereleri sıfır recurrent başlangıçla, tam-uçuş değerlendirme kesintisiz state ile çalışır. TRAIN başlangıç ölçümleri değerlendirmede sürekli reset yapılması anlamına gelmez.
 
 `sequence_evaluate.py` yalnız eğitim/arama hızlandırıcısıdır; dağıtım NumPy çıkarımını değiştirmez. Torch double ağırlıklar ve chunklar arasında taşınan hidden/cell state; kazanan raporu tekrar NumPy ile hesaplanır. Raporların gerçek pipeline sonucu olduğu ayrıca doğrulanır.
+
+## Uçuş bazlı dengeleme ve sabit hafıza çıkış düzeltmesi (Py-0.9)
+
+`fit_sequence(flight_weights=None, position_weight=.2)` varsayılanları önceki eğitim yolunu korur. Opt-in flight ağırlıkları yalnız TRAIN hatalarından türetilip pencere örnekleme olasılığına uygulanır; uçuş kimliği modele girdi olmaz. TRAIN hız kaybına ek konum-penceresi kaybı katsayısı ayrı ayarlanabilir. Bu turda her TRAIN uçuşunun Fit >90, birleşik validation Fit >75 olması birlikte aranır; test kapalıdır.
+
+`refine_sequence_head` yalnız TRAIN alır, DDV/açı/recurrent hafıza ağırlıklarını dondurur. RAM çıkış hatasına göre lineer readout/bias, Gauss–Newton normal denklemleriyle düzeltilir. Hız doygunluğunda türev sıfırlanır; RAM sınırında biriken konum Jacobian'ı resetlenir. Başlangıç gerçek RAM yalnız ilk örnektir; eğitim hedefini kolaylaştıran ara konum reset'i yoktur. TRAIN uçuşlarının normalize hatalarıyla ağırlıklandırma ve yalnız TRAIN en kötü uçuş hatasını azaltan backtracking kullanılır. Validation optimizere verilmez; aday kabulünde >75 şartı uygulanır.
+
+Yeni inference state/denklemi yok: güncellenmiş `sequence.head,bias` aynı NumPy çıkarımında kullanılır. `head_refinement` sadece eğitim metadatasıdır. `sequence_evaluate.recurrent_states` hızlandırıcı; chunklar arasında state taşır. İterasyon raporunda aday sayısı ile optimizer adımı ayrıdır; en fazla20 aday sınırı korunur.

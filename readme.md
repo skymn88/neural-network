@@ -134,3 +134,11 @@ TRAIN >%90 hedefi **6. adayda** sağlandı: RAM Cascade Train/Val **90.45/76.27*
 3. Önceki GRU seçeneği validation seçimini korur. Ana tabloda TRAIN ve validation'ı birlikte değerlendir; başlık seçili hedefi gösterir.
 
 Sınırlı kapasite araması: `python python\run_train_search.py` — en fazla20 aday, TRAIN >90'da durur. Çıktı `python/results/audits/`, kayıtlı sürüm `python/audit_results/train_search_20261112_170014/`.
+
+## Her TRAIN uçuşu için hedef (Py-0.9)
+
+`python python\run_balanced_search.py`: aynı zor sentetik veri üzerinde en fazla20 yeni aday; **her TRAIN uçuşunda RAM Cascade Fit >90** ve **birleşik validation Fit >75** birlikte aranır. Pooled TRAIN ortalaması tek başına başarı sayılmaz. Adaylar validation >75 şartını sağlıyorsa en düşük TRAIN uçuş Fit'ine göre sıralanır; iki şart birlikte sağlanınca durulur, TEST açılmaz.
+
+TCN, Elman ve RBF tam deneyleri; TRAIN-hata ağırlıklı pencere örneklemesi; LSTM'nin hafıza katmanını sabit tutup tam-uçuş konum hatasıyla çıkış ağırlığı düzeltmesi karşılaştırılır. Varsayılan eğitim ayarları değişmez. `python/results/audits/` altında Summary/PerFlight/Search/CandidateFlights içeren XLSX, model ve arama kayıtları oluşur. Arayüzde bu koşu için başlık **en düşük TRAIN uçuş Fit** değerini gösterir; normal eski koşuların başlığı korunur.
+
+Bu turun 20 adayı iki şartı birlikte geçemedi. TRAIN-only lider: pooled93.99/min93.11/VAL72.30; diğer LSTM: pooled92.20/min86.83/VAL78.24. Önceki model min86.85/VAL76.27 ile mevcut sıralamada korunuyor. `start.bat` sonrası **20261113_044434_000000** kaydı bu üç modeli karşılaştırır; yeniden eğitim gerekmez. Bu kayıt minimum TRAIN kriterini gösterir, eski LSTM presetini otomatik değiştirmez. Ayrıntılar ve 20 adayın tamamı changelog/Search/CandidateFlights içindedir.

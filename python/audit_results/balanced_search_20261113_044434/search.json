@@ -1,0 +1,432 @@
+[
+  {
+    "iteration": 1,
+    "model": "01_tcn",
+    "family": "tcn",
+    "settings": {
+      "hidden": 24,
+      "steps": 800
+    },
+    "train_fit": 84.14910184900279,
+    "train_min_fit": 75.4362018133072,
+    "validation_fit": 78.09440643887392,
+    "validation_min_fit": 70.81411345886997,
+    "seconds": 10.115065743999935,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 2,
+    "model": "02_elman",
+    "family": "elman",
+    "settings": {
+      "hidden": 24,
+      "steps": 800
+    },
+    "train_fit": 85.7554623250336,
+    "train_min_fit": 78.99566286632786,
+    "validation_fit": 77.41528113547018,
+    "validation_min_fit": 71.32703166463652,
+    "seconds": 18.13608767100004,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 3,
+    "model": "03_rbf",
+    "family": "rbf",
+    "settings": {
+      "hidden": 96,
+      "ridge": 0.001
+    },
+    "train_fit": 84.97279980290281,
+    "train_min_fit": 67.00610677373233,
+    "validation_fit": 69.63931950853323,
+    "validation_min_fit": 57.851864127266296,
+    "seconds": 4.52898174500001,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 4,
+    "model": "04_head",
+    "family": "head",
+    "settings": {
+      "iterations": 3,
+      "ridge": 0.01,
+      "focus": 1
+    },
+    "train_fit": 93.11621557697697,
+    "train_min_fit": 90.61621241486058,
+    "validation_fit": 72.01482098252234,
+    "validation_min_fit": 61.21230958541707,
+    "seconds": 49.27885791299991,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 5,
+    "model": "05_lstm",
+    "family": "lstm",
+    "settings": {
+      "hidden": 24,
+      "steps": 1200
+    },
+    "train_fit": 89.55527378369361,
+    "train_min_fit": 85.55063333950035,
+    "validation_fit": 79.50291784563252,
+    "validation_min_fit": 72.37768423684068,
+    "seconds": 26.7269059140001,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 6,
+    "model": "06_lstm",
+    "family": "lstm",
+    "settings": {
+      "hidden": 24,
+      "steps": 1200,
+      "flight_weights": [
+        1.8916529764568577,
+        0.5,
+        1.369254030474444,
+        0.5,
+        2.1025047132830985,
+        0.6287010512299758,
+        0.6428049123813181
+      ]
+    },
+    "train_fit": 88.57219353990008,
+    "train_min_fit": 82.68208427082236,
+    "validation_fit": 78.10532574015402,
+    "validation_min_fit": 70.65761225130892,
+    "seconds": 32.62968742800001,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 7,
+    "model": "07_lstm",
+    "family": "lstm",
+    "settings": {
+      "hidden": 32,
+      "steps": 1200,
+      "flight_weights": [
+        1.8916529764568577,
+        0.5,
+        1.369254030474444,
+        0.5,
+        2.1025047132830985,
+        0.6287010512299758,
+        0.6428049123813181
+      ]
+    },
+    "train_fit": 87.13484157616061,
+    "train_min_fit": 79.67915310292703,
+    "validation_fit": 72.41203221536392,
+    "validation_min_fit": 62.137909206565546,
+    "seconds": 25.37609858099995,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 8,
+    "model": "08_head",
+    "family": "head",
+    "settings": {
+      "iterations": 8,
+      "ridge": 0.001,
+      "focus": 2
+    },
+    "train_fit": 93.97131645908863,
+    "train_min_fit": 93.04501147851664,
+    "validation_fit": 72.4917840572143,
+    "validation_min_fit": 62.5870519150244,
+    "seconds": 67.98372798700007,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 9,
+    "model": "09_lstm",
+    "family": "lstm",
+    "settings": {
+      "hidden": 24,
+      "steps": 1000,
+      "horizon": 512,
+      "flight_weights": [
+        1.8916529764568577,
+        0.5,
+        1.369254030474444,
+        0.5,
+        2.1025047132830985,
+        0.6287010512299758,
+        0.6428049123813181
+      ]
+    },
+    "train_fit": 92.19590367036467,
+    "train_min_fit": 86.82554500301154,
+    "validation_fit": 78.24235071982008,
+    "validation_min_fit": 70.22444037706173,
+    "seconds": 30.521971756000084,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 10,
+    "model": "10_lstm",
+    "family": "lstm",
+    "settings": {
+      "hidden": 32,
+      "steps": 1600,
+      "horizon": 512,
+      "flight_weights": [
+        1.8916529764568577,
+        0.5,
+        1.369254030474444,
+        0.5,
+        2.1025047132830985,
+        0.6287010512299758,
+        0.6428049123813181
+      ],
+      "position_weight": 1.0
+    },
+    "train_fit": 90.52372944781524,
+    "train_min_fit": 79.03646852305057,
+    "validation_fit": 75.5542734756683,
+    "validation_min_fit": 66.73682167206186,
+    "seconds": 34.74373840199996,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 11,
+    "model": "11_tcn",
+    "family": "tcn",
+    "settings": {
+      "hidden": 48,
+      "steps": 1600,
+      "flight_weights": [
+        1.8916529764568577,
+        0.5,
+        1.369254030474444,
+        0.5,
+        2.1025047132830985,
+        0.6287010512299758,
+        0.6428049123813181
+      ]
+    },
+    "train_fit": 89.2198291013158,
+    "train_min_fit": 78.4363048998031,
+    "validation_fit": 76.35436002709375,
+    "validation_min_fit": 68.17573027910781,
+    "seconds": 27.321011778999946,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 12,
+    "model": "12_tdnn",
+    "family": "tdnn",
+    "settings": {
+      "hidden": 64,
+      "steps": 1600,
+      "flight_weights": [
+        1.8916529764568577,
+        0.5,
+        1.369254030474444,
+        0.5,
+        2.1025047132830985,
+        0.6287010512299758,
+        0.6428049123813181
+      ]
+    },
+    "train_fit": 88.78221470973318,
+    "train_min_fit": 84.20113254511777,
+    "validation_fit": 68.8312457985623,
+    "validation_min_fit": 57.71483091169336,
+    "seconds": 10.361675589000015,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 13,
+    "model": "13_rbf",
+    "family": "rbf",
+    "settings": {
+      "hidden": 192,
+      "ridge": 0.01
+    },
+    "train_fit": 83.92789016930064,
+    "train_min_fit": 62.52938165914641,
+    "validation_fit": 69.4906547937996,
+    "validation_min_fit": 57.647157539398734,
+    "seconds": 5.297644300999991,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 14,
+    "model": "14_elman",
+    "family": "elman",
+    "settings": {
+      "hidden": 48,
+      "steps": 1600,
+      "flight_weights": [
+        1.8916529764568577,
+        0.5,
+        1.369254030474444,
+        0.5,
+        2.1025047132830985,
+        0.6287010512299758,
+        0.6428049123813181
+      ]
+    },
+    "train_fit": 81.23620540678078,
+    "train_min_fit": 67.01327812459408,
+    "validation_fit": 80.33990967399068,
+    "validation_min_fit": 73.73069831679886,
+    "seconds": 32.056924583999944,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 15,
+    "model": "15_lstm",
+    "family": "lstm",
+    "settings": {
+      "hidden": 48,
+      "steps": 1600,
+      "flight_weights": [
+        1.8916529764568577,
+        0.5,
+        1.369254030474444,
+        0.5,
+        2.1025047132830985,
+        0.6287010512299758,
+        0.6428049123813181
+      ]
+    },
+    "train_fit": 78.81592089396001,
+    "train_min_fit": 62.34925552161701,
+    "validation_fit": 72.08021950176804,
+    "validation_min_fit": 61.989286524924395,
+    "seconds": 33.01492807999989,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 16,
+    "model": "16_head",
+    "family": "head",
+    "settings": {
+      "iterations": 12,
+      "ridge": 0.01,
+      "focus": 3
+    },
+    "train_fit": 92.99287525854936,
+    "train_min_fit": 91.40298681601121,
+    "validation_fit": 70.75852617059698,
+    "validation_min_fit": 59.43714943126189,
+    "seconds": 57.803624095999794,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 17,
+    "model": "17_gru",
+    "family": "gru",
+    "settings": {
+      "hidden": 32,
+      "steps": 1600,
+      "horizon": 512,
+      "flight_weights": [
+        1.8916529764568577,
+        0.5,
+        1.369254030474444,
+        0.5,
+        2.1025047132830985,
+        0.6287010512299758,
+        0.6428049123813181
+      ]
+    },
+    "train_fit": 89.27359059271663,
+    "train_min_fit": 77.20904705761278,
+    "validation_fit": 75.88655041055291,
+    "validation_min_fit": 66.68710410643817,
+    "seconds": 132.57172546200013,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 18,
+    "model": "18_lstm",
+    "family": "lstm",
+    "settings": {
+      "hidden": 32,
+      "steps": 1600,
+      "seed": 43,
+      "flight_weights": [
+        1.8916529764568577,
+        0.5,
+        1.369254030474444,
+        0.5,
+        2.1025047132830985,
+        0.6287010512299758,
+        0.6428049123813181
+      ]
+    },
+    "train_fit": 90.93631551722109,
+    "train_min_fit": 82.29379064905159,
+    "validation_fit": 78.4304770909936,
+    "validation_min_fit": 70.5742005230292,
+    "seconds": 27.34314466700016,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 19,
+    "model": "19_lstm",
+    "family": "lstm",
+    "settings": {
+      "hidden": 48,
+      "steps": 2000,
+      "horizon": 512,
+      "flight_weights": [
+        1.8916529764568577,
+        0.5,
+        1.369254030474444,
+        0.5,
+        2.1025047132830985,
+        0.6287010512299758,
+        0.6428049123813181
+      ],
+      "position_weight": 2.0
+    },
+    "train_fit": 85.59846654279265,
+    "train_min_fit": 74.30401378143127,
+    "validation_fit": 66.0631139879271,
+    "validation_min_fit": 53.45486242299855,
+    "seconds": 44.986593071000016,
+    "status": "ok",
+    "goal_met": false
+  },
+  {
+    "iteration": 20,
+    "model": "20_head_best",
+    "family": "head_best",
+    "settings": {
+      "iterations": 10,
+      "ridge": 0.005,
+      "focus": 2
+    },
+    "train_fit": 93.986676461789,
+    "train_min_fit": 93.11126011567642,
+    "validation_fit": 72.3022664786505,
+    "validation_min_fit": 62.37145311808309,
+    "seconds": 46.097784078999894,
+    "status": "ok",
+    "goal_met": false
+  }
+]

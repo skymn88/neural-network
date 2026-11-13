@@ -48,6 +48,8 @@ def fit_sequence(
     seed=42,
     ridge=0.001,
     leak=0.2,
+    flight_weights=None,
+    position_weight=0.2,
 ):
     if family not in ("gru", "lstm", "elman", "tdnn", "tcn", "esn", "rbf"):
         raise ValueError("Unsupported sequence family")
@@ -63,6 +65,21 @@ def fit_sequence(
     torch.manual_seed(seed)
     rng = np.random.default_rng(seed)
     arrays, norm = prepared
+    probabilities = None
+    if flight_weights is not None:
+        weights = np.asarray(flight_weights, dtype=float)
+        if (
+            weights.shape != (len(arrays),)
+            or not np.isfinite(weights).all()
+            or np.any(weights <= 0)
+        ):
+            raise ValueError(
+                "flight_weights must be positive finite weights per TRAIN flight"
+            )
+        probabilities = weights / weights.sum()
+    if not np.isfinite(position_weight) or position_weight < 0:
+        raise ValueError("position_weight must be finite and nonnegative")
+
     spec = dict(norm, family=family, hidden=hidden, residual=residual, gate=gate)
     normalized = [
         (a - np.asarray(norm["mean"])) / np.asarray(norm["scale"])
@@ -192,7 +209,11 @@ def fit_sequence(
         for step in range(steps):
             batch = []
             for j in range(12):
-                fi = int(rng.integers(len(tensors)))
+                fi = (
+                    int(rng.integers(len(tensors)))
+                    if probabilities is None
+                    else int(rng.choice(len(tensors), p=probabilities))
+                )
                 item = tensors[fi]
                 if j % 2 and len(events[fi]):
                     start = int(rng.choice(events[fi])) - int(
@@ -212,7 +233,9 @@ def fit_sequence(
             speed = (err.square() * mask).sum() / mask.sum().clamp(min=1)
             interior = (mask.min(dim=1).values > 0).float()
             pos = (err.cumsum(dim=1) / FS).square().mean(dim=1)
-            loss = speed + 0.2 * (pos * interior).sum() / interior.sum().clamp(min=1)
+            loss = speed + position_weight * (
+                pos * interior
+            ).sum() / interior.sum().clamp(min=1)
             opt.zero_grad()
             loss.backward()
             torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
@@ -222,6 +245,8 @@ def fit_sequence(
             bias=float(net.head.bias.detach()[0]),
             steps=steps,
             horizon=horizon,
+            flight_weights=flight_weights,
+            position_weight=position_weight,
         )
         if family in ("gru", "lstm", "elman"):
             spec.update(

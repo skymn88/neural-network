@@ -7,11 +7,11 @@ Bu liste tüm yöntemlerin denenmiş olduğu anlamına gelmez. Gerçek uçuşlar
 | NARX | MATLAB geçmişinde denendi; kullanıcı serbest-koşu sapması bildirdi | Uygun SysID ailesi; tekrar denenecekse teacher-forcing yerine serbest-koşu eğitimi/kararlılık gerekir |
 | GRU | Py-0.7 tam-uçuş validation deneyi yapıldı | Küçük durum vektörü ve uzun geçmiş; bu turda en iyi yeni aday |
 | LSTM | Py-0.8 TRAIN odaklı tam deney yapıldı: Train/Val RAM Cascade 90.45/76.27 | Uygun; bu turda TRAIN kapasitesi daha iyi, validation önceki GRU'dan düşük |
-| Elman RNN | Yeni küçük eğitim/parity testi var; tam deney yapılmadı | Uygun temel çizgi; uzun hafıza ve gradient sorunları mümkün |
+| Elman RNN | Py-0.9 ilk tam deney: Train/Val 85.76/77.42, en düşük TRAIN 79.00 | Uygun temel çizgi; uzun hafıza ve gradient sorunları mümkün |
 | Jordan RNN | Özel Jordan mimarisi denenmedi; eski dinamik MLP'de çıktı geri beslemesi var | Benzerliği eşdeğer deney saymıyoruz; free-run hata birikimi önemli |
 | ESN / Reservoir Computing | Py-0.7 tam validation deneyi yapıldı | Ucuz ridge readout; sabit reservoir durumu, NN kadar esnek olmayabilir |
 | LSM | Denenmedi | Spiking olay temsili mevcut düzenli 64 Hz veride öncelikli değil |
-| TCN | İki nedensel dilated conv katmanı ve parity/küçük eğitim testi var; tam deney yapılmadı | Uygun; geçmiş uzunluğu sonlu, uzun tutmaları tek başına temsil etmeyebilir |
+| TCN | Py-0.9 ilk tam deney: Train/Val 84.15/78.09, en düşük TRAIN 75.44 | Uygun; geçmiş uzunluğu sonlu, uzun tutmaları tek başına temsil etmeyebilir |
 | TDNN | Geçmiş MLP/lag yaklaşımları var; Py-0.7 açık TDNN tam deneyi yapıldı | Ucuz/taşınabilir; uzun geçmiş için gecikme seçimi önemli |
 | Neural ODE | Tam sürekli-zaman çözücülü model denenmedi | Eski hız-integrasyon ağları buna benzer ama Neural ODE deneyi değildir; çözüm maliyeti ve gözlenebilirlik sorunu kalır |
 | Neural CDE | Denenmedi | Düzensiz örneklemeye uygun; 64 Hz'e hizalı akışta ilk öncelik değil |
@@ -23,7 +23,7 @@ Bu liste tüm yöntemlerin denenmiş olduğu anlamına gelmez. Gerçek uçuşlar
 | GAN tabanlı SysID | Denenmedi | Veri üretimi/dağılım için olası; tek deterministik rollout doğruluğu için öncelikli değil |
 | Hammerstein–Wiener sinir ağları | MATLAB HAM_OE/NL_WH benzeri yapısal adaylar var; bunlar standart NN-HW deneyi değil | Uygun yapı; önceki yapısal adaylar belirgin kazanç getirmedi |
 | Volterra–NN hibrit | Tam hibrit denenmedi; geçmiş nonlinear baz/lag terimleri benzerlik taşıyor | Düşük dereceyle makul; özellik sayısı ve uzun hafıza pahalılaşır |
-| RBF dinamik ağları | Yeni Gaussian RBF/readout küçük eğitim testi var; tam deney yapılmadı | Uygun hafif alternatif; yüksek boyutlu gecikmelerde kapsama sorunu |
+| RBF dinamik ağları | Py-0.9 ilk tam deney: Train/Val 84.97/69.64, en düşük TRAIN 67.01 | Uygun hafif alternatif; yüksek boyutlu gecikmelerde kapsama sorunu |
 | DeepSINDy | Denenmedi | Seyrek öğrenilmiş denklemler taşınabilir; gürültülü türev ve doğru baz seçimi zor |
 | DeepONet / FNO | Denenmedi | Operatör/alan öğrenme avantajı burada belirsiz; birkaç skaler zaman serisi için büyük maliyet |
 | Time-Series Transformer / PatchTST | Denenmedi | Daha çok veri/bağlam maliyeti; nedensel rollout ve sabit hafıza ayrıca tasarlanmalı |
@@ -38,3 +38,7 @@ Aynı mixed-valve seed-621, aynı 7/2/2 split, donuk DDV/açı. En fazla 20 önc
 GRU, 12 gizli durumlu bir katman ve skaler lineer readout ile öğrenilmiş referans hızına düzeltme verir. TRAIN'den öğrenilmiş null bandında hız sıfır tutulur. Bu bir **öğrenilmiş hız modeli + GRU düzeltmesi**; GRU tek başına veya tüm Cascade ortak eğitimi değildir. Girişler tahmin DDV, merkezlenmiş DDV, tahmin null merkezi, DDV farkı, referans hız; fizik katsayıları/Truth yok. Her aday kendi TRAIN ölçekleriyle çalışır. DDV TRAIN tahminleri mevcut ailede in-sample'dır; OOF olduğu iddia edilmez.
 
 RAM Cascade Train/Val **69.06/91.43**, RAM Component **56.60/40.16**. Component kötüleşmesi ciddi dağılım/gürültü hassasiyeti gösterir. Angle Cascade 68.79/91.76. Varsayılan değiştirilmedi; yeni aday opt-in. Gerçek uçuş doğrulaması ve bağımsız sentetik audit hâlâ gerekli.
+
+## Py-0.9 uçuş-bazlı hedef
+
+TCN, Elman ve RBF tam deneyleri de tamamlandı. 20 yeni aday sonunda her TRAIN >90 ve pooled VAL >75 birlikte sağlanmadı. LSTM readout tam-uçuş düzeltmesi TRAIN minimumunu93.11'e çıkardı, ancak VAL72.30'a düştü. Bir diğer LSTM pooled Train92.20/VAL78.24 verdi; minimum TRAIN86.83. Bu sonuçlar ailelerin genel üstünlük sırası değildir; tek sentetik veri/split ve sınırlı ayarlar. Eski modelin yerine otomatik geçiş yapılmadı.

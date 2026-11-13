@@ -2,6 +2,38 @@
 
 Her geliştirme commitinde bu dosya güncellenir: değişiklik, deney/protokol, gerçekten çalıştırılan kontrol ve bilinen sınır kaydedilir. Başarısız denemeler silinmez. Aşağıdaki Git geçmişi eksiksizdir; Git öncesi bilgiler kullanıcı konuşmasından alınmıştır, bağımsız doğrulanmış deney kaydı değildir.
 
+## Py-0.9 — 2026-11-13 — Her TRAIN uçuşu >90 ve VAL >75: 20 aday
+
+- Kullanıcı hedefi bu turda **her TRAIN uçuşunda RAM Cascade Fit >90**, birleşik validation Fit >75 olarak uygulandı; aynı mixed-valve seed621, 7/2/2 split, donuk DDV/açı ve değişmeyen fingerprint. TEST açılmadı. 20 yeni aday tamamlandı; iki şartı birlikte sağlayan model çıkmadı.
+- TCN/Elman/RBF için ilk tam performans deneyleri; LSTM/GRU/TDNN kapasite, pencere, TRAIN-hata ağırlıklı örnekleme, loss katsayısı ve seed karşılaştırmaları. Yeni `refine_sequence_head` donuk recurrent state/readout konum-Jacobian düzeltmesini yalnız TRAIN'de öğrenir; validation optimizere verilmez. 20 aday ile iç optimizer adımı aynı kavram değildir.
+- TRAIN-only lider `20_head_best`: birleşik Train 93.99, en düşük TRAIN uçuşu 93.11, Val 72.30; validation şartından elendi. `09_lstm`: Train 92.20, en düşük TRAIN 86.83, Val 78.24; birleşik skorlar iyileşti ama her-uçuş hedefi sağlanmadı. Önceki LSTM Train 90.45/min86.85/Val76.27, validation>75 altında en düşük TRAIN sıralamasında korundu (09 adayıyla min farkı yalnız ~0.02 puan).
+- `run_balanced_search.py`: 20 üst sınır, iki koşulda erken durma; tüm adayların uçuş bazlı sonuçları XLSX `CandidateFlights` ve JSON'da. Sonuç `python/audit_results/balanced_search_20261113_044434/`; yerel UI kaydı `20261113_044434_000000`, önceki model + TRAIN-only lider + ortalama skoru iyi alternatif birlikte saklanır. Başlık pooled ortalama yerine **en düşük TRAIN uçuş Fit** gösterir. Normal eski koşu başlıkları/varsayılanları değişmedi.
+- `flight_weights=None`, `position_weight=.2` eski eğitim davranışını korur. Pozitif TRAIN ağırlıkları sadece örnekleme içindir, uçuş ID modeli beslemez. Readout düzeltmesi yeni giriş/state eklemez, aynı NumPy ağırlık çıkarımını kullanır. Rate/position clamp Jacobian'ı finite-difference testiyle doğrulandı. Daha büyük ağın otomatik daha iyi olmadığı bu sınırlı taramada görüldü; mimari aileler için genel üstünlük iddiası yok.
+- Python3.9: **47 test geçti**, Ruff/compileall geçti; Torch chunk-state ile NumPy eşleşmesi, clipped-Jacobian, donuk recurrent ağırlıklar, TRAIN kaybı iyileşmesi ve kesin hedef eşikleri dahil. Seçilen model final NumPy rollout ile tekrar kontrol edildi. Sistem Chromium ile üç model seçeneği, en düşük TRAIN etiketi, hedef-sağlanmadı bildirimi ve TRAIN uçuşundaki grafikler doğrulandı; ek eğitim başlatılmadı. Adayların eğitim+skor süreleri toplam716.90 s; veri hazırlama/son rapor hariç. Gerçek veri/MATLAB/Windows testi veya yeni bağımsız audit yok. Validation birçok geliştirme turunda tekrar kullanılıyor.
+
+| Aday | Birleşik TRAIN | En düşük TRAIN uçuşu | Birleşik VAL | Süre (s) |
+|---|---:|---:|---:|---:|
+| 01_tcn | 84.15 | 75.44 | 78.09 | 10.1 |
+| 02_elman | 85.76 | 79.00 | 77.42 | 18.1 |
+| 03_rbf | 84.97 | 67.01 | 69.64 | 4.5 |
+| 04_head | 93.12 | 90.62 | 72.01 | 49.3 |
+| 05_lstm | 89.56 | 85.55 | 79.50 | 26.7 |
+| 06_lstm | 88.57 | 82.68 | 78.11 | 32.6 |
+| 07_lstm | 87.13 | 79.68 | 72.41 | 25.4 |
+| 08_head | 93.97 | 93.05 | 72.49 | 68.0 |
+| 09_lstm | 92.20 | 86.83 | 78.24 | 30.5 |
+| 10_lstm | 90.52 | 79.04 | 75.55 | 34.7 |
+| 11_tcn | 89.22 | 78.44 | 76.35 | 27.3 |
+| 12_tdnn | 88.78 | 84.20 | 68.83 | 10.4 |
+| 13_rbf | 83.93 | 62.53 | 69.49 | 5.3 |
+| 14_elman | 81.24 | 67.01 | 80.34 | 32.1 |
+| 15_lstm | 78.82 | 62.35 | 72.08 | 33.0 |
+| 16_head | 92.99 | 91.40 | 70.76 | 57.8 |
+| 17_gru | 89.27 | 77.21 | 75.89 | 132.6 |
+| 18_lstm | 90.94 | 82.29 | 78.43 | 27.3 |
+| 19_lstm | 85.60 | 74.30 | 66.06 | 45.0 |
+| 20_head_best | 93.99 | 93.11 | 72.30 | 46.1 |
+
 ## Py-0.8 — 2026-11-12 — TRAIN kapasite hedefi ve LSTM
 
 - Kullanıcı hedefi validation yerine TRAIN RAM Cascade Fit >90, üst sınır 20 yeni aday olarak değişti. Aynı mixed-valve seed-621/split/fingerprint; TRAIN RMSE ile sıralama ve durma, validation report-only, TEST kapalı. Altıncı adayda **TRAIN 90.4487** elde edildi; kalan 14 çalıştırılmadı. Bu TRAIN-seçilmiş tanı modeli, eski validation kazananının otomatik üretim yerine geçmesi değildir.

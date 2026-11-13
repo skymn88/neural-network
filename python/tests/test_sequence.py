@@ -123,7 +123,14 @@ class SequenceTests(unittest.TestCase):
         features, base = sequence_features(z, ref["ram"])
         for family in ("gru", "lstm", "elman", "tdnn", "tcn", "esn", "rbf"):
             m = fit_sequence(
-                prepared, ref, family=family, hidden=4, steps=2, horizon=96
+                prepared,
+                ref,
+                family=family,
+                hidden=4,
+                steps=2,
+                horizon=96,
+                flight_weights=[1] if family == "elman" else None,
+                position_weight=1.0 if family == "elman" else 0.2,
             )
             pred = sequence_rate(m["ram"]["sequence"], features, base)
             self.assertTrue(np.isfinite(pred).all())
