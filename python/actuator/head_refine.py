@@ -41,6 +41,8 @@ def refine_sequence_head(model, train, iterations=3, ridge=0.01, focus=1.0):
     m = copy.deepcopy(model)
     r = m["ram"]
     spec = r["sequence"]
+    if "correction_limit" in spec or "output_rate_limit" in spec:
+        raise ValueError("Readout refinement currently requires legacy clipping policy")
     if spec["family"] not in ("gru", "lstm", "elman"):
         raise ValueError("Head refinement requires recurrent sequence model")
     weights = np.r_[spec["head"], spec["bias"]].astype(float)

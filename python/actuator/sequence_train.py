@@ -50,6 +50,8 @@ def fit_sequence(
     leak=0.2,
     flight_weights=None,
     position_weight=0.2,
+    clip_limit=None,
+    check_cancel=None,
 ):
     if family not in ("gru", "lstm", "elman", "tdnn", "tcn", "esn", "rbf"):
         raise ValueError("Unsupported sequence family")
@@ -81,6 +83,17 @@ def fit_sequence(
         raise ValueError("position_weight must be finite and nonnegative")
 
     spec = dict(norm, family=family, hidden=hidden, residual=residual, gate=gate)
+    if clip_limit is not None:
+        if (
+            not np.isfinite(clip_limit)
+            or clip_limit <= 0
+            or reference["ram"].get("map_rate_limit") != clip_limit
+        ):
+            raise ValueError(
+                "Prepare features with the same positive TRAIN clip_limit first"
+            )
+        spec.update(correction_limit=clip_limit, output_rate_limit=clip_limit)
+
     normalized = [
         (a - np.asarray(norm["mean"])) / np.asarray(norm["scale"])
         for a, _, _, _ in arrays
@@ -207,6 +220,8 @@ def fit_sequence(
                 )
             )
         for step in range(steps):
+            if check_cancel is not None:
+                check_cancel()
             batch = []
             for j in range(12):
                 fi = (
@@ -223,10 +238,14 @@ def fit_sequence(
                     start = int(rng.integers(33, len(item[0]) - horizon))
                 batch.append([a[start : start + horizon] for a in item])
             X, B, Y, M = [torch.stack([a[k] for a in batch]) for k in range(4)]
-            pred = net(X) * norm["rate_scale"] + (B if residual else 0)
+            correction = net(X) * norm["rate_scale"]
+            if clip_limit is not None:
+                correction = correction.clamp(-clip_limit, clip_limit)
+            pred = correction + (B if residual else 0)
             if gate:
                 pred = pred * (B != 0)
-            pred = pred.clamp(-norm["rate_limit"], norm["rate_limit"])
+            limit = norm["rate_limit"] if clip_limit is None else clip_limit
+            pred = pred.clamp(-limit, limit)
             # First 64 samples warm recurrent/conv state; no reset in evaluation.
             err = (pred[:, 64:] - Y[:, 64:]) / norm["rate_scale"]
             mask = M[:, 64:]

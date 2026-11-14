@@ -2,6 +2,38 @@
 
 Her geliştirme commitinde bu dosya güncellenir: değişiklik, deney/protokol, gerçekten çalıştırılan kontrol ve bilinen sınır kaydedilir. Başarısız denemeler silinmez. Aşağıdaki Git geçmişi eksiksizdir; Git öncesi bilgiler kullanıcı konuşmasından alınmıştır, bağımsız doğrulanmış deney kaydı değildir.
 
+## Py-0.10 — 2026-11-13 — Çok uçuşlu genelleme, veri/UI ve sunum
+
+Önceki commit `da39402` üzerine; kullanıcı token sınırında yeni denemelerin kesilmesini istedi. Yeni varsayılan model/split seçilmedi; değişiklikler opt-in, TEST kapalı, eski sentetik fingerprint ve synthetic_rich.mat korunur.
+
+### 1. Gerçekte çalıştırılan genelleme deneyi
+- 18 eğitim: 7/14/21 TRAIN × %99.9 hız kırpma kapalı/açık × 3 seed42/43/44. Her model LSTM24, 800 adım, horizon256. Eski2 + yeni6 validation uçuşu sabit; seed910247/741203 protokolü JSON'da. Hızları ortalayan tek integratör ensemble, RAM Component dahil tüm adayların uçuş/seed sonuçları XLSX CandidateFlights ve JSON'da. TEST değerlendirilmedi.
+- Seçim artık en düşük validation uçuş Fit'i, sonra ortalama. Seçilen `n14_q999`: birleşik TRAIN **87.29**, validation **71.08**; validation macro **76.83**, minimum **40.39**; Component macro **51.25**, minimum **37.09**. TRAIN95/VAL90 hedefi sağlanmadı. Önceki iki validation üzerindeki yüksek Fit bağımsız çok-uçuş başarısı sayılmıyor.
+
+| TRAIN | Kırpma | Val min | Val ort | Val birleşik | Component ort | Train–Val macro fark |
+|---:|---|---:|---:|---:|---:|---:|
+|7|kapalı|29.15|78.67|70.71|52.09|13.68|
+|7|açık|36.31|79.08|72.27|48.36|12.68|
+|14|kapalı|26.62|76.22|68.00|44.99|12.29|
+|14|açık|40.39|76.83|71.08|51.25|12.49|
+|21|kapalı|40.06|77.18|73.02|45.97|11.35|
+|21|açık|23.23|75.64|68.92|4.72|10.93|
+
+- Toplam **1914.59 s**. Veri artışı farkı biraz küçülttü ama validation'da tutarlı yükselme yok. Sabit optimizer adımı daha büyük veri için eşit epoch değildir. Bazı Component sonuçları çok zayıf: model DDV tahmin hatasına uyum sağlamış olabilir. q999 her durumda iyileştirmedi. Tek tek seed-validation Cascade negatifleri de saklandı (n07_q999 seed43 VAL_NEW_06 −6.13; n14_qoff seed44 −4.87); bunlar ensemble skorları değildir.
+- Portable NumPy ve hızlandırılmış ensemble Cascade/Component eşleşmesi gerçekten kontrol edildi. Eski veri/fingerprint, ayrık cohort, TRAIN-only quantile ve causal rate-averaging testleri çalıştı. Sonuçlar `python/audit_results/generalization_20261113_051726/`; web kaydı `20261113_051726_000000`. Yeni genel arama negatif seed skorlarını da eleme kuralına dahil eder; bu geçmiş deneyin ham kayıtları silinmedi.
+
+### 2. Veri ve arayüz
+- Multipart doğrudan diske, usecols/chunksize ile kanal bazında anti-aliasing/64 Hz; ham dosya başarılı importtan sonra silinir. `ACTUATOR_MAX_UPLOAD_MB` varsayılan512 MiB/dosya. Yeni çevrimdışı bağımlılık python-multipart0.0.20; start.bat internetten paket indirmez.
+- Gerçek HTTP ölçümü: **103,087,576 byte** CSV (101 MB talebinden büyük; 480000 satır), upload **0.380 s**, import **0.518 s**, toplam **0.898 s**. Linux sunucu VmHWM başlangıç **143777792 byte**, tepe **186564608 byte** (177.92 MiB; artış40.80 MiB). Ölçüm API bağımlılıklarını kapsar; Windows performansı iddiası değildir. Sonradan tam101 MiB üretmeye ayarlanan benchmark tekrar çalıştırılmadan kullanıcı durdurma istedi; yukarıdaki rakamlar ilk gerçekten tamamlanan dosyaya aittir.
+- Chunk sınırı/anti-aliasing testi başlangıç padding farkını buldu; sabit padding ile düzeltildi ve tekrar geçti. Multipart boyut sınırı/yarım dosya temizliği, usecols ve cache tek-üretim/LRU kontrolleri çalıştı.
+- Plot/raw üretim cache'i, TEST dışı arka plan prewarm, yükleniyor/hata/zaman aşımı ve eski yanıt token koruması. Sistem Chromium'da kayıtlı sonuç ilk açılışında3 grafik, gecikmiş uçuş yanıtı, load yarışı, görünür hata/tekrar ve gerçek multipart import **geçti**, JS page error yok. Browser regresyon script'i repoda.
+
+### 3. Güvenilir arama ve sunum
+- Opt-in güvenilir seçim/otomatik arama: 6 aile, iki sınırlı preset, 3 seed; aday/dakika/iptal/ilerleme, her tamamlanan aşama sonrası kısmi sonuç ve model kaydı. Validation<3 → TRAIN-only LOFO; TEST her zaman kapalı. Negatif/nonfinite Cascade uçuşları elenir; >25puan genelleme farkı ve Component düşüklüğü uyarılır. Seed min/ort/max ve Component/Cascade CandidateFlights'ta.
+- Altı ailenin her biri küçük deterministik veride gerçekten eğitildi (2 optimizer adımlı smoke; stable'ın mevcut600 ön eğitim adımı korunur). LOFO/test izolasyonu, seed ensemble fiziksel hız ortalaması, farklı DDV üyeleri, iptal/kısmi kayıt test edildi. Bu yeni genel otomatik aramanın geniş gerçek-veri performans taraması yapılmadı.
+- Sunum yeniden yazıldı: beyaz/siyah, Franklin Gothic Medium, gerçek title placeholder ve bullet/slidenum alanları, editable native chart/şekil/tablo, genel CONTENT ve ayrı NUMBERS, gelecek işler/sözlük/bulgular. `--template` eski slaytları kaldırıp düzenleri korur; font=None korunumu test edildi. Kaynak kayıt/metin kullanır, eğitim çalıştırmaz. Şablon boyutu/nesne sınırları/tema/başlık/nativechart/bullet/alan kontrolleri geçti. PowerPoint/Windows görsel açılış testi yapılmadı.
+- Python3.9 gerçek test paketi: **60 test geçti**; Ruff E9/F63/F7/F82 (py39), compileall ve dependency check çalıştırıldı. İlk sandbox TestClient soket kısıtından durduruldu; localhost izinli koşuda testler geçti. Son küçük düzenlemelerden sonra da 60 test yeniden geçti (9.09 s). MATLAB ve gerçek uçuş yok; performans iddiası yalnız belirtilen sentetik deneye aittir.
+
 ## Py-0.9 — 2026-11-13 — Her TRAIN uçuşu >90 ve VAL >75: 20 aday
 
 - Kullanıcı hedefi bu turda **her TRAIN uçuşunda RAM Cascade Fit >90**, birleşik validation Fit >75 olarak uygulandı; aynı mixed-valve seed621, 7/2/2 split, donuk DDV/açı ve değişmeyen fingerprint. TEST açılmadı. 20 yeni aday tamamlandı; iki şartı birlikte sağlayan model çıkmadı.

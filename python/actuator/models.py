@@ -81,7 +81,7 @@ def val_rmse(model, val):
     return float(np.sqrt(np.mean(e**2))) if np.all(np.isfinite(e)) else float("inf")
 
 
-def fit_oe(train, val, ddv, angle):
+def fit_oe(train, val, ddv, angle, check_cancel=None):
     # TRAIN DDV predictions are leave-one-flight-out when at least 3 flights exist.
     if len(train) >= 3:
         upstream = []
@@ -108,6 +108,8 @@ def fit_oe(train, val, ddv, angle):
     best = None
     best_score = np.inf
     for beta in [0, -0.03, -0.3]:
+        if check_cancel is not None:
+            check_cancel()
         p = 1 + 3 * (length + 1)
         G = np.zeros((p, p))
         h = np.zeros(p)
@@ -168,6 +170,7 @@ def fit_neural(
     hidden=16,
     log=print,
     warm_steps=100,
+    check_cancel=None,
 ):
     if any(len(f.time) <= horizon + 34 for f in train):
         raise ValueError(
@@ -220,6 +223,8 @@ def fit_neural(
     Y = torch.tensor(np.concatenate(Y)[:, None], dtype=torch.float32)
     opt = torch.optim.Adam(net.parameters(), lr=0.003)
     for k in range(warm_steps):
+        if check_cancel is not None:
+            check_cancel()
         ix = torch.tensor(rng.integers(0, len(X), 2048))
         loss = torch.mean((net(X[ix]) - Y[ix]) ** 2)
         opt.zero_grad()
@@ -263,6 +268,8 @@ def fit_neural(
         [{"params": net.parameters(), "lr": 0.001}, {"params": [dw], "lr": 0.00003}]
     )
     for step in range(steps):
+        if check_cancel is not None:
+            check_cancel()
         # Windows only from TRAIN. Real RAM/velocity initialize TRAIN windows only.
         us = []
         ys = []
@@ -333,7 +340,16 @@ def fit_neural(
 
 
 def fit_stable(
-    train, val, ddv, angle, steps=400, horizon=128, seed=42, hidden=12, log=print
+    train,
+    val,
+    ddv,
+    angle,
+    steps=400,
+    horizon=128,
+    seed=42,
+    hidden=12,
+    log=print,
+    check_cancel=None,
 ):
     """Learned monotone neural state model. No simulator coefficients are supplied.
     Positive nonlinear maps + negative position feedback reduce free-run instability.
@@ -429,6 +445,8 @@ def fit_stable(
     Y = torch.tensor(np.concatenate(Y), dtype=torch.float32)
     opt = torch.optim.Adam(params, lr=0.01)
     for step in range(600):
+        if check_cancel is not None:
+            check_cancel()
         ix = torch.tensor(rng.integers(0, len(X), 2048))
         b = X[ix]
         loss = torch.mean(((update(b[:, 0], b[:, 1], b[:, 2]) - Y[ix]) / vs) ** 2)
@@ -470,6 +488,8 @@ def fit_stable(
         [{"params": params, "lr": 0.002}, {"params": [dw], "lr": 0.00001}]
     )
     for step in range(steps):
+        if check_cancel is not None:
+            check_cancel()
         us = []
         ys = []
         v0 = []

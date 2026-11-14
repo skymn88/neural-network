@@ -2,7 +2,12 @@
 
 import numpy as np
 from .inference import rollout, predict_ddv, angle_values
-from .sequence_inference import sequence_features
+from .sequence_inference import (
+    sequence_features,
+    sequence_raw,
+    combine_rate,
+    integrate_rate,
+)
 
 
 def recurrent_states(spec, features):
@@ -32,27 +37,28 @@ def recurrent_states(spec, features):
     return states
 
 
-def fast_rollout(model, current, initial):
-    r = model["ram"]
-    if r["kind"] != "sequence_rate" or r["sequence"]["family"] not in (
-        "gru",
-        "lstm",
-        "elman",
-    ):
-        return rollout(model, current, initial)
-    spec = r["sequence"]
-    z = predict_ddv(model["ddv"], current)
-    features, base = sequence_features(z, r["reference"])
-    raw = recurrent_states(spec, features) @ np.asarray(spec["head"]) + spec["bias"]
-    rate = raw * spec["rate_scale"] + (base if spec["residual"] else 0)
-    if spec["gate"]:
-        rate[base == 0] = 0
-    rate = np.clip(rate, -spec["rate_limit"], spec["rate_limit"])
-    x = np.empty(len(z))
-    x[0] = initial
-    lo, hi = r["bounds"]
-    for k in range(1, len(z)):
-        x[k] = min(hi, max(lo, x[k - 1] + rate[k] / 64))
+def fast_rate(ram, ddv):
+    if ram["kind"] == "rate_ensemble":
+        return np.mean([fast_rate(member, ddv) for member in ram["members"]], axis=0)
+    spec = ram["sequence"]
+    features, base = sequence_features(ddv, ram["reference"])
+    if spec["family"] in ("gru", "lstm", "elman"):
+        raw = recurrent_states(spec, features) @ np.asarray(spec["head"]) + spec["bias"]
+    else:
+        raw = sequence_raw(spec, features)
+    return combine_rate(spec, raw, base)
+
+
+def fast_rollout(model, current, initial, ddv_override=None):
+    ram = model["ram"]
+    if ram["kind"] not in ("sequence_rate", "rate_ensemble"):
+        return rollout(model, current, initial, ddv_override)
+    z = (
+        predict_ddv(model["ddv"], current)
+        if ddv_override is None
+        else np.asarray(ddv_override)
+    )
+    x = integrate_rate(fast_rate(ram, z), initial, ram["bounds"])
     return z, x, angle_values(model["angle"], x)
 
 

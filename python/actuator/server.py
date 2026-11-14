@@ -1,6 +1,6 @@
 """Local-only UI/API. Uploaded flight data never leaves this process/machine."""
 
-import base64, io, json, threading, uuid
+import base64, io, json, threading, uuid, re
 from pathlib import Path
 from typing import Literal, Optional
 import numpy as np
@@ -11,6 +11,11 @@ from pydantic import BaseModel, Field
 from .data import ROOT, NAMES, Flight, align, bundled, pulse_flights, split, fingerprint
 from .experiment import run, serial
 from .models import rollout
+from .uploads import receive_upload, upload_limit, read_selected
+from .plot_cache import PlotCache
+
+plot_cache = PlotCache()
+raw_cache = PlotCache(capacity=4)
 
 app = FastAPI(title="Actuator Lab")
 jobs = {}
@@ -40,7 +45,7 @@ def index():
 
 class Upload(BaseModel):
     name: str
-    content: str = Field(max_length=45000000)
+    content: str = Field(max_length=((upload_limit() + 2) // 3) * 4)
 
 
 class Inspect(BaseModel):
@@ -51,8 +56,8 @@ class Inspect(BaseModel):
 def read_csv(file, sep):
     try:
         data = base64.b64decode(file.content, validate=True)
-        if len(data) > 32 * 1024**2:
-            raise ValueError("32 MiB file limit")
+        if len(data) > upload_limit():
+            raise ValueError("Configured upload limit exceeded")
         return pd.read_csv(io.BytesIO(data), sep=sep)
     except Exception as e:
         raise HTTPException(400, f"CSV could not be read: {e}")
@@ -74,8 +79,10 @@ class Import(BaseModel):
 
 @app.post("/api/import")
 def import_data(body: Import):
-    if sum(len(f.content) for f in body.files) > 256 * 1024**2:
-        raise HTTPException(400, "Combined upload exceeds 256 MiB encoded")
+    if sum(len(f.content) for f in body.files) > ((upload_limit() + 2) // 3) * 4:
+        raise HTTPException(
+            413, "Legacy JSON upload exceeds configured limit; use multipart"
+        )
     if len({Path(f.name).stem for f in body.files}) != len(body.files):
         raise HTTPException(400, "Flight filenames must be unique")
     flights = []
@@ -104,6 +111,82 @@ def import_data(body: Import):
     }
 
 
+uploaded = {}
+
+
+@app.get("/api/config")
+def client_config():
+    return {"max_upload_bytes": upload_limit()}
+
+
+@app.post("/api/upload")
+async def upload(request: Request):
+    try:
+        item = await receive_upload(request)
+        uploaded[item["id"]] = item
+        return {k: v for k, v in item.items() if k != "path"}
+    except OverflowError as e:
+        raise HTTPException(413, str(e))
+    except Exception as e:
+        raise HTTPException(400, str(e))
+
+
+class DiskInspect(BaseModel):
+    id: str
+    separator: Literal[",", ";", "\t"] = ","
+
+
+@app.post("/api/inspect-upload")
+def inspect_upload(body: DiskInspect):
+    if body.id not in uploaded:
+        raise HTTPException(404, "Upload expired; select the CSV again")
+    try:
+        frame = pd.read_csv(uploaded[body.id]["path"], sep=body.separator, nrows=0)
+        return {"columns": list(frame.columns), "rows": None}
+    except Exception as e:
+        raise HTTPException(400, str(e))
+
+
+class DiskImport(BaseModel):
+    ids: list[str] = Field(min_length=1, max_length=40)
+    mapping: dict[str, str]
+    times: dict[str, str]
+    separator: Literal[",", ";", "\t"] = ","
+    assignments: Optional[list[str]] = None
+
+
+@app.post("/api/import-upload")
+def import_upload(body: DiskImport):
+    if any(id not in uploaded for id in body.ids):
+        raise HTTPException(404, "Upload expired; select the CSV again")
+    items = [uploaded[id] for id in body.ids]
+    if len({Path(item["name"]).stem for item in items}) != len(items):
+        raise HTTPException(400, "Flight filenames must be unique")
+    try:
+        flights = [
+            read_selected(
+                item["path"],
+                Path(item["name"]).stem,
+                body.mapping,
+                body.times,
+                body.separator,
+            )
+            for item in items
+        ]
+        groups = split(flights, assignments=body.assignments)
+    except Exception as e:
+        raise HTTPException(400, str(e))
+    id = uuid.uuid4().hex
+    datasets[id] = (flights, groups)
+    for key in body.ids:
+        Path(uploaded.pop(key)["path"]).unlink(missing_ok=True)
+    return {
+        "dataset": id,
+        "flights": len(flights),
+        "split": {s: [f.name for f in fs] for s, fs in groups.items()},
+    }
+
+
 class RunRequest(BaseModel):
     source: Literal["bundled", "pulse", "flightLike", "flightLikeMixed", "user"] = (
         "bundled"
@@ -125,6 +208,11 @@ class RunRequest(BaseModel):
     include_test: bool = False
     ddv_basis: Literal["rich", "legacy"] = "rich"
     warm_steps: int = Field(default=100, ge=20, le=1000)
+    reliableSelection: bool = False
+    autoSearch: bool = False
+    maxCandidates: int = Field(default=6, ge=1, le=12)
+    maxMinutes: float = Field(default=30, ge=0.1, le=240)
+    clipRate: bool = False
 
 
 @app.post("/api/run")
@@ -145,7 +233,12 @@ def start(body: RunRequest):
     def worker():
         def log(message):
             jobs[id]["log"].append(str(message))
-            if jobs[id]["cancel"]:
+            progress = re.match(r"Candidate (\d+)/(\d+)", str(message))
+            if progress:
+                jobs[id]["progress"] = dict(
+                    current=int(progress[1]), total=int(progress[2])
+                )
+            if jobs[id]["cancel"] and not (body.autoSearch or body.reliableSelection):
                 raise RuntimeError("Cancelled at a safe stage boundary")
 
         try:
@@ -170,29 +263,45 @@ def start(body: RunRequest):
                     )
                 )
             )
-            result, _, _ = run(
-                flights,
-                groups,
-                source=body.source,
-                steps=body.steps,
-                horizon=body.horizon,
-                hidden=body.hidden,
-                seed=body.seed,
-                methods=body.methods,
-                include_test=body.include_test,
-                log=log,
-                ddv_basis=body.ddv_basis,
-                warm_steps=body.warm_steps,
-                syntheticTrainFlights=body.syntheticTrainFlights,
-                syntheticProfile="flightLike"
-                if body.source in ("flightLike", "flightLikeMixed")
-                else "pulse",
-                nullAdaptive=body.nullAdaptive,
-                nullObserver=body.nullObserver,
-                nullGateExpansion=body.nullGateExpansion,
-                selectionBasis=body.selectionBasis,
-                nullTau=body.nullTau,
-            )
+            if body.autoSearch or body.reliableSelection:
+                from .robust_search import search
+
+                result, _, _ = search(
+                    flights,
+                    groups,
+                    source=body.source,
+                    max_candidates=body.maxCandidates,
+                    max_minutes=body.maxMinutes,
+                    seed=body.seed,
+                    methods=None if body.autoSearch else body.methods,
+                    clip=body.clipRate,
+                    log=log,
+                    cancel=lambda: jobs[id]["cancel"],
+                )
+            else:
+                result, _, _ = run(
+                    flights,
+                    groups,
+                    source=body.source,
+                    steps=body.steps,
+                    horizon=body.horizon,
+                    hidden=body.hidden,
+                    seed=body.seed,
+                    methods=body.methods,
+                    include_test=body.include_test,
+                    log=log,
+                    ddv_basis=body.ddv_basis,
+                    warm_steps=body.warm_steps,
+                    syntheticTrainFlights=body.syntheticTrainFlights,
+                    syntheticProfile="flightLike"
+                    if body.source in ("flightLike", "flightLikeMixed")
+                    else "pulse",
+                    nullAdaptive=body.nullAdaptive,
+                    nullObserver=body.nullObserver,
+                    nullGateExpansion=body.nullGateExpansion,
+                    selectionBasis=body.selectionBasis,
+                    nullTau=body.nullTau,
+                )
             jobs[id].update(status="done", result=result)
         except Exception as e:
             jobs[id].update(
@@ -259,6 +368,36 @@ def flight_names(id: str):
 
 @app.get("/api/results/{id}/plot")
 def plot(id: str, flight: int = 0, model: Optional[str] = None):
+    return plot_cache.get((id, flight, model), lambda: compute_plot(id, flight, model))
+
+
+class Preload(BaseModel):
+    model: str
+
+
+@app.post("/api/results/{id}/preload")
+def preload(id: str, body: Preload):
+    r = result(id)
+    names = flight_names(id)
+    manifest = r.get("split", [])
+    test_names = (
+        {row["flight"] for row in manifest if row["split"] == "test"}
+        if isinstance(manifest, list)
+        else set(manifest.get("test", []))
+    )
+    queued = 0
+    for i, name in enumerate(names):
+        # A closed TEST is never precomputed merely by opening a result.
+        if name in test_names and not r["config"].get("include_test", False):
+            continue
+        plot_cache.preload(
+            (id, i, body.model), lambda i=i: compute_plot(id, i, body.model)
+        )
+        queued += 1
+    return {"queued": queued}
+
+
+def compute_plot(id, flight=0, model=None):
     p = folder(id)
     models = json.loads((p / "models.json").read_text())
     r = json.loads((p / "result.json").read_text())
@@ -303,13 +442,33 @@ _reference_cache = {}
 
 
 def reference_flights(result):
+    key = (
+        result["config"]["source"],
+        result["config"].get("seed"),
+        result["dataset_sha256"],
+    )
+    return raw_cache.get(key, lambda: generate_reference(result))
+
+
+def generate_reference(result):
     """Shipped public synthetic reports share raw data rather than duplicate it."""
     source = result["config"]["source"]
-    if source not in ("bundled", "pulse", "flightLike", "flightLikeMixed"):
+    if source not in (
+        "bundled",
+        "pulse",
+        "flightLike",
+        "flightLikeMixed",
+        "mixedGeneralizationValidation",
+    ):
         raise HTTPException(404, "Local raw data missing")
     cache_key = (source, result["config"].get("seed"))
     if cache_key not in _reference_cache:
-        if source == "bundled":
+        if source == "mixedGeneralizationValidation":
+            from .generalization import generalization_data
+
+            _, groups, _, extra = generalization_data()
+            flights = groups["validation"] + extra
+        elif source == "bundled":
             flights, _ = bundled()
         elif source in ("flightLike", "flightLikeMixed"):
             flights, _ = pulse_flights(

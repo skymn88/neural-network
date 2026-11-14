@@ -1,0 +1,100 @@
+{
+  "protocol": {
+    "original_seed": 621,
+    "validation_seed": 910247,
+    "extra_train_seed": 741203,
+    "validation_durations": [
+      2100,
+      2400,
+      2600,
+      2200,
+      2800,
+      2500
+    ],
+    "extra_train_durations": [
+      2200,
+      2400,
+      2100,
+      2800,
+      2300,
+      2600,
+      2500,
+      2700,
+      2250,
+      2450,
+      2350,
+      2200,
+      2400,
+      2100
+    ],
+    "variation": {
+      "gain_sd": 0.03,
+      "bias_sd": 0.025,
+      "drift_amp": 0.02
+    },
+    "training_seeds": [
+      42,
+      43,
+      44
+    ],
+    "train_counts": [
+      7,
+      14,
+      21
+    ]
+  },
+  "original_sha256": "bdde2ef34f585ba0700b335a630d1bbd39c01847af9ff3c2feffa444db45fbdb",
+  "extra_train_sha256": "8c674c4968e2e1529396c1bda82e1df30529c67800f0812fd4bb33940adc1ced",
+  "extra_validation_sha256": "b75ed1bd9156c234a91023928910afea28079de5d279176a0d9600471a029142",
+  "original_split": {
+    "train": [
+      "FLIKE_07",
+      "FLIKE_08",
+      "FLIKE_01",
+      "FLIKE_11",
+      "FLIKE_04",
+      "FLIKE_06",
+      "FLIKE_03"
+    ],
+    "validation": [
+      "FLIKE_05",
+      "FLIKE_10"
+    ],
+    "test": [
+      "FLIKE_02",
+      "FLIKE_09"
+    ]
+  },
+  "added_train": [
+    "TRAIN_EXTRA_01",
+    "TRAIN_EXTRA_02",
+    "TRAIN_EXTRA_03",
+    "TRAIN_EXTRA_04",
+    "TRAIN_EXTRA_05",
+    "TRAIN_EXTRA_06",
+    "TRAIN_EXTRA_07",
+    "TRAIN_EXTRA_08",
+    "TRAIN_EXTRA_09",
+    "TRAIN_EXTRA_10",
+    "TRAIN_EXTRA_11",
+    "TRAIN_EXTRA_12",
+    "TRAIN_EXTRA_13",
+    "TRAIN_EXTRA_14"
+  ],
+  "added_validation": [
+    "VAL_NEW_01",
+    "VAL_NEW_02",
+    "VAL_NEW_03",
+    "VAL_NEW_04",
+    "VAL_NEW_05",
+    "VAL_NEW_06"
+  ],
+  "hyperparameters": {
+    "family": "lstm",
+    "hidden": 24,
+    "horizon": 256,
+    "steps": 800,
+    "gate_expansion": 1.5,
+    "seed_count": 3
+  }
+}

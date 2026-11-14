@@ -4,6 +4,26 @@ Current → DDV → RAM → Deflection zincirini uçuş verisinden öğrenen bla
 
 **Gerçek uçuş verisi bu ortamda yok.** Sentetik başarı gerçek uçuş doğrulaması değildir.
 
+## Bu tur: güvenilir seçim ve büyük CSV
+
+`python/start.bat` ile aç. Yeni sonuç **20261113_051726_000000** seçilince eğitim yapılmadan 8 validation uçuşunun tabloları ve grafikleri gelir. TEST kapalıdır. Yeni seçenekler kapalı gelir; eski eğitim varsayılanları/split korunur.
+
+- **Güvenilir seçim**: seçili yöntemi 3 seed ile dener. Validation uçuşu <3 ise yalnız TRAIN üzerinde uçuş dışarıda bırakma (LOFO); tek TRAIN uçuşuyla bağımsız LOFO yapılamaz.
+- **En uygun yöntemi bul**: null-rate, GRU, LSTM, OE, neural, stable için en fazla 12 önceden tanımlı ayar; her ayar 3 seed. Aday/dakika sınırını belirle. Tamamlanan adaylar ve modeller her adımda kısmen saklanır. İptal/süre kontrolü eğitim adımlarında ve uçuş sınırlarında yapılır; sürmekte olan tek LS/rollout ve dosya yazımı nedeniyle dakika sınırı bir miktar aşılabilir.
+- Seçim, en düşük RAM Cascade uçuş Fit'i, sonra ortalama ile yapılır. Negatif/sonlu olmayan adaylar elenir; >25 puan TRAIN–validation farkı işaretlenir. `CandidateFlights` seed ve RAM Component sonuçlarını içerir. Bu yeni yolda TEST kutusu seçili olsa da TEST değerlendirilmez.
+- **TRAIN %99.9 hız kırpma** opt-in; null hız haritası ve GRU/LSTM düzeltmesine uygulanır. Diğer ailelere yeni fiziksel kısıt eklemez.
+- CSV artık multipart olarak diske aktarılır; yalnız seçilen sütunlar parçalı okunup 64 Hz'e indirgenir, başarıdan sonra ham CSV silinir. Dosya başına varsayılan **512 MiB**; başlatmadan önce `set ACTUATOR_MAX_UPLOAD_MB=512` ile değiştirilebilir. Sütun zamanları sayısal saniye ve artan sırada olmalı.
+
+**Bir yeni çevrimdışı paket:** wheel klasörüne `python-multipart==0.0.20` ekle. Kullandığın Python ortamında bir kez:
+
+```bat
+python -m pip install --no-index --find-links "D:\kutuphaneler\wheelhouse" python-multipart==0.0.20
+```
+
+Genelleme deneyi tekrar komutu: `python python/run_generalization.py` (18 eğitim; bu ortamda yaklaşık 32 dakika). 7/14/21 TRAIN, 3 seed, kırpma açık/kapalı ve sabit 8 validation karşılaştırılır. Seçilen 14-TRAIN kırpılmış ensemble: validation en düşük **40.39**, ortalama **76.83**, birleşik **71.08**. RAM Component ortalaması **51.25**. Hedef sağlanmadı; bunlar gerçek uçuş sonuçları değildir. Tam kayıt [changelog](docs/changelog.md).
+
+Sunum eğitim çalıştırmaz: `python python/build_presentation.py`. Kendi şablonunla: `python python/build_presentation.py --template "C:\yol\sablon.pptx" --output "sunum.pptx"`. `SETTINGS/THEME/NUMBERS/CONTENT` blokları düzenlenebilir; `SETTINGS['font']=None` şablon fontunu korur. [Hazır PPTX](presentations/actuator_black_box_overview.pptx).
+
 ## Önce kütüphaneleri çevrimdışı kur
 
 Windows **64-bit Python 3.9** gerekir. `start.bat` artık paket indirmez; mevcut ortamı kontrol edip uygulamayı açar. Önceki “Downloading CPU dependencies” mesajı PyTorch CPU ve diğer paketleri internetten indirme girişimiydi; bu davranış kaldırıldı.
@@ -40,6 +60,7 @@ Gerekli paketler aşağıdadır. **Alt bağımlılıkları da** wheel klasörün
 | PyTorch CPU | 2.6.0+cpu | Sinir ağı eğitimi |
 | FastAPI / Pydantic | 0.115.12 / 2.10.6 | Yerel arayüz API'si |
 | Uvicorn | 0.34.3 | Yerel sunucu |
+| python-multipart | 0.0.20 | Akışlı CSV yükleme |
 
 Sabit sürümler: `python/requirements-cpu.txt`. Wheel dosyaları **CPython 3.9 / Windows x64** ile uyumlu olmalı; Linux paketleri Windows'ta kullanılamaz. Paketleri bir kez hazırlamak gerekirse **internete bağlı başka bir Windows x64 + Python 3.9 bilgisayarda**:
 

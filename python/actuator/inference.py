@@ -50,6 +50,8 @@ def rollout(model, current, x0, ddv_override=None):
         if delay:
             u = np.r_[np.repeat(u[0], delay), u[: len(u) - delay]]
         rate = np.interp(u, m["knots"], m["values"])
+        if "map_rate_limit" in m:
+            rate = np.clip(rate, -m["map_rate_limit"], m["map_rate_limit"])
         if "zero_band" in m:
             rate[(u >= m["zero_band"][0]) & (u <= m["zero_band"][1])] = 0.0
         x = np.empty(n)
@@ -67,6 +69,20 @@ def rollout(model, current, x0, ddv_override=None):
         lo, hi = m["bounds"]
         for k in range(1, n):
             x[k] = min(hi, max(lo, x[k - 1] + rate[k] / FS))
+    elif m["kind"] == "rate_ensemble":
+        from .sequence_inference import ensemble_rate, integrate_rate
+
+        x = integrate_rate(ensemble_rate(m, ddv), x0, m["bounds"])
+    elif m["kind"] == "seed_ensemble":
+        from .seed_ensemble import integrate_members
+
+        inputs = (
+            [predict_ddv(d, current) for d in m["ddv_members"]]
+            if ddv_override is None
+            else [ddv] * len(m["members"])
+        )
+        ddv = np.mean(inputs, axis=0)
+        x = integrate_members(m["members"], inputs, x0)
     elif m["kind"] == "oe":
         drive = ram_features(ddv, m["scale"], m["lags"]) @ np.asarray(m["weights"])
         drive[0] = 0

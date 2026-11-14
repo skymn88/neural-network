@@ -11,6 +11,8 @@ def sequence_features(ddv, reference):
     if delay:
         u = np.r_[np.repeat(u[0], delay), u[:-delay]]
     rate = np.interp(u, reference["knots"], reference["values"])
+    if "map_rate_limit" in reference:
+        rate = np.clip(rate, -reference["map_rate_limit"], reference["map_rate_limit"])
     if "zero_band" in reference:
         lo, hi = reference["zero_band"]
         rate[(u >= lo) & (u <= hi)] = 0
@@ -93,11 +95,35 @@ def sequence_raw(spec, features):
     return out
 
 
-def sequence_rate(spec, features, base_rate):
-    raw = sequence_raw(spec, features)
+def combine_rate(spec, raw, base_rate):
+    """Shared clipping/gating policy for portable and accelerated inference."""
     rate = raw * spec["rate_scale"]
+    if "correction_limit" in spec:
+        rate = np.clip(rate, -spec["correction_limit"], spec["correction_limit"])
     if spec["residual"]:
         rate = base_rate + rate
     if spec["gate"]:
         rate[base_rate == 0] = 0
-    return np.clip(rate, -spec["rate_limit"], spec["rate_limit"])
+    limit = spec.get("output_rate_limit", spec["rate_limit"])
+    return np.clip(rate, -limit, limit)
+
+
+def sequence_rate(spec, features, base_rate):
+    return combine_rate(spec, sequence_raw(spec, features), base_rate)
+
+
+def integrate_rate(rate, initial, bounds):
+    x = np.empty(len(rate))
+    x[0] = initial
+    lo, hi = bounds
+    for k in range(1, len(rate)):
+        x[k] = min(hi, max(lo, x[k - 1] + rate[k] / 64))
+    return x
+
+
+def ensemble_rate(ram, ddv):
+    rates = []
+    for member in ram["members"]:
+        features, base = sequence_features(ddv, member["reference"])
+        rates.append(sequence_rate(member["sequence"], features, base))
+    return np.mean(rates, axis=0)

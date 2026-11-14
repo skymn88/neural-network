@@ -15,6 +15,7 @@ MINIMUM = {
     "fastapi": (0, 115),
     "pydantic": (2, 0),
     "uvicorn": (0, 30),
+    "python_multipart": (0, 0),
 }
 
 PACKAGES = (
@@ -26,6 +27,7 @@ PACKAGES = (
     "fastapi",
     "pydantic",
     "uvicorn",
+    "python_multipart",
 )
 
 
