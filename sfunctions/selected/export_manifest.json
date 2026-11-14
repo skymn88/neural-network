@@ -1,0 +1,26 @@
+{
+  "model": "03_lstm",
+  "models_json_sha256": "2f965ea3e964d5cbe8bbec947b45ef4f24db0fc3f14e6166db9ef3e96de9cc17",
+  "selected_model_sha256": "65dada678fef4891b430aaa79a964bf8d5b901c9fa074809ad9bd50c73de3ded",
+  "sample_rate": 64,
+  "training_seeds": [
+    42,
+    43,
+    44
+  ],
+  "members": 3,
+  "families": [
+    "lstm",
+    "lstm",
+    "lstm"
+  ],
+  "ram_initialization": "physical RAM x0 block parameter; first output equals x0",
+  "mexw64_built": false,
+  "portable_c_validation": {
+    "flights": 8,
+    "checks": 32,
+    "maximum_rmse_difference": 6.394884621840902e-14,
+    "compiler": "GCC C99 -O2 -Wall -Wextra -Werror",
+    "windows_mex_tested": false
+  }
+}

@@ -2,6 +2,24 @@
 
 Her geliştirme commitinde bu dosya güncellenir: değişiklik, deney/protokol, gerçekten çalıştırılan kontrol ve bilinen sınır kaydedilir. Başarısız denemeler silinmez. Aşağıdaki Git geçmişi eksiksizdir; Git öncesi bilgiler kullanıcı konuşmasından alınmıştır, bağımsız doğrulanmış deney kaydı değildir.
 
+## Py-0.11 — 2026-11-14 — Üç ek ayar ve üç C MEX S-Function
+
+- Önceki geniş çalışma `1eceef0` commitinde dev_CodexPy'ye pushlandı. Bu tur **3 yeni ayar × seed42/43/44 = 9 eğitim**, 14 TRAIN ve değişmeyen 8 validation uçuşu; TEST kapalı. DDV/açı/reference, TRAIN %99.9 kırpma ve split/fingerprint değişmedi. Seçim en düşük validation RAM Cascade Fit, sonra macro ortalama; negatif/nonfinite Cascade TRAIN/VAL/seed-VAL adayı dışlar. Üç yeni adayın tamamı bu guard'dan geçti; TEST satırının seçime etki etmediği test edildi.
+
+| Aday | Ayar | Val min | Val macro | Val birleşik |
+|---|---|---:|---:|---:|
+| Önceki LSTM ensemble | 24/800/h256, position loss .2 |40.39|76.83|71.08|
+| 01 GRU ensemble |24/800/h256, position loss .2|42.37|76.87|72.18|
+| 02 LSTM ensemble |24/1000/h512, position loss .8|24.90|74.86|67.79|
+| **03 LSTM ensemble** |**32/800/h256, position loss .5**|**44.10**|**76.97**|**73.05**|
+
+- Seçilen03: RAM Cascade birleşik Train/Val **87.03/73.05**; Angle Cascade **86.54/72.95**. RAM Component birleşik **43.88/28.96**, validation macro32.39/min3.17: kötüleşme açıkça kaydedildi, Cascade kazancı tüm alt modellerin iyileşmesi değildir. DDV tahmin hatasına uyum riski vardır. TRAIN95/VAL90 hedefi sağlanmadı; gerçek uçuş iddiası yok. Süre **910.00 s**, eğitim + tam-uçuş/Component/seed değerlendirmesi + raporlama. Kayıtlı sonuç `python/reference_results/20261114_120056_276528/`; üç ayar bitince duruldu.
+- `export_sfunctions.py` JSON ağırlıklarını C'ye gömer: DDV FIR/rich basis, stationary null observer, gecikme, learned rate-map, clipping, LSTM/GRU kapıları, readout, hız ensemble'ı, RAM integratörü ve açı polinomu. Desteklenmeyen observer/aile/uyumsuz shape açık hatadır. C çıkarımda JSON/Python/PyTorch okunmaz; heap/dinamik state yok. Model/source SHA256 export_manifest'te.
+- `sfunctions/selected`: **bb_curr_ddv.c, bb_ddv_ram.c, bb_ram_angle.c**, ortak core/header/katsayılar; Level-2 C MEX wrapper. Her örneğin DWork state'i ayrı; mdlOutputs geçici kopyada hesaplar, mdlUpdate tek örnek ilerler. RAM tek başlangıç konumu parametresi alır; fiziksel giriş/çıkışlar. Model64Hz, 200Hz arayüz dış Rate Transition/hold ile sağlanır, modele5ms adım uygulanmaz.
+- **Gerçekte çalıştırılanlar:** Linux GCC C99 `-O2 -Wall -Wextra -Werror` derlemesi; LSTM/GRU NumPy–C örnek bazlı parity, Component yolu, reset, bağımsız state ve tekrarlanan mdlOutputs testleri. Test SimStruct header'ı bir test double'ıdır, MathWorks runtime değildir. Hem ara GRU hem son LSTM için tüm8 validation uçuşunda DDV/RAM_Component/RAM_Cascade/Angle_Cascade **32 C–Python RMSE karşılaştırması geçti**, maksimum fark **6.394884621840902e-14**. Son modelin kanıtı Diagnostics ve export_manifest'te. TEST hesaplanmadı.
+- Python3.9 son tam paket **63 test geçti (10.02 s)**; negatif-seed/TEST izolasyonu dahil. Son hedefli C testleri2/2 tekrar geçti. Ruff/compileall, immutable MAT SHA256 ve MISS_HIT `--matlab 2019a` ile2 MATLAB build/verification script'i geçti. Derleme stub kontrolleri gerçek MEX yükleme testi değildir.
+- **Üretilmeyen çıktı:** `.mexw64`; bu Linux ortamında Windows MATLAB/MEX derleyicisi yok. Linux `.so` yalnız test için üretildi ve silindi, Windows MEX gibi etiketlenmedi. Kullanıcının Windows MATLAB'ında `build_sfunctions` üç MEX dosyasını üretir; `verify_sfunctions` geçici üç-blok Simulink modeliyle deterministik Python fixture karşılaştırmasını yapar. Bu iki MATLAB komutu burada çalıştırılmadı. C kodu üretildi/derlendi; Windows MEX doğrulaması açık kalan adımdır.
+
 ## Py-0.10 — 2026-11-13 — Çok uçuşlu genelleme, veri/UI ve sunum
 
 Önceki commit `da39402` üzerine; kullanıcı token sınırında yeni denemelerin kesilmesini istedi. Yeni varsayılan model/split seçilmedi; değişiklikler opt-in, TEST kapalı, eski sentetik fingerprint ve synthetic_rich.mat korunur.

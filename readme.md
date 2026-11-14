@@ -163,3 +163,20 @@ Sınırlı kapasite araması: `python python\run_train_search.py` — en fazla20
 TCN, Elman ve RBF tam deneyleri; TRAIN-hata ağırlıklı pencere örneklemesi; LSTM'nin hafıza katmanını sabit tutup tam-uçuş konum hatasıyla çıkış ağırlığı düzeltmesi karşılaştırılır. Varsayılan eğitim ayarları değişmez. `python/results/audits/` altında Summary/PerFlight/Search/CandidateFlights içeren XLSX, model ve arama kayıtları oluşur. Arayüzde bu koşu için başlık **en düşük TRAIN uçuş Fit** değerini gösterir; normal eski koşuların başlığı korunur.
 
 Bu turun 20 adayı iki şartı birlikte geçemedi. TRAIN-only lider: pooled93.99/min93.11/VAL72.30; diğer LSTM: pooled92.20/min86.83/VAL78.24. Önceki model min86.85/VAL76.27 ile mevcut sıralamada korunuyor. `start.bat` sonrası **20261113_044434_000000** kaydı bu üç modeli karşılaştırır; yeniden eğitim gerekmez. Bu kayıt minimum TRAIN kriterini gösterir, eski LSTM presetini otomatik değiştirmez. Ayrıntılar ve 20 adayın tamamı changelog/Search/CandidateFlights içindedir.
+
+## C MEX S-Function dışa aktarımı
+
+Son kayıt **20261114_120056_276528**: üç ek ayar sonunda LSTM32 ×3 seed seçildi. RAM Cascade validation birleşik **%73.05**, macro **%76.97**, minimum **%44.10**. RAM Component validation **%28.96**; bu sınırlama korunuyor. Test kapalı; model gerçek uçuşla doğrulanmadı. Deneyi tekrarlamak için `python python/run_deployment_search.py` (bu ortamda yaklaşık15 dakika).
+
+Seçilen modelin katsayıları [sfunctions/selected](sfunctions/selected) altında C/header dosyalarına gömülür; çalışma anında JSON/Python/PyTorch gerekmez. Üç ayrı blok: `bb_curr_ddv`, `bb_ddv_ram`, `bb_ram_angle`. **Bu Linux ortamında Windows MATLAB yok; .mexw64 henüz derlenmiş değildir.** Windows x64 MATLAB R2019a + Simulink ve desteklenen C derleyicisiyle, MATLAB Current Folder'ı bu klasöre getir:
+
+```matlab
+build_sfunctions
+verify_sfunctions
+```
+
+İlk kullanımda gerekirse `mex -setup C`. İlk komut üç `.mexw64` üretir; ikincisi geçici Simulink modeliyle Python fixture karşılaştırması yapar. Derleme betikleri internete bağlanmaz. RAM bloğunun tek parametresi başlangıç RAM konumudur (ör. `-100`, kendi fiziksel biriminde). Diğer iki blok parametresizdir.
+
+Model örnekleme süresi **1/64 s**; 5 ms'ye değiştirilemez. 200 Hz arayüz için dışarıda Rate Transition/hold kullanılır; ortak sabit çözücü adımı iki hızı da karşılamalıdır (ör. 1/1600 s), zamanlama gecikmesi host modelde kontrol edilir. State her blok örneğine özeldir; RAM/açı ölçümüyle çalışma sırasında düzeltme yapılmaz.
+
+Başka bir eğitilmiş LSTM/GRU JSON modelini yeniden gömmek için: `python python/export_sfunctions.py models.json --model MODEL_ADI --output sfunctions/selected`. Stationary null observer ve ortak referanslı sequence/ensemble yapısı desteklenir; diğer yapılar açık hatayla reddedilir. Standalone C çekirdeği Linux GCC ile sınanır; bu, MATLAB MEX yükleme testi yerine geçmez.
