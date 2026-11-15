@@ -2,7 +2,7 @@
 import json, subprocess, sys, os
 import numpy as np
 here = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.dirname(here))
+sys.path.insert(0, os.environ.get("ACTUATOR_PY", os.path.dirname(here)))
 from actuator.inference import rollout, predict_ddv, angle_values
 from actuator.data import pulse_flights
 path = sys.argv[1]; names = sys.argv[2:] or list(json.load(open(path)))

@@ -10,8 +10,16 @@ def main():
     out = sys.argv[3] if len(sys.argv) > 3 else "actuator_params.h"
     M = json.load(open(path))[name]
     d, r, a = M["ddv"], M["ram"], M["angle"]
-    if r["kind"] != "null_rate":
-        raise SystemExit("only ram.kind == null_rate is supported")
+    seq = r["kind"] == "sequence_rate"
+    if seq and r["sequence"]["family"] != "lstm":
+        raise SystemExit("only lstm sequence models are supported")
+    if not seq and r["kind"] != "null_rate":
+        raise SystemExit("unsupported ram.kind")
+    bounds = r["bounds"]
+    if seq:
+        S = r["sequence"]; r = r["reference"]
+    else:
+        S = None
     if d.get("basis", "legacy") != "rich":
         raise SystemExit("only ddv.basis == rich is supported")
     o = r["observer"]
@@ -31,11 +39,27 @@ def main():
          f"#define RAM_NK {len(r['knots'])}",
          f"static const double RAM_KNOTS[RAM_NK] = {arr(r['knots'])};",
          f"static const double RAM_VALUES[RAM_NK] = {arr(r['values'])};",
-         f"#define RAM_LO {float(r['bounds'][0])!r}", f"#define RAM_HI {float(r['bounds'][1])!r}",
+         f"#define RAM_LO {float(bounds[0])!r}", f"#define RAM_HI {float(bounds[1])!r}",
          f"#define RAM_HAS_ZB {int(zb is not None)}",
          f"#define RAM_ZB0 {float(zb[0]) if zb else 0.0!r}", f"#define RAM_ZB1 {float(zb[1]) if zb else 0.0!r}",
          f"#define ANG_N {len(a['weights'])}", f"#define ANG_SCALE {float(a['scale'])!r}",
-         f"static const double ANG_W[ANG_N] = {arr(a['weights'])};", "#endif", ""]
+         f"static const double ANG_W[ANG_N] = {arr(a['weights'])};", "SEQ", "#endif", ""]
+    if S:
+        H, NI = S["hidden"], len(S["mean"])
+        flat = lambda m: [x for row in m for x in row]
+        SQ = [f"#define HAS_SEQ 1", f"#define SEQ_H {H}", f"#define SEQ_NIN {NI}",
+              f"#define SEQ_RSCALE {float(S['rate_scale'])!r}", f"#define SEQ_LIMIT {float(S['rate_limit'])!r}",
+              f"#define SEQ_RESIDUAL {int(bool(S['residual']))}", f"#define SEQ_GATE {int(bool(S['gate']))}",
+              f"#define SEQ_BIAS {float(S['bias'])!r}",
+              f"static const double SEQ_MEAN[{NI}] = {arr(S['mean'])};", f"static const double SEQ_SCALE[{NI}] = {arr(S['scale'])};",
+              f"static const double SEQ_HEAD[{H}] = {arr(S['head'])};",
+              f"static const double SEQ_WI[{4*H*NI}] = {arr(flat(S['wi']))};",
+              f"static const double SEQ_WH[{4*H*H}] = {arr(flat(S['wh']))};",
+              f"static const double SEQ_B[{4*H}] = {arr([a + b for a, b in zip(S['bi'], S['bh'])])};"]
+    else:
+        SQ = ["#define HAS_SEQ 0", "#define SEQ_H 1"]
+    L = [x for x in L if x != "SEQ"]
+    L[-2:-2] = SQ
     open(out, "w").write("\n".join(L))
     print("wrote", out)
 

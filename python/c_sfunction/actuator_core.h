@@ -34,7 +34,7 @@ static double ddv_step(DdvState *s, double u)
 typedef struct {
     double init, k, x, estimate, ready, was_quiet, previous;
     double high, low, high_at, low_at, has_high, has_low, prev_dir;
-    double win[QWN]; double dl[DLN];
+    double win[QWN]; double dl[DLN]; double hs[SEQ_H], cs[SEQ_H];
 } RamState;
 
 static double ram_rate_map(double u)
@@ -51,7 +51,7 @@ static double ram_rate_map(double u)
 static double ram_step(RamState *s, double z, double x0)
 {
     int i; double lo, hi, mn, mx, u, rate, alpha = 1.0 - exp(-1.0 / (FS * OBS_TAU));
-    int quiet = 0, is_quiet = 0;
+    int quiet = 0, is_quiet = 0; double delta, base;
     if (s->init == 0.0) {
         for (i = 0; i < QWN; i++) s->win[i] = z;
         for (i = 0; i < DLN; i++) s->dl[i] = 0.0;
@@ -90,6 +90,7 @@ static double ram_step(RamState *s, double z, double x0)
         }
     }
     u = z - s->estimate;
+    delta = z - s->previous;
     s->previous = z;
     if (RAM_DELAY > 0) {
         if (s->k == 0.0) for (i = 0; i < DLN; i++) s->dl[i] = u;
@@ -97,6 +98,33 @@ static double ram_step(RamState *s, double z, double x0)
     }
     rate = ram_rate_map(u);
     if (RAM_HAS_ZB && u >= RAM_ZB0 && u <= RAM_ZB1) rate = 0.0;
+    base = rate;
+#if HAS_SEQ
+    {
+        double f[SEQ_NIN], pre[4 * SEQ_H], hn[SEQ_H], raw = SEQ_BIAS; int g, j;
+        f[0] = z; f[1] = u; f[2] = s->estimate; f[3] = delta; f[4] = base;
+        for (i = 0; i < SEQ_NIN; i++) f[i] = (f[i] - SEQ_MEAN[i]) / SEQ_SCALE[i];
+        for (g = 0; g < 4 * SEQ_H; g++) {
+            double a = SEQ_B[g];
+            for (j = 0; j < SEQ_NIN; j++) a += SEQ_WI[g * SEQ_NIN + j] * f[j];
+            for (j = 0; j < SEQ_H; j++) a += SEQ_WH[g * SEQ_H + j] * s->hs[j];
+            pre[g] = a;
+        }
+        for (j = 0; j < SEQ_H; j++) {
+            double ig = 1.0 / (1.0 + exp(-fmax(-60.0, fmin(60.0, pre[j]))));
+            double fg = 1.0 / (1.0 + exp(-fmax(-60.0, fmin(60.0, pre[SEQ_H + j]))));
+            double gg = tanh(pre[2 * SEQ_H + j]);
+            double og = 1.0 / (1.0 + exp(-fmax(-60.0, fmin(60.0, pre[3 * SEQ_H + j]))));
+            s->cs[j] = fg * s->cs[j] + ig * gg;
+            hn[j] = og * tanh(s->cs[j]);
+        }
+        for (j = 0; j < SEQ_H; j++) { s->hs[j] = hn[j]; raw += hn[j] * SEQ_HEAD[j]; }
+        rate = raw * SEQ_RSCALE;
+        if (SEQ_RESIDUAL) rate += base;
+        if (SEQ_GATE && base == 0.0) rate = 0.0;
+        rate = fmin(SEQ_LIMIT, fmax(-SEQ_LIMIT, rate));
+    }
+#endif
     if (s->k > 0.0) {
         lo = RAM_LO; hi = RAM_HI;
         s->x = fmin(hi, fmax(lo, s->x + rate / FS));

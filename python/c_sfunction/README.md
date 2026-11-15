@@ -3,4 +3,4 @@ Three blocks in series: `sfun_ddv` (current -> DDV), `sfun_ram` (DDV -> RAM, dia
 1. `python gen_params.py ../audit_results/<run>/models.json <model_name>` -> writes `actuator_params.h`
 2. In MATLAB: `mex sfun_ddv.c`, `mex sfun_ram.c`, `mex sfun_angle.c`; use S-Function blocks, sample time 1/64 s.
 3. `python run_parity.py <models.json>` checks the C core (`actuator_core.h`) against Python (gcc, ~1e-14).
-Supports ram.kind=null_rate with ddv.basis=rich (legacy/stationary/envelope observers). Simulink build itself is untested here.
+Committed `actuator_params.h` = `09_lstm` from dev_CodexPy `reference_results/20261113_044434_000000` (best LSTM on that dataset: train 92.2 / val 78.2; GRU `previous_gru` shows val 91.4 but train only 69, so not chosen). Supports ram.kind=null_rate or sequence_rate(lstm) with ddv.basis=rich (legacy/stationary/envelope observers). Simulink build itself is untested here.
