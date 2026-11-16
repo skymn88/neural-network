@@ -1,0 +1,12 @@
+{
+  "model": "null_rate_tau16",
+  "models_json_sha256": "ab4f265ca00e3ef751b19c93f836c8c986fb730bcad52f6637c71d5e100c2d30",
+  "selected_model_sha256": "c39d84a52fe0488fdfb2e8c0713fb74b2e3df2452afad9dc17c5d29092594216",
+  "sample_rate": 64,
+  "training_seeds": null,
+  "members": 0,
+  "families": [],
+  "ram_kind": "null_rate",
+  "ram_initialization": "physical RAM x0 block parameter; first output equals x0",
+  "mexw64_built": false
+}

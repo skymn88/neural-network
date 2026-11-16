@@ -72,8 +72,9 @@ double bb_ram_step(BBRamState *s,double ddv){
         v=clamp(raw*w->rate_scale,-w->correction_limit,w->correction_limit);
         if(w->residual)v+=base;
         if(w->gate && base==0.0)v=0.0;
-        rate+=clamp(v,-w->output_limit,w->output_limit)/MEMBER_COUNT;
+        rate+=clamp(v,-w->output_limit,w->output_limit)/(MEMBER_COUNT>0?MEMBER_COUNT:1);
     }
+    if(MEMBER_COUNT==0)rate=base;
     if(s->ready)s->x=clamp(s->x+rate/64.0,RAM_LO,RAM_HI);
     s->ready=1;return s->x;
 }

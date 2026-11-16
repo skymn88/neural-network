@@ -2,6 +2,14 @@
 
 Her geliştirme commitinde bu dosya güncellenir: değişiklik, deney/protokol, gerçekten çalıştırılan kontrol ve bilinen sınır kaydedilir. Başarısız denemeler silinmez. Aşağıdaki Git geçmişi eksiksizdir; Git öncesi bilgiler kullanıcı konuşmasından alınmıştır, bağımsız doğrulanmış deney kaydı değildir.
 
+## Py-0.12 (Claude, ayrı dal) — 2026-11-16 — null_rate zaman sabiti taraması ve null_rate C dışa aktarımı
+
+- Aynı 14 TRAIN / 8 validation flight-like kohortunda (TEST kapalı) yalnız NumPy `null_rate` aileleri tarandı: stationary/envelope gözlemci, tau, gate genişletme, pencere iyileştirme. Sonuçlar `python/audit_results/null_rate_tau_grid_20261116/result.json`, betik `python/run_null_tau_grid.py`. Validation birleşik Fit (Cascade / Component): stationary tau2 **40.2 / 59.4**, tau4 40.2 / 64.5, **tau8 40.1 / 68.4, tau16 40.0 / 68.8**; envelope tau2 48.2 / 35.1; quiet 1 s ve 5 s pencere kötü. Component hedefi 70'e yaklaştı ama ulaşmadı; Cascade ~40'ta kaldı.
+- **Düzeltme:** `20261114_120056` sonucundaki `reference` satırı null_rate değil, önceki LSTM ensemble'dır (val 71.08). Sade null_rate bu kohortta Cascade'te LSTM ensemble'dan (73.05) çok geride (~40), Component'te ise ondan iyi (LSTM ~29). Önceki "LSTM yalnız ~2 puan kazandırıyor" yorumu yanlıştı.
+- `export_sfunctions.py` artık `ram.kind=null_rate` (LSTM üyesi olmayan) modeli de dışa aktarır (`MEMBER_COUNT=0`, hız = öğrenilmiş harita); yapı `sfunctions/selected` ile aynı: `sfunctions/null_rate_tau16/` (Level-2, bb_curr_ddv/bb_ddv_ram/bb_ram_angle, model_coefficients.h, build/verify .m). Linux GCC `-Wall -Wextra -Werror` derlemesi geçti; 8 validation uçuşunda C–Python RAM RMSE farkı en çok **9.6e-14**. Windows MEX ve Simulink doğrulaması çalıştırılmadı. torch olmadığından mevcut `test_c_export` bu ortamda çalışmadı (değişiklikten önce de aynı hata).
+- Dağıtım notu: S-Function zinciri Cascade'i çalıştırır; Cascade'e göre en iyi model hâlâ `sfunctions/selected` (LSTM ensemble). null_rate_tau16 Component'e göre daha iyidir. tau16 çok yavaş null izler; gerçek uçuşta doğrulanmadı.
+- Denenmeyenler: DDV→RAM'e akım ve RAM→açı'ya akım+DDV ekleme için yalnız basit doğrusal hız düzeltmesi denendi (hepsi kötüleşti); Angle Component zaten ~99.9 olduğundan açı aşamasında iyileşme payı yoktur. Konum hedefli (torch) eğitim yapılmadı.
+
 ## Py-0.11 — 2026-11-14 — Üç ek ayar ve üç C MEX S-Function
 
 - Önceki geniş çalışma `1eceef0` commitinde dev_CodexPy'ye pushlandı. Bu tur **3 yeni ayar × seed42/43/44 = 9 eğitim**, 14 TRAIN ve değişmeyen 8 validation uçuşu; TEST kapalı. DDV/açı/reference, TRAIN %99.9 kırpma ve split/fingerprint değişmedi. Seçim en düşük validation RAM Cascade Fit, sonra macro ortalama; negatif/nonfinite Cascade TRAIN/VAL/seed-VAL adayı dışlar. Üç yeni adayın tamamı bu guard'dan geçti; TEST satırının seçime etki etmediği test edildi.

@@ -22,12 +22,16 @@ def export(path, selected, out):
     catalog = json.loads(path.read_text())
     model = catalog[selected] if selected else catalog
     ram = model["ram"]
-    members = ram["members"] if ram["kind"] == "rate_ensemble" else [ram]
-    if ram["kind"] not in ("rate_ensemble", "sequence_rate"):
+    null_only = ram["kind"] == "null_rate"  # no recurrent members: learned rate map only
+    members = (
+        [] if null_only else ram["members"] if ram["kind"] == "rate_ensemble" else [ram]
+    )
+    if ram["kind"] not in ("rate_ensemble", "sequence_rate", "null_rate"):
         raise ValueError(
-            "Export supports LSTM/GRU sequence_rate and rate_ensemble only"
+            "Export supports null_rate, LSTM/GRU sequence_rate and rate_ensemble only"
         )
-    ref = members[0]["reference"]
+    ref = ram if null_only else members[0]["reference"]
+    bounds = ram["bounds"] if null_only else members[0]["bounds"]
     obs = ref["observer"]
     ddv = model["ddv"]
     angle = model["angle"]
@@ -39,13 +43,13 @@ def export(path, selected, out):
             "gru",
         ):
             raise ValueError("LSTM/GRU members required")
-        if member["reference"] != ref or member["bounds"] != members[0]["bounds"]:
+        if member["reference"] != ref or member["bounds"] != bounds:
             raise ValueError("Shared reference and bounds required")
     if ddv.get("basis", "legacy") not in ("rich", "legacy"):
         raise ValueError("Unsupported DDV basis")
     if any(float(v) <= 0 for v in [ddv["scale"], angle["scale"], obs["tau"]]):
         raise ValueError("Positive scales required")
-    h = max(m["sequence"]["hidden"] for m in members)
+    h = max([m["sequence"]["hidden"] for m in members] + [1])
     count = len(members)
     defines = dict(
         DDV_HISTORY=ddv["lags"] + 1,
@@ -71,7 +75,7 @@ def export(path, selected, out):
         + "".join(f"#define {k} {v}\n" for k, v in defines.items())
         + """
 typedef struct {double ready,u[DDV_HISTORY];} BBDdvState;
-typedef struct {double ready,x,center,previous,was_quiet;double ddv[QUIET_WINDOW],delay[REF_DELAY+1];double hidden[MEMBER_COUNT][MAX_HIDDEN],cell[MEMBER_COUNT][MAX_HIDDEN];} BBRamState;
+typedef struct {double ready,x,center,previous,was_quiet;double ddv[QUIET_WINDOW],delay[REF_DELAY+1];double hidden[MEMBER_COUNT+1][MAX_HIDDEN],cell[MEMBER_COUNT+1][MAX_HIDDEN];} BBRamState;
 size_t bb_ddv_state_size(void);size_t bb_ram_state_size(void);
 void bb_ddv_init(BBDdvState *s);double bb_ddv_step(BBDdvState *s,double current);
 void bb_ram_init(BBRamState *s,double x0);double bb_ram_step(BBRamState *s,double ddv);
@@ -115,8 +119,8 @@ double bb_angle(double ram);
         REF_ZERO_BAND=int("zero_band" in ref),
         REF_ZERO_LO=ref.get("zero_band", [0, 0])[0],
         REF_ZERO_HI=ref.get("zero_band", [0, 0])[1],
-        RAM_LO=members[0]["bounds"][0],
-        RAM_HI=members[0]["bounds"][1],
+        RAM_LO=bounds[0],
+        RAM_HI=bounds[1],
     ).items():
         scalar(name, value)
     array("REF_U", ref["knots"])
@@ -159,7 +163,9 @@ double bb_angle(double ram);
         )
         entries.append("{" + ",".join(values) + "}")
     coefficients.append(
-        "static const BBWeights MEMBERS[MEMBER_COUNT]={" + ",\n".join(entries) + "};"
+        "static const BBWeights MEMBERS[MEMBER_COUNT+1]={"
+        + ",\n".join(entries or ["{0}"])
+        + "};"
     )
     out.mkdir(parents=True, exist_ok=True)
     (out / "actuator_core.h").write_text(header)
@@ -244,6 +250,7 @@ static void mdlCheckParameters(SimStruct *S){const mxArray *p=ssGetSFcnParam(S,0
         training_seeds=model.get("training_seeds"),
         members=count,
         families=[m["sequence"]["family"] for m in members],
+        ram_kind=ram["kind"],
         ram_initialization="physical RAM x0 block parameter; first output equals x0",
         mexw64_built=False,
     )
